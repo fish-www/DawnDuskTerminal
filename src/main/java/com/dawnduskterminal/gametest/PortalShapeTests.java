@@ -55,9 +55,9 @@ public final class PortalShapeTests {
 
     @GameTest(template = "ddt_empty")
     public static void plantedPoolIsPortal(GameTestHelper helper) {
-        buildFloor(helper, ModTerrainBlocks.SKY_STONE.get());
+        buildFloor(helper, ModTerrainBlocks.CANOPY_STONE.get());
         buildPool(helper);
-        buildRim(helper, ModBlocks.SKY_SOIL.get(), Blocks.SHORT_GRASS);
+        buildRim(helper, ModTerrainBlocks.ROSY_GRASS.get(), Blocks.SHORT_GRASS);
         ServerLevel level = helper.getLevel();
         helper.assertTrue(PortalShape.find(level, helper.absolutePos(new BlockPos(POOL_MIN, POOL_Y, POOL_MIN))).isPresent(),
             "planted pool should be recognised as a portal shape");
@@ -66,7 +66,7 @@ public final class PortalShapeTests {
 
     @GameTest(template = "ddt_empty")
     public static void barrenPoolIsNotPortal(GameTestHelper helper) {
-        buildFloor(helper, ModTerrainBlocks.SKY_STONE.get());
+        buildFloor(helper, ModTerrainBlocks.CANOPY_STONE.get());
         buildPool(helper);
         buildRim(helper, Blocks.GLASS, null);
         ServerLevel level = helper.getLevel();
@@ -77,9 +77,9 @@ public final class PortalShapeTests {
 
     @GameTest(template = "ddt_empty")
     public static void poolWithoutPlantsIsNotPortal(GameTestHelper helper) {
-        buildFloor(helper, ModTerrainBlocks.SKY_STONE.get());
+        buildFloor(helper, ModTerrainBlocks.CANOPY_STONE.get());
         buildPool(helper);
-        buildRim(helper, ModBlocks.SKY_SOIL.get(), null);
+        buildRim(helper, ModTerrainBlocks.ROSY_GRASS.get(), null);
         ServerLevel level = helper.getLevel();
         helper.assertTrue(PortalShape.find(level, helper.absolutePos(new BlockPos(POOL_MIN, POOL_Y, POOL_MIN))).isEmpty(),
             "open air above the rim must not count as plants");
@@ -88,7 +88,7 @@ public final class PortalShapeTests {
 
     @GameTest(template = "ddt_empty")
     public static void loneWaterBlockIsNotPortal(GameTestHelper helper) {
-        buildFloor(helper, ModTerrainBlocks.SKY_STONE.get());
+        buildFloor(helper, ModTerrainBlocks.CANOPY_STONE.get());
         helper.setBlock(new BlockPos(POOL_MIN, POOL_Y, POOL_MIN), Blocks.WATER);
         ServerLevel level = helper.getLevel();
         helper.assertTrue(PortalShape.find(level, helper.absolutePos(new BlockPos(POOL_MIN, POOL_Y, POOL_MIN))).isEmpty(),
@@ -98,9 +98,9 @@ public final class PortalShapeTests {
 
     @GameTest(template = "ddt_empty")
     public static void buildFillsPoolWithPortalFluid(GameTestHelper helper) {
-        buildFloor(helper, ModTerrainBlocks.SKY_STONE.get());
+        buildFloor(helper, ModTerrainBlocks.CANOPY_STONE.get());
         buildPool(helper);
-        buildRim(helper, ModBlocks.SKY_SOIL.get(), Blocks.SHORT_GRASS);
+        buildRim(helper, ModTerrainBlocks.ROSY_GRASS.get(), Blocks.SHORT_GRASS);
         ServerLevel level = helper.getLevel();
         BlockPos seed = helper.absolutePos(new BlockPos(POOL_MIN, POOL_Y, POOL_MIN));
         helper.assertTrue(PortalBuilder.build(level, seed), "build should succeed on a valid pool");

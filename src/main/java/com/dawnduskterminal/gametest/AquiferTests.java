@@ -1,22 +1,25 @@
 package com.dawnduskterminal.gametest;
 
+import com.dawnduskterminal.registry.ModBlocks;
+import com.dawnduskterminal.registry.ModTerrainBlocks;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
-import net.minecraft.world.level.levelgen.NoiseRouter;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+/**
+ * The chrono noise settings are a port of {@code minecraft:noise_settings/overworld.json} whose
+ * terrain block, aquifer fluid and surface rule already name the chrono palette - the dimension
+ * generates its own blocks directly, rather than generating a vanilla column that gets rewritten.
+ */
 @GameTestHolder("dawnduskterminal")
 @PrefixGameTestTemplate(false)
 public final class AquiferTests {
-    private static final int SEA_LEVEL = 62;
+    private static final int VANILLA_SEA_LEVEL = 63;
     private static final ResourceLocation CHRONO = ResourceLocation.fromNamespaceAndPath("dawnduskterminal", "chrono");
 
     private static NoiseGeneratorSettings chronoSettings(GameTestHelper helper) {
@@ -27,33 +30,32 @@ public final class AquiferTests {
         return settings;
     }
 
+    /** The generator itself must name the mod's blocks - that is what makes the palette native. */
     @GameTest(template = "ddt_empty")
-    public static void aquifersAreEnabledLikeVanilla(GameTestHelper helper) {
+    public static void terrainAndFluidUseTheModPalette(GameTestHelper helper) {
         NoiseGeneratorSettings settings = chronoSettings(helper);
-        helper.assertTrue(settings.aquifersEnabled(), "chrono must keep aquifers enabled");
-        helper.assertTrue(settings.defaultFluid().is(Blocks.WATER), "default fluid must be water so oceans fill up");
-        helper.assertTrue(settings.seaLevel() == SEA_LEVEL, "sea level must stay " + SEA_LEVEL);
+        helper.assertTrue(settings.defaultBlock().is(ModTerrainBlocks.CANOPY_STONE.get()),
+            "the chrono terrain must be generated as canopy_stone, got " + settings.defaultBlock());
+        helper.assertTrue(settings.defaultFluid().is(ModBlocks.PORTAL_FLUID.get()),
+            "aquifers and oceans must be generated as portal_fluid, got " + settings.defaultFluid());
         helper.succeed();
     }
 
     @GameTest(template = "ddt_empty")
-    public static void undergroundStaysDry(GameTestHelper helper) {
-        NoiseRouter router = chronoSettings(helper).noiseRouter();
-        DensityFunction floodedness = router.fluidLevelFloodednessNoise();
-        DensityFunction lava = router.lavaNoise();
-        for (int y = -64; y <= 320; y += 8) {
-            for (int x = -768; x <= 768; x += 256) {
-                DensityFunction.FunctionContext ctx = new DensityFunction.SinglePointContext(x, y, x * 3 + 17);
-                double flooded = Mth.clamp(floodedness.compute(ctx), -1.0D, 1.0D);
-                if (y <= 8) {
-                    helper.assertTrue(flooded <= -1.0D,
-                        "floodedness at or below y 8 must be pinned to -1 so no water spawns, got "
-                            + flooded + " at " + y);
-                }
-                helper.assertTrue(lava.compute(ctx) == 0.0D,
-                    "lava noise must be a zero constant, got " + lava.compute(ctx) + " at " + y);
-            }
-        }
+    public static void aquifersAreEnabledLikeVanilla(GameTestHelper helper) {
+        NoiseGeneratorSettings settings = chronoSettings(helper);
+        helper.assertTrue(settings.aquifersEnabled(), "chrono must keep aquifers enabled");
+        helper.assertTrue(settings.seaLevel() == VANILLA_SEA_LEVEL,
+            "sea level must match the vanilla overworld value " + VANILLA_SEA_LEVEL + ", got " + settings.seaLevel());
+        helper.succeed();
+    }
+
+    @GameTest(template = "ddt_empty")
+    public static void oreVeinsAreEnabledLikeVanilla(GameTestHelper helper) {
+        NoiseGeneratorSettings settings = chronoSettings(helper);
+        helper.assertTrue(settings.oreVeinsEnabled(),
+            "the port keeps vanilla ore veins; the old hand-rolled terrain disabled them to hide the "
+                + "granite/andesite they blended with canopy_stone, which no longer applies");
         helper.succeed();
     }
 }
