@@ -38,9 +38,11 @@
 
 `portal/PortalBuilder.build`
 
-对判定出的水池方块逐个替换成 `dawnduskterminal:portal_fluid`
+先把判定出的水池方块清成空气，再逐个替换成 `dawnduskterminal:portal_fluid`
 
 已经是传送门流体的跳过
+
+两趟是必须的：传送门流体一碰到水就会被流体反应变成 `fragile_canopy`，而反应在 `LiquidBlock#onPlace` 上立即生效，边清边灌的话先灌好的那些邻居还是水，会被反应吃掉
 
 ## 触发
 

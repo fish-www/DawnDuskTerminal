@@ -5,8 +5,11 @@ import com.dawnduskterminal.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public final class PortalBuilder {
@@ -21,12 +24,19 @@ public final class PortalBuilder {
         if (found.isEmpty()) {
             return false;
         }
-        BlockState portal = ModBlocks.PORTAL_FLUID.get().defaultBlockState();
+        List<BlockPos> targets = new ArrayList<>();
         for (BlockPos pos : found.get().waterBlocks()) {
-            BlockState existing = level.getBlockState(pos);
-            if (PortalShape.isPortalFluid(existing)) {
-                continue;
+            if (!PortalShape.isPortalFluid(level.getBlockState(pos))) {
+                targets.add(pos);
             }
+        }
+        // 先把整池水清空再灌传送门流体。不能边清边灌：传送门流体一碰到水就被 FluidReactions 变成
+        // fragile_canopy（走 LiquidBlock#onPlace 立即生效），先灌好的那些邻居还是水，会被反应吃掉
+        for (BlockPos pos : targets) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+        }
+        BlockState portal = ModBlocks.PORTAL_FLUID.get().defaultBlockState();
+        for (BlockPos pos : targets) {
             level.setBlock(pos, portal, 3);
         }
         return true;
