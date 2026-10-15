@@ -6,20 +6,32 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 晨昏线维度允许生成哪些结构的唯一出处
+ * 晨昏线维度的结构表，也是「允许生成哪些结构」的唯一出处
  *
- * <p>{@code StructureExclusionMixin} 会压制 id <em>不</em>在这张白名单里的每一个结构，所以这一张表就
- * 是全部排除策略：在这里就是允许，其余一律排除。之前的 {@code EXCLUDED_TF} / {@code EXCLUDED_VANILLA}
- * 黑名单和 {@code WHITELIST} 是三张语义互相矛盾又重叠的表，现在合并成这一张白名单。表里的名字只用于
- * 启动时的校验日志
+ * <p>{@code StructureExclusionMixin} 会压制 id <em>不</em>在 {@link #ALLOWED} 里的每一个结构，所以这一
+ * 张表就是全部排除策略：在这里就是允许，其余一律排除。之前的 {@code EXCLUDED_TF} / {@code EXCLUDED_VANILLA}
+ * 黑名单、{@code WHITELIST} 白名单，以及 {@code StructurePlacements} 里按原版与暮色森林分组的复用表，
+ * 语义互相矛盾又重叠，现在合并成这三张表。只有 {@link #ALLOWED} 影响行为，另外两张只用于启动时的校验
+ * 日志
  */
 public final class StructureExclusions {
+    /** 白名单。名字只用于启动时的校验日志 */
     private static final Map<String, ResourceLocation> ALLOWED = new LinkedHashMap<>();
+
+    /** 暮色森林里有、本维度有意不放行的结构。排除由「不在白名单」自然产生，这张表只为把差距写清楚 */
+    private static final Map<String, ResourceLocation> UNMAPPED = new LinkedHashMap<>();
+
+    /** 暮色森林的地标。它们不是注册的结构，靠暮色森林自己的群系标签摆放，这里只做记录 */
+    private static final List<String> LANDMARKS = List.of(
+        "黑曜石柱", "圆石阵", "水井", "地基遗迹", "德鲁伊小屋",
+        "石笋", "空心树墩", "树丛遗迹", "墓地"
+    );
 
     static {
         ALLOWED.put("废弃传送门", ResourceLocation.withDefaultNamespace("ruined_portal"));
@@ -41,6 +53,10 @@ public final class StructureExclusions {
         ALLOWED.put("营地", ResourceLocation.parse("twilightforest:camp"));
         ALLOWED.put("树篱迷宫", ResourceLocation.parse("twilightforest:hedge_maze"));
         ALLOWED.put("空心矿山", ResourceLocation.parse("twilightforest:small_hollow_hill"));
+
+        UNMAPPED.put("工兵矿山 文档未提", ResourceLocation.parse("twilightforest:medium_hollow_hill"));
+        UNMAPPED.put("亡灵矿山 文档未提", ResourceLocation.parse("twilightforest:large_hollow_hill"));
+        UNMAPPED.put("沼泽空心树 文档未提", ResourceLocation.parse("twilightforest:swamp_hollow_tree"));
     }
 
     private static final Set<ResourceLocation> ALLOWED_IDS = Set.copyOf(ALLOWED.values());
@@ -50,16 +66,21 @@ public final class StructureExclusions {
     private StructureExclusions() {}
 
     public static void validate(Registry<Structure> structures) {
+        report(structures, "allow-list", ALLOWED);
+        report(structures, "unmapped", UNMAPPED);
+        DawnDuskTerminal.LOGGER.info("DawnDuskTerminal landmark table has {} entries, landmarks are not registered structures, they follow the twilightforest biome tags",
+            LANDMARKS.size());
+    }
+
+    private static void report(Registry<Structure> structures, String group, Map<String, ResourceLocation> table) {
         int missing = 0;
-        for (Map.Entry<String, ResourceLocation> entry : ALLOWED.entrySet()) {
+        for (Map.Entry<String, ResourceLocation> entry : table.entrySet()) {
             if (!structures.containsKey(entry.getValue())) {
-                DawnDuskTerminal.LOGGER.warn("DawnDuskTerminal allowed structure {} {} is not registered",
-                    entry.getKey(), entry.getValue());
+                DawnDuskTerminal.LOGGER.warn("DawnDuskTerminal structure table {} {} is not registered", group, entry.getValue());
                 missing++;
             }
         }
-        DawnDuskTerminal.LOGGER.info("DawnDuskTerminal structure allow-list has {} entries, {} unresolvable",
-            ALLOWED.size(), missing);
+        DawnDuskTerminal.LOGGER.info("DawnDuskTerminal structure table {} has {} entries {} resolvable", group, table.size(), table.size() - missing);
     }
 
     public static boolean isAllowed(ResourceLocation id) {

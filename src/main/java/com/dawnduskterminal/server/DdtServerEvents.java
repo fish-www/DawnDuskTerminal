@@ -8,7 +8,6 @@ import com.dawnduskterminal.portal.PortalBlock;
 import com.dawnduskterminal.portal.PortalTrigger;
 import com.dawnduskterminal.progression.BossProgressTracker;
 import com.dawnduskterminal.structure.StructureExclusions;
-import com.dawnduskterminal.structure.StructurePlacements;
 import com.dawnduskterminal.world.ChronoLineState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
@@ -59,7 +58,6 @@ public final class DdtServerEvents {
             state.line().originX(), state.line().originZ(), state.line().normalX(), state.line().normalZ());
 
         Registry<Structure> structures = event.getServer().registryAccess().registryOrThrow(Registries.STRUCTURE);
-        StructurePlacements.validate(structures);
         StructureExclusions.validate(structures);
     }
 

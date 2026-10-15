@@ -133,7 +133,7 @@
 
 `StructureExclusionMixin` 排除不在白名单里的结构
 
-`structure/StructurePlacements` 记录复用与未映射项，服务端启动时校验并记日志
+同一文件里的 `UNMAPPED` 与 `LANDMARKS` 记录未放行的暮色森林结构与地标，只服务日志，不影响行为
 
 ## 高度与空置域
 

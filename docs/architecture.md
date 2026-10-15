@@ -226,9 +226,9 @@
 
 `structure/StructureExclusions` 是唯一白名单，`StructureExclusionMixin` 排除不在其中的结构
 
-`structure/StructurePlacements` 记录复用的原版与暮色森林结构，以及未映射项
+`structure/StructureExclusions` 里的 `UNMAPPED` 与 `LANDMARKS` 记录未放行项与地标，只服务日志
 
-两张表都在服务端启动时校验，缺失只记日志
+服务端启动时校验这几张表，缺失只记日志
 
 ## 已知遗留
 
