@@ -2,6 +2,8 @@ package com.dawnduskterminal.registry;
 
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.world.CanopyFrostLayerBlock;
+import com.dawnduskterminal.world.ChronoLeavesBlock;
+import com.dawnduskterminal.world.WitheredLeavesBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.grower.TreeGrower;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -42,46 +45,22 @@ public final class ModTerrainBlocks {
         "rosy_dirt", dirt());
 
     public static final DeferredBlock<Block> CANOPY_STONE = BLOCKS.registerSimpleBlock(
-        "canopy_stone", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.STONE)
-            .requiresCorrectToolForDrops()
-            .strength(2.5F, 9.0F)
-            .sound(SoundType.STONE));
+        "canopy_stone", stone(MapColor.STONE, 2.5F));
 
     public static final DeferredBlock<Block> OCHRE = BLOCKS.registerSimpleBlock(
-        "ochre_block", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.DIRT)
-            .requiresCorrectToolForDrops()
-            .strength(2.5F, 9.0F)
-            .sound(SoundType.STONE));
+        "ochre_block", stone(MapColor.DIRT, 2.5F));
 
     public static final DeferredBlock<Block> GREENSCHIST = BLOCKS.registerSimpleBlock(
-        "greenschist", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.QUARTZ)
-            .requiresCorrectToolForDrops()
-            .strength(2.5F, 9.0F)
-            .sound(SoundType.STONE));
+        "greenschist", stone(MapColor.QUARTZ, 2.5F));
 
     public static final DeferredBlock<Block> ECLOGITE = BLOCKS.registerSimpleBlock(
-        "eclogite", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.STONE)
-            .requiresCorrectToolForDrops()
-            .strength(5.0F, 9.0F)
-            .sound(SoundType.STONE));
+        "eclogite", stone(MapColor.STONE, 5.0F));
 
     public static final DeferredBlock<Block> CHARNOCKITE = BLOCKS.registerSimpleBlock(
-        "charnockite", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.DEEPSLATE)
-            .requiresCorrectToolForDrops()
-            .strength(5.0F, 9.0F)
-            .sound(SoundType.STONE));
+        "charnockite", stone(MapColor.DEEPSLATE, 5.0F));
 
     public static final DeferredBlock<Block> TWILIGHT_STONE = BLOCKS.registerSimpleBlock(
-        "twilight_stone", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.TERRACOTTA_GRAY)
-            .requiresCorrectToolForDrops()
-            .strength(2.5F, 9.0F)
-            .sound(SoundType.STONE));
+        "twilight_stone", stone(MapColor.TERRACOTTA_GRAY, 2.5F));
 
     public static final DeferredBlock<Block> ROAD_SAND = BLOCKS.registerSimpleBlock(
         "road_sand", copied(Blocks.SAND));
@@ -90,11 +69,7 @@ public final class ModTerrainBlocks {
         "unconscious_sand", copied(Blocks.RED_SAND));
 
     public static final DeferredBlock<Block> SILTSTONE = BLOCKS.registerSimpleBlock(
-        "siltstone", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.TERRACOTTA_WHITE)
-            .requiresCorrectToolForDrops()
-            .strength(1.5F, 9.0F)
-            .sound(SoundType.STONE));
+        "siltstone", stone(MapColor.TERRACOTTA_WHITE, 1.5F));
 
     // 用 HalfTransparentBlock，也就是原版冰和原版玻璃共同继承的那个类
     // （IceBlock 继承 HalfTransparentBlock，TransparentBlock 继承 HalfTransparentBlock，玻璃是
@@ -194,43 +169,36 @@ public final class ModTerrainBlocks {
         ITEMS.registerSimpleBlockItem(ENCASED_TOWERBEAM);
 
     public static final DeferredBlock<Block> SCARLET_MOLYBDENUM_ORE = BLOCKS.registerSimpleBlock(
-        "scarlet_molybdenum_ore", BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_RED)
-            .requiresCorrectToolForDrops()
-            .strength(2.5F, 9.0F)
-            .sound(SoundType.STONE));
+        "scarlet_molybdenum_ore", stone(MapColor.COLOR_RED, 2.5F));
 
     public static final DeferredItem<BlockItem> SCARLET_MOLYBDENUM_ORE_ITEM =
         ITEMS.registerSimpleBlockItem(SCARLET_MOLYBDENUM_ORE);
 
-    public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> DAWN_LOG =
-        BLOCKS.registerBlock("dawn_log", net.minecraft.world.level.block.RotatedPillarBlock::new, log(MapColor.WOOD));
-    public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> DUSK_LOG =
-        BLOCKS.registerBlock("dusk_log", net.minecraft.world.level.block.RotatedPillarBlock::new, log(MapColor.WOOD));
-    public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> CHRONO_LOG =
-        BLOCKS.registerBlock("chrono_log", net.minecraft.world.level.block.RotatedPillarBlock::new, log(MapColor.WOOD));
+    public static final DeferredBlock<RotatedPillarBlock> DAWN_LOG =
+        BLOCKS.registerBlock("dawn_log", RotatedPillarBlock::new, log(MapColor.WOOD));
+    public static final DeferredBlock<RotatedPillarBlock> DUSK_LOG =
+        BLOCKS.registerBlock("dusk_log", RotatedPillarBlock::new, log(MapColor.WOOD));
+    public static final DeferredBlock<RotatedPillarBlock> CHRONO_LOG =
+        BLOCKS.registerBlock("chrono_log", RotatedPillarBlock::new, log(MapColor.WOOD));
 
-    public static final DeferredBlock<com.dawnduskterminal.world.WitheredLeavesBlock> WITHERED_DAWN_LEAVES =
-        BLOCKS.registerBlock("withered_dawn_leaves", com.dawnduskterminal.world.WitheredLeavesBlock::new,
-            witheredLeaves());
-    public static final DeferredBlock<com.dawnduskterminal.world.WitheredLeavesBlock> WITHERED_DUSK_LEAVES =
-        BLOCKS.registerBlock("withered_dusk_leaves", com.dawnduskterminal.world.WitheredLeavesBlock::new,
-            witheredLeaves());
-    public static final DeferredBlock<com.dawnduskterminal.world.WitheredLeavesBlock> WITHERED_CHRONO_LEAVES =
-        BLOCKS.registerBlock("withered_chrono_leaves", com.dawnduskterminal.world.WitheredLeavesBlock::new,
-            witheredLeaves());
+    public static final DeferredBlock<WitheredLeavesBlock> WITHERED_DAWN_LEAVES =
+        BLOCKS.registerBlock("withered_dawn_leaves", WitheredLeavesBlock::new, witheredLeaves());
+    public static final DeferredBlock<WitheredLeavesBlock> WITHERED_DUSK_LEAVES =
+        BLOCKS.registerBlock("withered_dusk_leaves", WitheredLeavesBlock::new, witheredLeaves());
+    public static final DeferredBlock<WitheredLeavesBlock> WITHERED_CHRONO_LEAVES =
+        BLOCKS.registerBlock("withered_chrono_leaves", WitheredLeavesBlock::new, witheredLeaves());
 
-    public static final DeferredBlock<com.dawnduskterminal.world.ChronoLeavesBlock> DAWN_LEAVES =
+    public static final DeferredBlock<ChronoLeavesBlock> DAWN_LEAVES =
         BLOCKS.registerBlock("dawn_leaves",
-            properties -> new com.dawnduskterminal.world.ChronoLeavesBlock(properties, () -> WITHERED_DAWN_LEAVES.get()),
+            properties -> new ChronoLeavesBlock(properties, () -> WITHERED_DAWN_LEAVES.get()),
             leaves());
-    public static final DeferredBlock<com.dawnduskterminal.world.ChronoLeavesBlock> DUSK_LEAVES =
+    public static final DeferredBlock<ChronoLeavesBlock> DUSK_LEAVES =
         BLOCKS.registerBlock("dusk_leaves",
-            properties -> new com.dawnduskterminal.world.ChronoLeavesBlock(properties, () -> WITHERED_DUSK_LEAVES.get()),
+            properties -> new ChronoLeavesBlock(properties, () -> WITHERED_DUSK_LEAVES.get()),
             leaves());
-    public static final DeferredBlock<com.dawnduskterminal.world.ChronoLeavesBlock> CHRONO_LEAVES =
+    public static final DeferredBlock<ChronoLeavesBlock> CHRONO_LEAVES =
         BLOCKS.registerBlock("chrono_leaves",
-            properties -> new com.dawnduskterminal.world.ChronoLeavesBlock(properties, () -> WITHERED_CHRONO_LEAVES.get()),
+            properties -> new ChronoLeavesBlock(properties, () -> WITHERED_CHRONO_LEAVES.get()),
             leaves());
 
     public static final DeferredBlock<RotatedPillarBlock> SKYGATE_PINE_LOG =
@@ -282,11 +250,13 @@ public final class ModTerrainBlocks {
         return BlockBehaviour.Properties.ofFullCopy(source);
     }
 
-    private static BlockBehaviour.Properties stone(MapColor color) {
+    /** 石头类方块的共同属性：全部用锡、爆炸抗性 9、石头音效，只有硬度与地图色不同 */
+    private static BlockBehaviour.Properties stone(MapColor color, float hardness) {
         return BlockBehaviour.Properties.of()
             .mapColor(color)
             .requiresCorrectToolForDrops()
-            .strength(1.5F, 6.0F);
+            .strength(hardness, 9.0F)
+            .sound(SoundType.STONE);
     }
 
     private static BlockBehaviour.Properties log(MapColor color) {
@@ -304,7 +274,7 @@ public final class ModTerrainBlocks {
             .sound(SoundType.GRASS)
             .noOcclusion()
             .ignitedByLava()
-            .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+            .pushReaction(PushReaction.DESTROY);
     }
 
     private static BlockBehaviour.Properties sapling() {
@@ -314,7 +284,7 @@ public final class ModTerrainBlocks {
             .randomTicks()
             .instabreak()
             .sound(SoundType.GRASS)
-            .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+            .pushReaction(PushReaction.DESTROY);
     }
 
     private static BlockBehaviour.Properties witheredLeaves() {
@@ -325,7 +295,7 @@ public final class ModTerrainBlocks {
             .sound(SoundType.GRASS)
             .noOcclusion()
             .ignitedByLava()
-            .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+            .pushReaction(PushReaction.DESTROY);
     }
 
     // 原版 Blocks.GRASS_BLOCK 的属性，逐字照拄 1.21.1
@@ -359,7 +329,7 @@ public final class ModTerrainBlocks {
             .requiresCorrectToolForDrops()
             .sound(SoundType.SNOW)
             .isViewBlocking((state, level, pos) -> state.getValue(SnowLayerBlock.LAYERS) >= 8)
-            .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY);
+            .pushReaction(PushReaction.DESTROY);
     }
 
     // 原版 Blocks.SNOW_BLOCK 的属性，逐字照拄 1.21.1

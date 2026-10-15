@@ -12,40 +12,56 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 public final class ModChronoOres {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(DawnDuskTerminal.MOD_ID);
 
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(DawnDuskTerminal.MOD_ID);
 
-    public static final DeferredBlock<Block> COAL_LOWER = ore("chrono_ore_coal_lower");
-    public static final DeferredBlock<Block> COAL_UPPER = ore("chrono_ore_coal_upper");
-    public static final DeferredBlock<Block> IRON_SMALL = ore("chrono_ore_iron_small");
-    public static final DeferredBlock<Block> IRON_MIDDLE = ore("chrono_ore_iron_middle");
-    public static final DeferredBlock<Block> IRON_UPPER = ore("chrono_ore_iron_upper");
-    public static final DeferredBlock<Block> COPPER = ore("chrono_ore_copper");
-    public static final DeferredBlock<Block> COPPER_LARGE = ore("chrono_ore_copper_large");
-    public static final DeferredBlock<Block> GOLD = ore("chrono_ore_gold");
-    public static final DeferredBlock<Block> GOLD_LOWER = ore("chrono_ore_gold_lower");
-    public static final DeferredBlock<Block> REDSTONE = ore("chrono_ore_redstone");
-    public static final DeferredBlock<Block> REDSTONE_LOWER = ore("chrono_ore_redstone_lower");
-    public static final DeferredBlock<Block> LAPIS = ore("chrono_ore_lapis");
-    public static final DeferredBlock<Block> LAPIS_BURIED = ore("chrono_ore_lapis_buried");
-    public static final DeferredBlock<Block> DIAMOND = ore("chrono_ore_diamond");
-    public static final DeferredBlock<Block> DIAMOND_BURIED = ore("chrono_ore_diamond_buried");
-    public static final DeferredBlock<Block> DIAMOND_LARGE = ore("chrono_ore_diamond_large");
-    public static final DeferredBlock<Block> DIAMOND_MEDIUM = ore("chrono_ore_diamond_medium");
-    public static final DeferredBlock<Block> EMERALD = ore("chrono_ore_emerald");
-    public static final DeferredBlock<Block> GRANITE_UPPER = ore("chrono_ore_granite_upper");
-    public static final DeferredBlock<Block> GRANITE_LOWER = ore("chrono_ore_granite_lower");
-    public static final DeferredBlock<Block> DIORITE_UPPER = ore("chrono_ore_diorite_upper");
-    public static final DeferredBlock<Block> DIORITE_LOWER = ore("chrono_ore_diorite_lower");
-    public static final DeferredBlock<Block> ANDESITE_UPPER = ore("chrono_ore_andesite_upper");
-    public static final DeferredBlock<Block> ANDESITE_LOWER = ore("chrono_ore_andesite_lower");
-    public static final DeferredBlock<Block> TUFF = ore("chrono_ore_tuff");
-    public static final DeferredBlock<Block> GRAVEL = ore("chrono_ore_gravel");
-    public static final DeferredBlock<Block> CLAY = ore("chrono_ore_clay");
-    public static final DeferredBlock<Block> INFESTED = ore("chrono_ore_infested");
-    public static final DeferredBlock<Block> MAGMA = ore("chrono_ore_magma");
+    /**
+     * 与原版矿石一一对应的调色板矿石。列表里的字符串就是注册名，方块与物品一一配对
+     *
+     * <p>它们目前不由世界生成铺出，见 README 的待定项。将来接线时按名字从 {@link #ORES} 取，不必再
+     * 一个个写字段
+     */
+    private static final List<String> ORE_NAMES = List.of(
+        "chrono_ore_coal_lower",
+        "chrono_ore_coal_upper",
+        "chrono_ore_iron_small",
+        "chrono_ore_iron_middle",
+        "chrono_ore_iron_upper",
+        "chrono_ore_copper",
+        "chrono_ore_copper_large",
+        "chrono_ore_gold",
+        "chrono_ore_gold_lower",
+        "chrono_ore_redstone",
+        "chrono_ore_redstone_lower",
+        "chrono_ore_lapis",
+        "chrono_ore_lapis_buried",
+        "chrono_ore_diamond",
+        "chrono_ore_diamond_buried",
+        "chrono_ore_diamond_large",
+        "chrono_ore_diamond_medium",
+        "chrono_ore_emerald",
+        "chrono_ore_granite_upper",
+        "chrono_ore_granite_lower",
+        "chrono_ore_diorite_upper",
+        "chrono_ore_diorite_lower",
+        "chrono_ore_andesite_upper",
+        "chrono_ore_andesite_lower",
+        "chrono_ore_tuff",
+        "chrono_ore_gravel",
+        "chrono_ore_clay",
+        "chrono_ore_infested",
+        "chrono_ore_magma"
+    );
+
+    public static final Map<String, DeferredBlock<Block>> ORES = registerOres();
+
+    public static final Map<String, DeferredItem<BlockItem>> ORE_ITEMS = registerOreItems();
 
     public static final DeferredBlock<Block> DEEP_SCARLET = BLOCKS.registerSimpleBlock(
         "charnockite_scarlet_molybdenum_ore", BlockBehaviour.Properties.of()
@@ -68,45 +84,33 @@ public final class ModChronoOres {
             .strength(6.0F, 9.0F)
             .sound(SoundType.STONE));
 
-    public static final DeferredItem<BlockItem> COAL_LOWER_ITEM = ITEMS.registerSimpleBlockItem(COAL_LOWER);
-    public static final DeferredItem<BlockItem> COAL_UPPER_ITEM = ITEMS.registerSimpleBlockItem(COAL_UPPER);
-    public static final DeferredItem<BlockItem> IRON_SMALL_ITEM = ITEMS.registerSimpleBlockItem(IRON_SMALL);
-    public static final DeferredItem<BlockItem> IRON_MIDDLE_ITEM = ITEMS.registerSimpleBlockItem(IRON_MIDDLE);
-    public static final DeferredItem<BlockItem> IRON_UPPER_ITEM = ITEMS.registerSimpleBlockItem(IRON_UPPER);
-    public static final DeferredItem<BlockItem> COPPER_ITEM = ITEMS.registerSimpleBlockItem(COPPER);
-    public static final DeferredItem<BlockItem> COPPER_LARGE_ITEM = ITEMS.registerSimpleBlockItem(COPPER_LARGE);
-    public static final DeferredItem<BlockItem> GOLD_ITEM = ITEMS.registerSimpleBlockItem(GOLD);
-    public static final DeferredItem<BlockItem> GOLD_LOWER_ITEM = ITEMS.registerSimpleBlockItem(GOLD_LOWER);
-    public static final DeferredItem<BlockItem> REDSTONE_ITEM = ITEMS.registerSimpleBlockItem(REDSTONE);
-    public static final DeferredItem<BlockItem> REDSTONE_LOWER_ITEM = ITEMS.registerSimpleBlockItem(REDSTONE_LOWER);
-    public static final DeferredItem<BlockItem> LAPIS_ITEM = ITEMS.registerSimpleBlockItem(LAPIS);
-    public static final DeferredItem<BlockItem> LAPIS_BURIED_ITEM = ITEMS.registerSimpleBlockItem(LAPIS_BURIED);
-    public static final DeferredItem<BlockItem> DIAMOND_ITEM = ITEMS.registerSimpleBlockItem(DIAMOND);
-    public static final DeferredItem<BlockItem> DIAMOND_BURIED_ITEM = ITEMS.registerSimpleBlockItem(DIAMOND_BURIED);
-    public static final DeferredItem<BlockItem> DIAMOND_LARGE_ITEM = ITEMS.registerSimpleBlockItem(DIAMOND_LARGE);
-    public static final DeferredItem<BlockItem> DIAMOND_MEDIUM_ITEM = ITEMS.registerSimpleBlockItem(DIAMOND_MEDIUM);
-    public static final DeferredItem<BlockItem> EMERALD_ITEM = ITEMS.registerSimpleBlockItem(EMERALD);
-    public static final DeferredItem<BlockItem> GRANITE_UPPER_ITEM = ITEMS.registerSimpleBlockItem(GRANITE_UPPER);
-    public static final DeferredItem<BlockItem> GRANITE_LOWER_ITEM = ITEMS.registerSimpleBlockItem(GRANITE_LOWER);
-    public static final DeferredItem<BlockItem> DIORITE_UPPER_ITEM = ITEMS.registerSimpleBlockItem(DIORITE_UPPER);
-    public static final DeferredItem<BlockItem> DIORITE_LOWER_ITEM = ITEMS.registerSimpleBlockItem(DIORITE_LOWER);
-    public static final DeferredItem<BlockItem> ANDESITE_UPPER_ITEM = ITEMS.registerSimpleBlockItem(ANDESITE_UPPER);
-    public static final DeferredItem<BlockItem> ANDESITE_LOWER_ITEM = ITEMS.registerSimpleBlockItem(ANDESITE_LOWER);
-    public static final DeferredItem<BlockItem> TUFF_ITEM = ITEMS.registerSimpleBlockItem(TUFF);
-    public static final DeferredItem<BlockItem> GRAVEL_ITEM = ITEMS.registerSimpleBlockItem(GRAVEL);
-    public static final DeferredItem<BlockItem> CLAY_ITEM = ITEMS.registerSimpleBlockItem(CLAY);
-    public static final DeferredItem<BlockItem> INFESTED_ITEM = ITEMS.registerSimpleBlockItem(INFESTED);
-    public static final DeferredItem<BlockItem> MAGMA_ITEM = ITEMS.registerSimpleBlockItem(MAGMA);
     public static final DeferredItem<BlockItem> DEEP_SCARLET_ITEM = ITEMS.registerSimpleBlockItem(DEEP_SCARLET);
     public static final DeferredItem<BlockItem> CARID_ORE_ITEM = ITEMS.registerSimpleBlockItem(CARID_ORE);
     public static final DeferredItem<BlockItem> DIRAC_ORE_ITEM = ITEMS.registerSimpleBlockItem(DIRAC_ORE);
 
-    private static DeferredBlock<Block> ore(String name) {
-        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+    private static Map<String, DeferredBlock<Block>> registerOres() {
+        Map<String, DeferredBlock<Block>> ores = new LinkedHashMap<>();
+        for (String name : ORE_NAMES) {
+            ores.put(name, BLOCKS.registerSimpleBlock(name, ore()));
+        }
+        return Map.copyOf(ores);
+    }
+
+    private static Map<String, DeferredItem<BlockItem>> registerOreItems() {
+        Map<String, DeferredItem<BlockItem>> items = new LinkedHashMap<>();
+        for (Map.Entry<String, DeferredBlock<Block>> ore : ORES.entrySet()) {
+            items.put(ore.getKey(), ITEMS.registerSimpleBlockItem(ore.getValue()));
+        }
+        return Map.copyOf(items);
+    }
+
+    /** 调色板矿石的共同属性，与原版矿石一致：硬度 3、爆炸抗性 3、石头音效 */
+    private static BlockBehaviour.Properties ore() {
+        return BlockBehaviour.Properties.of()
             .mapColor(MapColor.STONE)
             .requiresCorrectToolForDrops()
             .strength(3.0F, 3.0F)
-            .sound(SoundType.STONE));
+            .sound(SoundType.STONE);
     }
 
     private ModChronoOres() {}
