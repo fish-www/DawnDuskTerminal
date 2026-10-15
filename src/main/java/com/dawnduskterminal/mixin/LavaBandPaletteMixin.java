@@ -1,7 +1,7 @@
 package com.dawnduskterminal.mixin;
 
-import com.dawnduskterminal.registry.ModBlocks;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
+import com.dawnduskterminal.world.ChronoDimensionProbe;
 import net.minecraft.world.level.levelgen.Aquifer;
 import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * 已经来自 {@code settings.defaultFluid()}，而晨昏线设置把它设成了 portal_fluid，所以那部分调色板是
  * 齐的
  *
- * <p>这里靠噪声设置（它的 {@code default_fluid} 是 portal_fluid）识别维度，因为作用域里没有 level。
+ * <p>这里靠噪声设置识别维度（见 {@link ChronoDimensionProbe}），因为作用域里没有 level。
  * 处理器直接接管整个方法而不是改一个参数，因为参数注入看不到外层方法的参数；万一原版改了这个选择
  * 器，{@code HEAD} 注入依然生效，跑的仍是这份拷贝，所以升级 Minecraft 时要盯的就是这一处
  */
@@ -27,7 +27,7 @@ public abstract class LavaBandPaletteMixin {
     @Inject(method = "createFluidPicker", at = @At("HEAD"), cancellable = true)
     private static void ddt$paletteLavaBand(NoiseGeneratorSettings settings,
                                             CallbackInfoReturnable<Aquifer.FluidPicker> cir) {
-        if (!settings.defaultFluid().is(ModBlocks.PORTAL_FLUID.get())) {
+        if (!ChronoDimensionProbe.isChrono(settings)) {
             return;
         }
         Aquifer.FluidStatus lava = new Aquifer.FluidStatus(-54,

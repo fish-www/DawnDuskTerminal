@@ -1,7 +1,6 @@
 package com.dawnduskterminal.mixin;
 
-import com.dawnduskterminal.registry.ModBlocks;
-import com.dawnduskterminal.registry.ModScorchingTwilight;
+import com.dawnduskterminal.world.ChronoDimensionProbe;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Aquifer;
@@ -54,6 +53,6 @@ public abstract class PillarsFluidBlockMixin {
         Aquifer.FluidStatus status = this.globalFluidPicker.computeFluid(
             context.blockX(), context.blockY(), context.blockZ());
         BlockState fluidType = ((FluidStatusAccessor) (Object) status).ddt$fluidType();
-        return fluidType.is(ModBlocks.PORTAL_FLUID.get()) || fluidType.is(ModScorchingTwilight.BLOCK.get());
+        return ChronoDimensionProbe.isChronoFluid(fluidType);
     }
 }

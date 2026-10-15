@@ -1,9 +1,7 @@
 package com.dawnduskterminal.mixin;
 
-import com.dawnduskterminal.registry.ModBlocks;
+import com.dawnduskterminal.world.ChronoDimensionProbe;
 import com.dawnduskterminal.world.ChronoVeinPalette;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Aquifer;
 import net.minecraft.world.level.levelgen.DensityFunctions;
 import net.minecraft.world.level.levelgen.NoiseChunk;
@@ -26,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * {@code OreVeinifier.VeinType} 把 {@code GRANITE} 与 {@code TUFF} 写死成矿脉填充物，数据包够不到。
  * 包住拼好的规则正好覆盖它们，又不碰数据包已经处理的部分
  *
- * <p>维度靠噪声设置识别：只有晨昏线的设置把默认流体设为 portal_fluid
+ * <p>识别维度的方式见 {@link ChronoDimensionProbe}
  */
 @Mixin(NoiseChunk.class)
 public abstract class NoiseChunkVeinPaletteMixin {
@@ -40,7 +38,7 @@ public abstract class NoiseChunkVeinPaletteMixin {
                                         NoiseSettings noiseSettings, DensityFunctions.BeardifierOrMarker beardifier,
                                         NoiseGeneratorSettings settings, Aquifer.FluidPicker fluidPicker,
                                         Blender blender, CallbackInfo ci) {
-        if (!settings.defaultFluid().is(ModBlocks.PORTAL_FLUID.get())) {
+        if (!ChronoDimensionProbe.isChrono(settings)) {
             return;
         }
         this.blockStateRule = ChronoVeinPalette.wrap(this.blockStateRule);
