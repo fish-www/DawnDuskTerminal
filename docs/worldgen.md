@@ -75,7 +75,9 @@
 
 `configured_feature/` 57 个，`placed_feature/` 155 个
 
-移植脚本会把文档里所有 `minecraft:` 特征引用改写到 `dawnduskterminal:` 命名空间
+移植脚本把群系里的放置特征引用、以及放置特征里的配置特征引用都改写到 `dawnduskterminal:` 命名空间
+
+`configured_feature` 内部嵌套的引用不在改写范围内，`random_selector` 的分支仍指向 `minecraft:`，见「已知问题」
 
 ## 调色板群系源
 
@@ -146,6 +148,8 @@
 ## 已知问题
 
 `data/dawnduskterminal/tags/worldgen/biome/` 下的旧标签只保留 `palette_biomes`
+
+`configured_feature` 里 15 处 `random_selector` 分支仍指向 `minecraft:`，对应的 11 份配置特征副本没有任何特征引用
 
 ## 改地形注意
 

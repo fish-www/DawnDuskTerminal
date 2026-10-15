@@ -125,7 +125,6 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 | `fragile_canopy` | 易碎的苍穹 | 流体反应产物 |
 | `chaos_stone` | 混乱石 | 流体反应产物 |
 | `blazing_block` | 炽热的方块 | 流体反应产物 |
-| `scarlet_molybdenum_ore` | 绯红钼矿 | 已无世界生成入口 |
 
 方块属性按「后者复用前者」处理 见下方开发者部分
 
@@ -277,7 +276,7 @@ randomFactory = 噪声设置.随机源.newInstance(世界种子).forkPositional(
 | 地形主体 | `noise_settings/chrono.json` 的 `default_block` = `canopy_stone` |
 | 含水层与海洋 | 同文件的 `default_fluid` = `portal_fluid` |
 | 地表规则 | 同文件 `surface_rule` 里每个 `result_state` |
-| 群系特征铺出的（花岗岩 闪长岩 安山岩 凝灰岩 岩浆 雪 浮冰 沙洲 湖底石壳） | 维度自带的群系副本 其 `features` 指向自带特征副本 |
+| 群系特征铺出的（花岗岩 闪长岩 安山岩 凝灰岩 岩浆 雪 浮冰 沙洲 湖底石壳 绯红钼矿） | 维度自带的群系副本 其 `features` 指向自带特征副本 |
 | `y < -54` 的岩浆层 | 一处 mixin 引擎把这一层写死在代码里 |
 
 维度自带的副本与 `minecraft:*` 一一同名 只把要铺的方块换成模组方块
