@@ -4,12 +4,21 @@
   "package": "com.dawnduskterminal.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "FluidStatusAccessor",
+    "LavaBandPaletteMixin",
+    "LavaAquiferPaletteMixin",
+    "NoiseChunkVeinPaletteMixin",
+    "PillarsFluidBlockMixin",
     "FeatureSorterMixin",
     "LightEngineSkyLightMixin",
     "StructureExclusionMixin",
-    "NoLavaLevelMixin"
+    "MineshaftChestLootMixin",
+    "MineshaftHeightMixin",
+    "NoiseChunkTemperatureMixin"
   ],
-  "client": [],
+  "client": [
+    "BiomeColorsFoliageMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
