@@ -3,101 +3,77 @@ package com.dawnduskterminal.structure;
 import com.dawnduskterminal.DawnDuskTerminal;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.levelgen.structure.Structure;
 
-import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Single source of truth for which structures the chrono dimension may place.
+ *
+ * <p>{@code StructureExclusionMixin} suppresses every structure whose id is <em>not</em> in this
+ * allow-list, so this one table is the whole exclusion policy: an entry here is allowed, anything
+ * else is excluded. The previous {@code EXCLUDED_TF} / {@code EXCLUDED_VANILLA} blacklists and the
+ * {@code WHITELIST} were three overlapping structures with contradictory semantics, now collapsed
+ * into this single allow-list. The names are only used by the startup validation log.
+ */
 public final class StructureExclusions {
-    public static final Map<String, ResourceLocation> EXCLUDED_TF = new LinkedHashMap<>();
-
-    public static final Map<String, ResourceLocation> EXCLUDED_VANILLA = new LinkedHashMap<>();
+    private static final Map<String, ResourceLocation> ALLOWED = new LinkedHashMap<>();
 
     static {
-        EXCLUDED_TF.put("谜题羊树丛", ResourceLocation.parse("twilightforest:quest_grove"));
-        EXCLUDED_TF.put("娜迦庭院", ResourceLocation.parse("twilightforest:naga_courtyard"));
-        EXCLUDED_TF.put("巫妖怪塔", ResourceLocation.parse("twilightforest:lich_tower"));
-        EXCLUDED_TF.put("牛头人迷宫", ResourceLocation.parse("twilightforest:labyrinth"));
-        EXCLUDED_TF.put("九头蛇巢穴", ResourceLocation.parse("twilightforest:hydra_lair"));
-        EXCLUDED_TF.put("地精骑士要塞", ResourceLocation.parse("twilightforest:knight_stronghold"));
-        EXCLUDED_TF.put("黑暗高塔", ResourceLocation.parse("twilightforest:dark_tower"));
-        EXCLUDED_TF.put("雪怪洞窟", ResourceLocation.parse("twilightforest:yeti_cave"));
-        EXCLUDED_TF.put("极光宫殿", ResourceLocation.parse("twilightforest:aurora_palace"));
-        EXCLUDED_TF.put("巨魔洞窟", ResourceLocation.parse("twilightforest:troll_cave"));
-        EXCLUDED_TF.put("云上小屋", ResourceLocation.parse("twilightforest:giant_house"));
-        EXCLUDED_TF.put("终焉城堡", ResourceLocation.parse("twilightforest:final_castle"));
-
-        EXCLUDED_VANILLA.put("远古城市", ResourceLocation.withDefaultNamespace("ancient_city"));
-        EXCLUDED_VANILLA.put("埋藏的宝藏", ResourceLocation.withDefaultNamespace("buried_treasure"));
-        EXCLUDED_VANILLA.put("林地府邸", ResourceLocation.withDefaultNamespace("mansion"));
-        EXCLUDED_VANILLA.put("海底神殿", ResourceLocation.withDefaultNamespace("monument"));
-        EXCLUDED_VANILLA.put("海底废墟", ResourceLocation.withDefaultNamespace("ocean_ruin_cold"));
-        EXCLUDED_VANILLA.put("要塞", ResourceLocation.withDefaultNamespace("stronghold"));
-        EXCLUDED_VANILLA.put("丛林神庙", ResourceLocation.withDefaultNamespace("jungle_pyramid"));
-        EXCLUDED_VANILLA.put("沼泽小屋", ResourceLocation.withDefaultNamespace("swamp_hut"));
-        EXCLUDED_VANILLA.put("古迹废墟", ResourceLocation.withDefaultNamespace("trail_ruins"));
-        EXCLUDED_VANILLA.put("试炼密室", ResourceLocation.withDefaultNamespace("trial_chambers"));
+        ALLOWED.put("废弃传送门", ResourceLocation.withDefaultNamespace("ruined_portal"));
+        ALLOWED.put("废弃传送门 沙漠", ResourceLocation.withDefaultNamespace("ruined_portal_desert"));
+        ALLOWED.put("废弃传送门 丛林", ResourceLocation.withDefaultNamespace("ruined_portal_jungle"));
+        ALLOWED.put("废弃传送门 山地", ResourceLocation.withDefaultNamespace("ruined_portal_mountain"));
+        ALLOWED.put("废弃传送门 海洋", ResourceLocation.withDefaultNamespace("ruined_portal_ocean"));
+        ALLOWED.put("废弃传送门 沼泽", ResourceLocation.withDefaultNamespace("ruined_portal_swamp"));
+        ALLOWED.put("沉船", ResourceLocation.withDefaultNamespace("shipwreck"));
+        ALLOWED.put("搁浅沉船", ResourceLocation.withDefaultNamespace("shipwreck_beached"));
+        ALLOWED.put("掠夺者前哨站", ResourceLocation.withDefaultNamespace("pillager_outpost"));
+        ALLOWED.put("沙漠神殿", ResourceLocation.withDefaultNamespace("desert_pyramid"));
+        ALLOWED.put("雪屋", ResourceLocation.withDefaultNamespace("igloo"));
+        ALLOWED.put("废弃矿井", ResourceLocation.withDefaultNamespace("mineshaft"));
+        ALLOWED.put("废弃矿井 平顶山", ResourceLocation.withDefaultNamespace("mineshaft_mesa"));
+        ALLOWED.put("树洞", ResourceLocation.parse("twilightforest:hollow_tree"));
+        ALLOWED.put("倒下的空心木头", ResourceLocation.parse("twilightforest:fallen_trunk"));
+        ALLOWED.put("蘑菇城堡", ResourceLocation.parse("twilightforest:mushroom_tower"));
+        ALLOWED.put("营地", ResourceLocation.parse("twilightforest:camp"));
+        ALLOWED.put("树篱迷宫", ResourceLocation.parse("twilightforest:hedge_maze"));
+        ALLOWED.put("空心矿山", ResourceLocation.parse("twilightforest:small_hollow_hill"));
     }
 
-    private StructureExclusions() {}
-
-    public static void validate(Registry<net.minecraft.world.level.levelgen.structure.Structure> structures) {
-        report(structures, EXCLUDED_TF, "twilightforest");
-        report(structures, EXCLUDED_VANILLA, "vanilla");
-    }
-
-    private static void report(Registry<net.minecraft.world.level.levelgen.structure.Structure> structures,
-                               Map<String, ResourceLocation> table, String group) {
-        int missing = 0;
-        for (Map.Entry<String, ResourceLocation> entry : table.entrySet()) {
-            if (!structures.containsKey(entry.getValue())) {
-                DawnDuskTerminal.LOGGER.warn("DawnDuskTerminal exclusion {} {} is not a registered structure", group, entry.getValue());
-                missing++;
-            }
-        }
-        DawnDuskTerminal.LOGGER.info("DawnDuskTerminal exclusion table {} has {} entries {} resolvable", group, table.size(), table.size() - missing);
-    }
-
-    public static List<ResourceLocation> excludedStructureIds() {
-        return List.copyOf(EXCLUDED_TF.values());
-    }
-
-    private static final Set<ResourceLocation> EXCLUDED_TF_IDS = Set.copyOf(EXCLUDED_TF.values());
+    private static final Set<ResourceLocation> ALLOWED_IDS = Set.copyOf(ALLOWED.values());
 
     private static final Set<ResourceLocation> LOGGED = ConcurrentHashMap.newKeySet();
 
-    public static final Set<ResourceLocation> WHITELIST = Set.of(
-        ResourceLocation.withDefaultNamespace("ruined_portal"),
-        ResourceLocation.withDefaultNamespace("ruined_portal_desert"),
-        ResourceLocation.withDefaultNamespace("ruined_portal_jungle"),
-        ResourceLocation.withDefaultNamespace("ruined_portal_mountain"),
-        ResourceLocation.withDefaultNamespace("ruined_portal_ocean"),
-        ResourceLocation.withDefaultNamespace("ruined_portal_swamp"),
-        ResourceLocation.withDefaultNamespace("shipwreck"),
-        ResourceLocation.withDefaultNamespace("shipwreck_beached"),
-        ResourceLocation.withDefaultNamespace("pillager_outpost"),
-        ResourceLocation.withDefaultNamespace("desert_pyramid"),
-        ResourceLocation.withDefaultNamespace("igloo"),
-        ResourceLocation.parse("twilightforest:hollow_tree"),
-        ResourceLocation.parse("twilightforest:fallen_trunk"),
-        ResourceLocation.parse("twilightforest:mushroom_tower"),
-        ResourceLocation.parse("twilightforest:camp"),
-        ResourceLocation.parse("twilightforest:hedge_maze"),
-        ResourceLocation.parse("twilightforest:small_hollow_hill"));
+    private StructureExclusions() {}
+
+    public static void validate(Registry<Structure> structures) {
+        int missing = 0;
+        for (Map.Entry<String, ResourceLocation> entry : ALLOWED.entrySet()) {
+            if (!structures.containsKey(entry.getValue())) {
+                DawnDuskTerminal.LOGGER.warn("DawnDuskTerminal allowed structure {} {} is not registered",
+                    entry.getKey(), entry.getValue());
+                missing++;
+            }
+        }
+        DawnDuskTerminal.LOGGER.info("DawnDuskTerminal structure allow-list has {} entries, {} unresolvable",
+            ALLOWED.size(), missing);
+    }
 
     public static boolean isAllowed(ResourceLocation id) {
-        return WHITELIST.contains(id);
+        return ALLOWED_IDS.contains(id);
     }
 
     public static boolean isExcluded(ResourceLocation id) {
-        return !WHITELIST.contains(id);
+        return !ALLOWED_IDS.contains(id);
     }
 
     public static void logSuppressed(ResourceLocation id) {
         if (LOGGED.add(id)) {
-            DawnDuskTerminal.LOGGER.info("DawnDuskTerminal landmark {} is suppressed in the chrono dimension", id);
+            DawnDuskTerminal.LOGGER.info("DawnDuskTerminal structure {} is suppressed in the chrono dimension", id);
         }
     }
 }

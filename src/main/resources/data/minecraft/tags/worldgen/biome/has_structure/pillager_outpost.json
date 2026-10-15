@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:desert",
+    "dawnduskterminal:grove",
+    "dawnduskterminal:plains",
+    "dawnduskterminal:savanna",
+    "dawnduskterminal:snowy_plains",
+    "dawnduskterminal:taiga"
+  ]
+}

@@ -1,0 +1,25 @@
+﻿{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:canopy_stone",
+    "dawnduskterminal:charnockite",
+    "dawnduskterminal:eclogite",
+    "dawnduskterminal:greenschist",
+    "dawnduskterminal:ochre_block",
+    "dawnduskterminal:road_sand",
+    "dawnduskterminal:rosy_dirt",
+    "dawnduskterminal:rosy_grass",
+    "dawnduskterminal:twilight_stone",
+    "minecraft:cave_vines",
+    "minecraft:cave_vines_plant",
+    "minecraft:clay",
+    "minecraft:coarse_dirt",
+    "minecraft:gravel",
+    "minecraft:moss_block",
+    "minecraft:mud",
+    "minecraft:muddy_mangrove_roots",
+    "minecraft:mycelium",
+    "minecraft:podzol",
+    "minecraft:rooted_dirt"
+  ]
+}

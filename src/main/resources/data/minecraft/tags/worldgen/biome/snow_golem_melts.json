@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:badlands",
+    "dawnduskterminal:desert",
+    "dawnduskterminal:eroded_badlands",
+    "dawnduskterminal:savanna",
+    "dawnduskterminal:savanna_plateau",
+    "dawnduskterminal:windswept_savanna",
+    "dawnduskterminal:wooded_badlands"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:deep_dark",
+    "dawnduskterminal:deep_frozen_ocean",
+    "dawnduskterminal:frozen_ocean",
+    "dawnduskterminal:frozen_peaks",
+    "dawnduskterminal:frozen_river",
+    "dawnduskterminal:grove",
+    "dawnduskterminal:ice_spikes",
+    "dawnduskterminal:jagged_peaks",
+    "dawnduskterminal:snowy_beach",
+    "dawnduskterminal:snowy_plains",
+    "dawnduskterminal:snowy_slopes",
+    "dawnduskterminal:snowy_taiga"
+  ]
+}

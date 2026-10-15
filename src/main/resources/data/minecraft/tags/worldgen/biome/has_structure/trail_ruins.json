@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:jungle",
+    "dawnduskterminal:old_growth_birch_forest",
+    "dawnduskterminal:old_growth_pine_taiga",
+    "dawnduskterminal:old_growth_spruce_taiga",
+    "dawnduskterminal:snowy_taiga",
+    "dawnduskterminal:taiga"
+  ]
+}

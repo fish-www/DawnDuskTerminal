@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:road_sand",
+    "dawnduskterminal:unconscious_sand",
+    "minecraft:suspicious_sand"
+  ]
+}

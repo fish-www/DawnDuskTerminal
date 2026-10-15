@@ -1,4 +1,4 @@
-{
+﻿{
   "values": [
     "minecraft:farmland",
     "minecraft:dirt_path",
@@ -6,16 +6,16 @@
     "minecraft:moss_block",
     "minecraft:clay",
     "minecraft:soul_soil",
-    "dawnduskterminal:sky_soil",
-    "dawnduskterminal:ember_soil",
-    "dawnduskterminal:sky_stone",
-    "dawnduskterminal:ochre",
+    "dawnduskterminal:rosy_grass",
+    "dawnduskterminal:rosy_dirt",
+    "dawnduskterminal:canopy_stone",
+    "dawnduskterminal:ochre_block",
     "dawnduskterminal:greenschist",
     "dawnduskterminal:eclogite",
-    "dawnduskterminal:peridotite",
+    "dawnduskterminal:charnockite",
     "dawnduskterminal:twilight_stone",
     "dawnduskterminal:road_sand",
-    "dawnduskterminal:sleepless_sand",
+    "dawnduskterminal:unconscious_sand",
     "dawnduskterminal:siltstone",
     "dawnduskterminal:frozen_canopy",
     "dawnduskterminal:fragile_canopy",

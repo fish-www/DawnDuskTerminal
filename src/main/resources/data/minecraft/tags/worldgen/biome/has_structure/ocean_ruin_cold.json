@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:cold_ocean",
+    "dawnduskterminal:deep_cold_ocean",
+    "dawnduskterminal:deep_frozen_ocean",
+    "dawnduskterminal:deep_ocean",
+    "dawnduskterminal:frozen_ocean",
+    "dawnduskterminal:ocean"
+  ]
+}

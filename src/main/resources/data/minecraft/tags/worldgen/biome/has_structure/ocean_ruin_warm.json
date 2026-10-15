@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:deep_lukewarm_ocean",
+    "dawnduskterminal:lukewarm_ocean",
+    "dawnduskterminal:warm_ocean"
+  ]
+}

@@ -1,0 +1,11 @@
+﻿{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:canopy_stone",
+    "dawnduskterminal:charnockite",
+    "dawnduskterminal:eclogite",
+    "dawnduskterminal:greenschist",
+    "dawnduskterminal:ochre_block",
+    "dawnduskterminal:twilight_stone"
+  ]
+}

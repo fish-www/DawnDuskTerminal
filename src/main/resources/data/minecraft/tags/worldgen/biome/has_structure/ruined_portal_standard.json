@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:dripstone_caves",
+    "dawnduskterminal:ice_spikes",
+    "dawnduskterminal:lush_caves",
+    "dawnduskterminal:mushroom_fields",
+    "dawnduskterminal:plains",
+    "dawnduskterminal:savanna",
+    "dawnduskterminal:snowy_plains",
+    "dawnduskterminal:sunflower_plains"
+  ]
+}

@@ -1,0 +1,9 @@
+﻿{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:canopy_stone",
+    "dawnduskterminal:eclogite",
+    "dawnduskterminal:greenschist",
+    "dawnduskterminal:ochre_block"
+  ]
+}

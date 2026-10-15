@@ -88,7 +88,9 @@ public final class FeatureOrderCompat {
         }
 
         TreeSet<FeatureData> ready = new TreeSet<>(ORDER);
+        TreeSet<FeatureData> pending = new TreeSet<>(ORDER);
         for (Map.Entry<FeatureData, Integer> entry : indegree.entrySet()) {
+            pending.add(entry.getKey());
             if (entry.getValue() == 0) {
                 ready.add(entry.getKey());
             }
@@ -98,31 +100,17 @@ public final class FeatureOrderCompat {
         List<FeatureData> order = new ArrayList<>(indegree.size());
         int broken = 0;
 
-        while (emitted.size() < indegree.size()) {
-            FeatureData node = null;
-            while (!ready.isEmpty()) {
-                FeatureData candidate = ready.pollFirst();
-                if (!emitted.contains(candidate)) {
-                    node = candidate;
-                    break;
-                }
-            }
+        // `pending` keeps the un-emitted nodes ordered, so relaxing a cycle costs one lookup instead of
+        // a scan over every node. That matters here: the chrono palette roughly doubles the biome set,
+        // and this runs while the first chunk is still waiting to be generated.
+        while (!pending.isEmpty()) {
+            FeatureData node = ready.isEmpty() ? null : ready.pollFirst();
             if (node == null) {
-                FeatureData best = null;
-                for (FeatureData candidate : indegree.keySet()) {
-                    if (emitted.contains(candidate)) {
-                        continue;
-                    }
-                    if (best == null || ORDER.compare(candidate, best) < 0) {
-                        best = candidate;
-                    }
-                }
-                if (best == null) {
-                    break;
-                }
-                node = best;
+                node = pending.first();
                 broken++;
             }
+            pending.remove(node);
+            ready.remove(node);
             emitted.add(node);
             order.add(node);
             for (FeatureData successor : graph.getOrDefault(node, Set.of())) {

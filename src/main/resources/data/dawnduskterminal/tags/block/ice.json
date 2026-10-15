@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:frozen_canopy",
+    "minecraft:blue_ice",
+    "minecraft:frosted_ice"
+  ]
+}

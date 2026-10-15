@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:cherry_grove",
+    "dawnduskterminal:frozen_peaks",
+    "dawnduskterminal:jagged_peaks",
+    "dawnduskterminal:meadow",
+    "dawnduskterminal:snowy_slopes",
+    "dawnduskterminal:stony_peaks"
+  ]
+}

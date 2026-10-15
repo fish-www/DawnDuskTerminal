@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:rosy_dirt",
+    "dawnduskterminal:rosy_grass",
+    "minecraft:coarse_dirt",
+    "minecraft:moss_block",
+    "minecraft:mud",
+    "minecraft:muddy_mangrove_roots",
+    "minecraft:mycelium",
+    "minecraft:podzol",
+    "minecraft:rooted_dirt"
+  ]
+}
