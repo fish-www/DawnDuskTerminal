@@ -112,6 +112,38 @@ public final class PortalShapeTests {
         helper.succeed();
     }
 
+    /**
+     * 两层深的水池：判定取水体最上面那层
+     *
+     * 只用种子所在那层的话，填好的传送门流体会被正上方那层水反应成 fragile_canopy
+     */
+    @GameTest(template = "ddt_empty")
+    public static void deepPoolIsBuiltOnTheSurfaceLayer(GameTestHelper helper) {
+        for (int x = POOL_MIN - 1; x <= POOL_MAX + 1; x++) {
+            for (int z = POOL_MIN - 1; z <= POOL_MAX + 1; z++) {
+                helper.setBlock(new BlockPos(x, POOL_Y - 1, z), ModTerrainBlocks.CANOPY_STONE.get());
+                boolean edge = x == POOL_MIN - 1 || x == POOL_MAX + 1 || z == POOL_MIN - 1 || z == POOL_MAX + 1;
+                for (int y = POOL_Y; y <= POOL_Y + 1; y++) {
+                    helper.setBlock(new BlockPos(x, y, z),
+                        edge ? ModTerrainBlocks.ROSY_GRASS.get() : Blocks.WATER);
+                }
+                if (edge) {
+                    helper.setBlock(new BlockPos(x, POOL_Y + 2, z), Blocks.SHORT_GRASS);
+                }
+            }
+        }
+        ServerLevel level = helper.getLevel();
+        BlockPos seed = helper.absolutePos(new BlockPos(POOL_MIN, POOL_Y, POOL_MIN));
+        helper.assertTrue(PortalBuilder.build(level, seed), "a two deep pool should build a portal");
+        for (int x = POOL_MIN; x <= POOL_MAX; x++) {
+            for (int z = POOL_MIN; z <= POOL_MAX; z++) {
+                helper.assertBlockPresent(ModBlocks.PORTAL_FLUID.get(), new BlockPos(x, POOL_Y + 1, z));
+                helper.assertBlockPresent(Blocks.WATER, new BlockPos(x, POOL_Y, z));
+            }
+        }
+        helper.succeed();
+    }
+
     @GameTest(template = "ddt_empty")
     public static void portalBlockSurvivesWithNeighbour(GameTestHelper helper) {
         helper.setBlock(new BlockPos(2, 1, 2), ModBlocks.PORTAL_FLUID.get());

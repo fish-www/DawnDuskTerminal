@@ -91,7 +91,13 @@ public final class PortalShape {
         if (!isPoolWater(level, seed)) {
             return Optional.empty();
         }
-        int y = seed.getY();
+        // 水池可能是更深水体的中间一层。取它所在水体最上面那层当门：如果就用种子那一层，填好的传送门流体
+        // 会被正上方那层水反应成 fragile_canopy（FluidInteractionRegistry 扫正上方与四个水平邻居，不扫正下方）
+        BlockPos surface = seed;
+        while (isPoolWater(level, surface.above())) {
+            surface = surface.above();
+        }
+        int y = surface.getY();
         Set<BlockPos> visited = new HashSet<>();
         List<BlockPos> water = new ArrayList<>();
         Deque<BlockPos> queue = new ArrayDeque<>();
