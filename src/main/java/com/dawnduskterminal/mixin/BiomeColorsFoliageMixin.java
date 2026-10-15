@@ -12,11 +12,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Wraps {@code BiomeColors.FOLIAGE_COLOR_RESOLVER} so the chrono dimension's ported TF biomes
- * (jungle = enchanted forest, dark_forest = dark forest centre) get TF's foliage colour.
+ * 包住 {@code BiomeColors.FOLIAGE_COLOR_RESOLVER}，让晨昏线维度移植来的暮色森林群系拿到暮色森林的
+ * 树叶色（jungle 对应魔法森林，dark_forest 对应黑暗森林中心）
  *
- * <p>The wrapper keeps the original resolver intact and only changes the result for the two chrono
- * biome ids, so TF's own ASM patch (and every other biome) is left untouched.
+ * <p>包装保留原取色器不动，只对这两个晨昏线群系 ID 改结果，所以暮色森林自己的 ASM 补丁与其他所有
+ * 群系都不受影响
  */
 @Mixin(BiomeColors.class)
 public abstract class BiomeColorsFoliageMixin {

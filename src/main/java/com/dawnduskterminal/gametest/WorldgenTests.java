@@ -37,13 +37,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * The chrono dimension owns its terrain and its biomes: the noise settings already name the mod's
- * blocks, and the biomes are faithful copies whose feature lists place those blocks too. Between them
- * the dimension generates its own palette directly, with no pass over the finished chunk.
+ * 晨昏线维度自己拥有地形与群系：噪声设置直接指向模组方块，群系是忠实副本且特征表也铺同样的方块。
+ * 两者合起来让维度在生成时就铺好自己的调色板，不需要对成品区块再做一遍处理
  *
- * <p>Note: {@code GameTestServer} builds its world from {@code WorldPresets.FLAT}, which only carries
- * the vanilla dimensions, so anything needing the chrono {@code ServerLevel} has to cope with it
- * being absent here.
+ * <p>注意：{@code GameTestServer} 的世界由 {@code WorldPresets.FLAT} 构建，只带原版维度，所以任何需要
+ * 晨昏线 {@code ServerLevel} 的地方都得处理它在这里不存在的情况
  */
 @GameTestHolder("dawnduskterminal")
 @PrefixGameTestTemplate(false)
@@ -51,7 +49,7 @@ public final class WorldgenTests {
     private static final String MOD_ID = "dawnduskterminal";
     private static final ResourceLocation CHRONO = ResourceLocation.fromNamespaceAndPath(MOD_ID, "chrono");
 
-    /** Every density function the ported Overworld noise router needs. */
+    /** 移植后的主世界噪声路由需要的所有密度函数 */
     private static final String[] PORTED_DENSITY_FUNCTIONS = {
         "shift_x",
         "shift_z",
@@ -74,7 +72,7 @@ public final class WorldgenTests {
         "overworld/caves/spaghetti_roughness_function",
     };
 
-    /** The seed-bearing noise parameters those density functions read. */
+    /** 那些密度函数读取的、与种子相关的噪声参数 */
     private static final String[] PORTED_NOISE_PARAMETERS = {
         "continentalness", "erosion", "ridge", "temperature", "vegetation", "jagged", "offset",
         "surface", "surface_swamp", "calcite", "gravel", "powder_snow", "ice", "packed_ice",
@@ -83,7 +81,7 @@ public final class WorldgenTests {
         "aquifer_barrier", "aquifer_fluid_level_floodedness", "aquifer_fluid_level_spread", "aquifer_lava",
     };
 
-    /** A sample of the overworld biomes the dimension has to own a copy of. */
+    /** 维度必须有副本的主世界群系抽样 */
     private static final String[] COPIED_BIOMES = {
         "plains", "sunflower_plains", "desert", "ocean", "deep_ocean", "frozen_ocean", "forest",
         "taiga", "jungle", "swamp", "mushroom_fields", "stony_peaks", "deep_dark", "lush_caves",
@@ -98,7 +96,7 @@ public final class WorldgenTests {
         return settings;
     }
 
-    /** Collects the noise keys a density function tree reads. */
+    /** 收集一棵密度函数树读取到的噪声键 */
     private static Set<ResourceLocation> noiseKeys(DensityFunction function) {
         Set<ResourceLocation> keys = new LinkedHashSet<>();
         function.mapAll(new DensityFunction.Visitor() {
@@ -134,7 +132,7 @@ public final class WorldgenTests {
             helper.assertTrue(registry.containsKey(ResourceLocation.fromNamespaceAndPath(MOD_ID, id)),
                 "ported density function missing: " + id);
         }
-        // the port is a copy, not a replacement: the vanilla originals must still be intact
+        // 移植是复制而不是替换：原版原件必须仍然完好
         helper.assertTrue(registry.containsKey(ResourceLocation.withDefaultNamespace("overworld/sloped_cheese")),
             "vanilla overworld/sloped_cheese must stay registered");
         helper.succeed();
@@ -152,10 +150,10 @@ public final class WorldgenTests {
     }
 
     /**
-     * The whole point of moving the noise parameters into our namespace. The engine builds every
-     * noise field as {@code NormalNoise.create(randomFactory.fromHashOf(key.location()), params)},
-     * seeded by the world seed, so a {@code dawnduskterminal:*} key yields a different, seed-derived
-     * field than the {@code minecraft:*} one would - while the vanilla original keeps its own field.
+     * 把噪声参数搬进自己命名空间的全部意义。引擎把每个噪声场都建成
+     * {@code NormalNoise.create(randomFactory.fromHashOf(key.location()), params)}，由世界种子决定，所以
+     * {@code dawnduskterminal:*} 的键会得到一个与 {@code minecraft:*} 不同、且由种子派生的场，而原版原件
+     * 保留自己的场
      */
     @GameTest(template = "ddt_empty")
     public static void terrainNoiseIsSeedDerived(GameTestHelper helper) {
@@ -201,8 +199,8 @@ public final class WorldgenTests {
     }
 
     /**
-     * The point of forking the biomes: the copies must place *our* features, which is what makes the
-     * dimension's granite/diorite/andesite/tuff/lava/snow arrive as mod blocks while generating.
+     * 复制群系的意义：副本必须铺*我们的*特征，这样维度生成时的花岗岩 闪长岩 安山岩 凝灰岩 岩浆 雪
+     * 才会以模组方块出现
      */
     @GameTest(template = "ddt_empty")
     public static void paletteBiomeCopiesCarryOurFeatures(GameTestHelper helper) {
@@ -231,9 +229,8 @@ public final class WorldgenTests {
     }
 
     /**
-     * The dimension's biome source wraps the vanilla overworld preset rather than replacing its
-     * climate table - that table only exists in code, so it cannot be authored in a datapack.
-     * {@code GameTestServer} has no modded dimensions, so this skips there.
+     * 维度的群系源是包住原版主世界预设，而不是替换它的气候表——那张表只存在于代码里，没法用数据包
+     * 编写。{@code GameTestServer} 没有模组维度，所以这里会跳过
      */
     @GameTest(template = "ddt_empty")
     public static void chronoUsesThePaletteBiomeSource(GameTestHelper helper) {
@@ -250,7 +247,7 @@ public final class WorldgenTests {
         helper.succeed();
     }
 
-    /** Kept so the ported feature ordering stays exercised even though nothing else needs it. */
+    /** 保留下来，让移植后的特征排序仍然被跑到，尽管别处都不需要它 */
     @GameTest(template = "ddt_empty")
     public static void configuredFeaturesAreRegistered(GameTestHelper helper) {
         Registry<ConfiguredFeature<?, ?>> registry =
@@ -262,7 +259,7 @@ public final class WorldgenTests {
         helper.succeed();
     }
 
-    /** Vanilla's large ore veins hardcode their fillers in {@code OreVeinifier}; these are the swaps. */
+    /** 原版大矿脉在 {@code OreVeinifier} 里写死填充物；这里验的是替换结果 */
     @GameTest(template = "ddt_empty")
     public static void veinFillersUseThePalette(GameTestHelper helper) {
         helper.assertTrue(ChronoVeinPalette.remap(Blocks.GRANITE.defaultBlockState())
@@ -273,10 +270,10 @@ public final class WorldgenTests {
             "the iron vein filler (tuff) must become twilight_stone");
         helper.assertTrue(ChronoVeinPalette.remap(Blocks.STONE.defaultBlockState()).is(Blocks.STONE),
             "unrelated blocks must pass through untouched");
-        // the chunk block rule returns null for "leave the default block", which is the common case
+        // 区块方块规则用 null 表示「保留默认方块」，这是最常见的情况
         helper.assertTrue(ChronoVeinPalette.remap(null) == null,
             "a null block state must pass through: it means 'leave the default block here'");
-        // the wrapper must forward that null, not NPE on it - the bug that killed chunk generation
+        // 包装器必须把这个 null 透传，而不是对它 NPE，那正是当初让区块生成卡死的 bug
         helper.assertTrue(ChronoVeinPalette.wrap(context -> null).calculate(null) == null,
             "the wrapped rule must forward a null result untouched");
         helper.assertTrue(ChronoVeinPalette.wrap(context -> Blocks.GRANITE.defaultBlockState())
@@ -286,9 +283,8 @@ public final class WorldgenTests {
     }
 
     /**
-     * Proves the biome substitution actually happens: build the same source the dimension declares and
-     * check that every biome the vanilla overworld preset can report comes back as our copy. If this
-     * fails, the dimension is generating with vanilla biomes and therefore vanilla features.
+     * 证明群系替换真的发生了：构造维度声明的那同一个源，检查原版主世界预设能报出的每个群系是否都变成
+     * 了我们的副本。这条失败就说明维度在用原版群系生成，因而也在用原版特征
      */
     @GameTest(template = "ddt_empty")
     public static void paletteBiomeSourceSubstitutesThePreset(GameTestHelper helper) {

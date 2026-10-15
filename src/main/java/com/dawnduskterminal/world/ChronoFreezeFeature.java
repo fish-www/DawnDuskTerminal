@@ -14,16 +14,14 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 /**
- * The chrono palette's replacement for {@code minecraft:freeze_top_layer}.
+ * 晨昏线调色板对 {@code minecraft:freeze_top_layer} 的替代
  *
- * <p>Vanilla's version is code, not data: {@code SnowAndFreezeFeature} writes
- * {@code Blocks.SNOW.defaultBlockState()} and {@code Blocks.ICE.defaultBlockState()} literally, so no
- * amount of datapack work can stop a cold biome from growing vanilla snow. Our biome copies point
- * their feature lists here instead.
+ * <p>原版那份是代码不是数据：{@code SnowAndFreezeFeature} 字面写死 {@code Blocks.SNOW.defaultBlockState()}
+ * 与 {@code Blocks.ICE.defaultBlockState()}，数据包再怎么改也挡不住寒冷群系长出原版雪。我们的群系副本
+ * 改成把特征表指到这里
  *
- * <p>One deliberate difference: vanilla asks {@code Biome#shouldFreeze}, which tests the water fluid
- * tag. This dimension's water is portal_fluid and is not in that tag, so the check is made against our
- * own fluid as well - otherwise the palette's ice would simply never appear.
+ * <p>一处有意为之的差异：原版问的是 {@code Biome#shouldFreeze}，它判断水的流体标签。本维度的水是
+ * portal_fluid，不在那个标签里，所以这里也对着我们自己的流体判断，否则调色板的冰永远不会出现
  */
 public class ChronoFreezeFeature extends Feature<NoneFeatureConfiguration> {
     public ChronoFreezeFeature() {
@@ -45,10 +43,8 @@ public class ChronoFreezeFeature extends Feature<NoneFeatureConfiguration> {
                 below.set(top).move(Direction.DOWN, 1);
                 Biome biome = level.getBiome(top).value();
 
-                // Vanilla's shouldFreeze has two parts: a temperature/precipitation gate, then a test
-                // for the water fluid tag. The gate is applied here for our fluid instead of being
-                // bypassed - without it every fluid surface in every biome, warm ones included,
-                // freezes over.
+                // 原版 shouldFreeze 分两段：温度与降水的门槛，再判断水的流体标签。这里把门槛改用在我
+                // 们自己的流体上，而不是绕过它，否则每个群系里每片流体表面，包括温暖群系，都会冻上
                 boolean freezes = biome.shouldFreeze(level, below, false)
                     || (biome.coldEnoughToSnow(below)
                         && level.getBlockState(below).is(ModBlocks.PORTAL_FLUID.get()));

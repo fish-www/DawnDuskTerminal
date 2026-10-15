@@ -16,7 +16,7 @@ public final class ScorchingTwilightFluidExtensions implements IClientFluidTypeE
     public static final ResourceLocation STILL = DawnDuskTerminal.id("block/enthu_fluid_still");
     public static final ResourceLocation FLOWING = DawnDuskTerminal.id("block/enthu_fluid_flow");
 
-    /** The submersion fog colour {@code 0xFFF0FF}. */
+    /** 浸没时的雾色 {@code 0xFFF0FF} */
     private static final Vector3f SUBMERSION_FOG = new Vector3f(1.0F, 240.0F / 255.0F, 1.0F);
 
     private ScorchingTwilightFluidExtensions() {}
@@ -39,14 +39,14 @@ public final class ScorchingTwilightFluidExtensions implements IClientFluidTypeE
     @Override
     public Vector3f modifyFogColor(Camera camera, float partialTick, ClientLevel level, int renderDistance,
                                    float darkenWorldAmount, Vector3f fluidFogColor) {
-        // Return a fresh instance: ClientHooks.getFogColor mutates the returned vector in place.
+        // 必须返回新实例：ClientHooks.getFogColor 会就地修改传回的向量
         return new Vector3f(SUBMERSION_FOG);
     }
 
     @Override
     public void modifyFogRender(Camera camera, FogRenderer.FogMode mode, float renderDistance, float partialTick,
                                 float nearDistance, float farDistance, FogShape shape) {
-        // Lava-like fog density: 0.25 .. 1.0 blocks.
+        // 接近岩浆的雾浓度：0.25 到 1.0 格
         RenderSystem.setShaderFogStart(0.25F);
         RenderSystem.setShaderFogEnd(1.0F);
         RenderSystem.setShaderFogShape(FogShape.SPHERE);

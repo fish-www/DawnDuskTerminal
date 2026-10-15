@@ -16,9 +16,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * The chrono dimension re-enables the vanilla mineshaft, but its default placement spans up to sea
- * level. Here the NORMAL (non-mesa) mineshaft is confined to y -64..-10 by replacing the vanilla
- * {@code moveBelowSeaLevel} call with {@code moveInsideHeights} for the chrono dimension only.
+ * 晨昏线维度放行了原版废弃矿井，但它的默认落点能一直顶到海平面
+ *
+ * 这里只对晨昏线维度把原版 {@code moveBelowSeaLevel} 换成 {@code moveInsideHeights}，把普通（非平顶
+ * 山）矿井压在 y -64 到 -10
  */
 @Mixin(MineshaftStructure.class)
 public abstract class MineshaftHeightMixin {

@@ -21,9 +21,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Immediate, Twilight-Forest-style portal travel. Entering the portal fluid teleports straight to the
- * other dimension on the first tick of contact (no search charge, no cooldown, no poison), and plays
- * the vanilla nether-portal travel sound on arrival.
+ * 暮色森林式的即时传送。碰到传送门流体的第一个 tick 就直传另一维度（没有搜寻蓄力 没有冷却 没有中毒），
+ * 到达时播原版下界传送门音效
  */
 public final class PortalTeleporter {
     private static final int MAX_CHUNK_LOADS = 64;

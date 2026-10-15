@@ -27,13 +27,13 @@ public record ChronoLine(double originX, double originZ, double normalX, double 
                         return new ChronoLine(0.0D, 0.0D, nx / length, nz / length);
                     }
                 } catch (NumberFormatException ignored) {
-                    // fall through to the random direction
+                    // 落到下面的随机方向
                 }
             }
         }
         double jitter = (random.nextDouble() - 0.5D) * Math.toRadians(60.0D);
-        // The sun faces the normal. Half the worlds keep it in the east (0 deg +/-30), the other
-        // half flip it to the west (180 deg +/-30, i.e. 150..210 deg) so the sun rises in the west.
+        // 太阳朝着法向。一半世界把它留在东侧（0 度正负 30），另一半翻到西侧（180 度正负 30，即 150 到
+        // 210 度），于是太阳从西边升起
         if (random.nextBoolean()) {
             jitter += Math.PI;
         }

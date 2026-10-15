@@ -12,9 +12,9 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * The fluid contact reactions, registered through {@code FluidInteractionRegistry} (the same hook as
- * vanilla water + lava -> cobblestone). The mod fluid is the source: it is replaced by the result
- * block on contact, and the neighbour fluid is left in place, so one contact produces one block.
+ * 流体接触反应，通过 {@code FluidInteractionRegistry} 注册（原版水加岩浆生成圆石走的就是这个钩子）
+ *
+ * 模组流体是发动方：接触时它自己被替换成产物，邻居流体不动，所以一次接触只产出一个方块
  */
 @GameTestHolder("dawnduskterminal")
 @PrefixGameTestTemplate(false)
@@ -48,7 +48,7 @@ public final class FluidReactionTests {
         helper.succeed();
     }
 
-    /** enhtu_fluid + water -> aurora block (blazing_block when Twilight Forest is absent). */
+    /** enthu_fluid 加水生成极光方块，取不到暮色森林时退化为炽热方块 */
     @GameTest(template = "ddt_empty")
     public static void scorchingTwilightWithWater(GameTestHelper helper) {
         helper.setBlock(PORTAL, ModScorchingTwilight.BLOCK.get());
@@ -67,7 +67,7 @@ public final class FluidReactionTests {
         helper.succeed();
     }
 
-    /** Flowing water reacts exactly like a water source (source vs flowing is not distinguished). */
+    /** 流动的水与水源反应完全一致（不区分源与流动） */
     @GameTest(template = "ddt_empty")
     public static void portalFluidWithFlowingWater(GameTestHelper helper) {
         helper.setBlock(PORTAL, ModBlocks.PORTAL_FLUID.get());
@@ -76,7 +76,7 @@ public final class FluidReactionTests {
         helper.succeed();
     }
 
-    /** A flowing portal fluid block triggers reactions just like a source block. */
+    /** 流动的传送门流体和源方块一样会触发反应 */
     @GameTest(template = "ddt_empty")
     public static void flowingPortalFluidWithWater(GameTestHelper helper) {
         helper.setBlock(PORTAL, ModBlocks.PORTAL_FLUID.get().defaultBlockState().setValue(LiquidBlock.LEVEL, 5));

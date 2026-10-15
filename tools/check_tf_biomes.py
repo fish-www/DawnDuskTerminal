@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Verify the ported TF biomes: valid JSON, no leftover minecraft:* features, and every
-twilightforest:* placed feature resolves inside the actual TF jar."""
+"""校验移植后的暮色森林群系：JSON 合法、没有残留的 minecraft:* 特征，且每个
+twilightforest:* 放置特征都能在真正的 TF jar 里解析到。"""
 import json
 import sys
 import zipfile

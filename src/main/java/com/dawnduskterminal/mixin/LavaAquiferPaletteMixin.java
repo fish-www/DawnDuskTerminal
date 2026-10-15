@@ -14,19 +14,18 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * The deep "lava aquifer" is a second hardcoded {@code Blocks.LAVA} no datapack can reach.
+ * 深部「熔岩含水层」是第二处写死的 {@code Blocks.LAVA}，数据包够不到
  *
- * <p>Vanilla {@code Aquifer.NoiseBasedAquifer.computeFluidType} upgrades aquifer cells whose fluid
- * surface level is at or below {@code -10} to {@code Blocks.LAVA} whenever the {@code aquifer_lava}
- * noise exceeds 0.3. {@link LavaBandPaletteMixin} only replaces the {@code y < -54} band produced
- * by {@code NoiseBasedChunkGenerator.createFluidPicker}; this second spot would still emit vanilla
- * {@code minecraft:lava} inside the chrono dimension, so it is swapped to enthu_fluid here.
+ * <p>原版 {@code Aquifer.NoiseBasedAquifer.computeFluidType} 会把流体表面高度在 {@code -10} 及以下、
+ * 且 {@code aquifer_lava} 噪声超过 0.3 的含水层格子升级成 {@code Blocks.LAVA}。
+ * {@link LavaBandPaletteMixin} 只替换了 {@code NoiseBasedChunkGenerator.createFluidPicker} 产出的
+ * {@code y < -54} 那一段；第二处仍会在晨昏线维度里放出原版 {@code minecraft:lava}，所以这里换成
+ * enthu_fluid
  *
- * <p>The dimension is identified by the fluid type that reached this method: in the chrono dimension
- * the global fluid picker (already patched by {@link LavaBandPaletteMixin}) only ever returns
- * portal_fluid or enthu_fluid, never vanilla water/lava. Any other fluid falls through to vanilla
- * untouched. The vanilla guard {@code status.fluidType != Blocks.LAVA} becomes "not already
- * enthu_fluid", so the deep band - which already is enthu_fluid - is not re-upgraded.
+ * <p>维度靠流到本方法的流体类型来识别：晨昏线维度里全局流体选择器（已被 {@link LavaBandPaletteMixin}
+ * 打过补丁）只会返回 portal_fluid 或 enthu_fluid，绝不会是原版的水或岩浆。其它流体一律原样走原版
+ * 逻辑。原版判断 {@code status.fluidType != Blocks.LAVA} 在这里变成「不是 enthu_fluid」，所以本来
+ * 就是 enthu_fluid 的深部带不会被二次升级
  */
 @Mixin(Aquifer.NoiseBasedAquifer.class)
 public abstract class LavaAquiferPaletteMixin {
@@ -38,7 +37,7 @@ public abstract class LavaAquiferPaletteMixin {
                                         CallbackInfoReturnable<BlockState> cir) {
         BlockState globalType = ((FluidStatusAccessor) (Object) status).ddt$fluidType();
         if (!globalType.is(ModBlocks.PORTAL_FLUID.get()) && !globalType.is(ModScorchingTwilight.BLOCK.get())) {
-            return; // not the chrono dimension -> vanilla behaviour
+            return; // 不是晨昏线维度，走原版逻辑
         }
         BlockState blockstate = globalType;
         if (fluidLevel <= -10 && fluidLevel != DimensionType.WAY_BELOW_MIN_Y

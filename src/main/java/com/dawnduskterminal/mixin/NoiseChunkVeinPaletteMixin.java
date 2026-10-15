@@ -20,15 +20,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Wraps the chunk's finished block rule so the large ore veins stop placing vanilla granite and tuff.
+ * 包住区块最终拼好的方块规则，让大矿脉不再铺原版花岗岩与凝灰岩
  *
- * <p>Vanilla builds that rule in the {@code NoiseChunk} constructor and folds
- * {@code OreVeinifier.create(...)} into it; {@code OreVeinifier.VeinType} hardcodes
- * {@code GRANITE} / {@code TUFF} as the vein fillers, and no datapack can reach them. Wrapping the
- * composed rule covers them without touching the parts the datapack already handles.
+ * <p>原版在 {@code NoiseChunk} 构造函数里拼出这条规则，并把 {@code OreVeinifier.create(...)} 折进去；
+ * {@code OreVeinifier.VeinType} 把 {@code GRANITE} 与 {@code TUFF} 写死成矿脉填充物，数据包够不到。
+ * 包住拼好的规则正好覆盖它们，又不碰数据包已经处理的部分
  *
- * <p>The dimension is identified by its noise settings: only the chrono settings use portal_fluid as
- * their default fluid.
+ * <p>维度靠噪声设置识别：只有晨昏线的设置把默认流体设为 portal_fluid
  */
 @Mixin(NoiseChunk.class)
 public abstract class NoiseChunkVeinPaletteMixin {

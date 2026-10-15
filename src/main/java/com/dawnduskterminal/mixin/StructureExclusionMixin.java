@@ -19,9 +19,9 @@ import java.util.Optional;
 @Mixin(Structure.class)
 public abstract class StructureExclusionMixin {
     /**
-     * The chrono dimension no longer uses a bespoke {@code BiomeSource} to recognise itself, so it is
-     * identified by the noise settings its generator was built from. That is stable across the
-     * chunk-generator lifecycle and already available on the generation context.
+     * 晨昏线维度不再用自写 {@code BiomeSource} 来认自己，改成按生成器构建时用的噪声设置识别
+     *
+     * 这样在整个区块生成器生命周期里都稳定，而且生成上下文里本来就有
      */
     @Unique
     private static final ResourceKey<NoiseGeneratorSettings> DDT$CHRONO_SETTINGS = ResourceKey.create(

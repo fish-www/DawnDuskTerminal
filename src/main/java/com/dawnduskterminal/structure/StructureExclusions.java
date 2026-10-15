@@ -11,13 +11,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Single source of truth for which structures the chrono dimension may place.
+ * 晨昏线维度允许生成哪些结构的唯一出处
  *
- * <p>{@code StructureExclusionMixin} suppresses every structure whose id is <em>not</em> in this
- * allow-list, so this one table is the whole exclusion policy: an entry here is allowed, anything
- * else is excluded. The previous {@code EXCLUDED_TF} / {@code EXCLUDED_VANILLA} blacklists and the
- * {@code WHITELIST} were three overlapping structures with contradictory semantics, now collapsed
- * into this single allow-list. The names are only used by the startup validation log.
+ * <p>{@code StructureExclusionMixin} 会压制 id <em>不</em>在这张白名单里的每一个结构，所以这一张表就
+ * 是全部排除策略：在这里就是允许，其余一律排除。之前的 {@code EXCLUDED_TF} / {@code EXCLUDED_VANILLA}
+ * 黑名单和 {@code WHITELIST} 是三张语义互相矛盾又重叠的表，现在合并成这一张白名单。表里的名字只用于
+ * 启动时的校验日志
  */
 public final class StructureExclusions {
     private static final Map<String, ResourceLocation> ALLOWED = new LinkedHashMap<>();

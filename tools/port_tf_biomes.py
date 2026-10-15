@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Port Twilight Forest biomes into the dawn-dusk terminal dimension.
+"""把暮色森林群系移植进晨昏线维度。
 
-For each (tf_biome, vanilla_biome) pair this replaces the content of the mod's
-`dawnduskterminal:<vanilla_biome>` copy with the TF biome, while keeping:
-  * the existing mod copy's `carvers` (so caves still carve in this dimension)
-  * every `minecraft:*` placed feature remapped to `dawnduskterminal:*` (palette)
-  * every `twilightforest:*` placed feature referenced directly (TF is a hard dep)
+对每一组 (tf_biome, vanilla_biome)，用 TF 群系替换模组那份
+`dawnduskterminal:<vanilla_biome>` 副本的内容，同时保留：
+  * 模组副本原有的 `carvers`（这样洞穴仍会在本维度雕刻）
+  * 每个 `minecraft:*` 放置特征都重映射到 `dawnduskterminal:*`（调色板）
+  * 每个 `twilightforest:*` 放置特征都直接引用（TF 是硬依赖）
 
-Run from the repo root with the bundled Python. The source jar is the user's
-actual TF jar (twilightforest-1.21.1-4.8.3345-universal.jar).
+在仓库根目录用自带的 Python 运行。源 jar 是用户实际安装的 TF jar
+（twilightforest-1.21.1-4.8.3345-universal.jar）。
 """
 import json
 import sys
@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 TF_JAR = REPO_ROOT / "run" / "client" / "mods" / "twilightforest-1.21.1-4.8.3345-universal.jar"
 BIOME_OUT = REPO_ROOT / "src" / "main" / "resources" / "data" / "dawnduskterminal" / "worldgen" / "biome"
 
-# (tf_biome, vanilla_biome) — the TF biome id replaces the vanilla biome copy of the same name.
+# (tf_biome, vanilla_biome) —— TF 群系 id 替换同名的原版群系副本。
 PAIRS = [
     ("dark_forest_center", "dark_forest"),
     ("firefly_forest", "birch_forest"),

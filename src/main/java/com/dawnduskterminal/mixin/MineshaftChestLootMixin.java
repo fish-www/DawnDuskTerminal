@@ -12,10 +12,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
- * The chrono dimension re-enables the vanilla mineshaft (see {@code StructureExclusions}), but the
- * chest minecarts it spawns hard-code {@code minecraft:chests/abandoned_mineshaft}. In the chrono
- * dimension we swap that table for a dedicated one whose contents mirror the Twilight Forest
- * Hollow Hill chests ({@code twilightforest:hill_1/2/3}).
+ * 晨昏线维度放行了原版废弃矿井（见 {@code StructureExclusions}），但矿井刷出的箱车写死了
+ * {@code minecraft:chests/abandoned_mineshaft}
+ *
+ * 在晨昏线维度里把那张表换成专用表，内容对着暮色森林空心矿山的箱子
+ * （{@code twilightforest:hill_1/2/3}）
  */
 @Mixin(MineshaftPieces.MineShaftCorridor.class)
 public abstract class MineshaftChestLootMixin {

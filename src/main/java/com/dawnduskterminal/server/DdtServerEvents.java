@@ -127,9 +127,10 @@ public final class DdtServerEvents {
     }
 
     /**
-     * A vanilla {@code minecraft:bucket} must not scoop portal_fluid / enthu_fluid. Trying to does not
-     * pick the fluid up: the interaction is cancelled, a tool-break sound plays, and one bucket is
-     * destroyed. The canocan handles these fluids instead (see {@link com.dawnduskterminal.item.CanocanItem}).
+     * 原版 {@code minecraft:bucket} 不能舀 portal_fluid 与 enthu_fluid
+     *
+     * 尝试去舀不会拾起流体：交互被取消，播工具损坏音效，销毁一个桶。这两种流体交给苍穹罐处理
+     * （见 {@link com.dawnduskterminal.item.CanocanItem}）
      */
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
         ItemStack stack = event.getItemStack();

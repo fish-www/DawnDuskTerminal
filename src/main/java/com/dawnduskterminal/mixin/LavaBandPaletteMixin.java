@@ -11,18 +11,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * The one piece of the chrono palette no datapack can reach.
+ * 晨昏线调色板里唯一一块数据包够不到的地方
  *
- * <p>{@code NoiseBasedChunkGenerator.createFluidPicker} hardcodes {@code Blocks.LAVA} for everything
- * below {@code min(-54, seaLevel)}; that band is not derived from {@code default_fluid}, so the noise
- * settings cannot change it. Everything above it already comes from {@code settings.defaultFluid()},
- * which the chrono settings set to portal_fluid - so the palette is complete there.
+ * <p>{@code NoiseBasedChunkGenerator.createFluidPicker} 把 {@code min(-54, seaLevel)} 以下整段写死成
+ * {@code Blocks.LAVA}；那一段不是由 {@code default_fluid} 推导出来的，噪声设置改不动。它上面的一切
+ * 已经来自 {@code settings.defaultFluid()}，而晨昏线设置把它设成了 portal_fluid，所以那部分调色板是
+ * 齐的
  *
- * <p>The settings identify the dimension here (their {@code default_fluid} being portal_fluid), as
- * there is no level in scope. The handler takes over the whole method rather than nudging one
- * argument, because an argument injector cannot see the enclosing method's parameters; if vanilla
- * ever changes this picker the {@code HEAD} injection still applies and this copy is what runs, so it
- * is the one place to keep an eye on when updating Minecraft.
+ * <p>这里靠噪声设置（它的 {@code default_fluid} 是 portal_fluid）识别维度，因为作用域里没有 level。
+ * 处理器直接接管整个方法而不是改一个参数，因为参数注入看不到外层方法的参数；万一原版改了这个选择
+ * 器，{@code HEAD} 注入依然生效，跑的仍是这份拷贝，所以升级 Minecraft 时要盯的就是这一处
  */
 @Mixin(NoiseBasedChunkGenerator.class)
 public abstract class LavaBandPaletteMixin {

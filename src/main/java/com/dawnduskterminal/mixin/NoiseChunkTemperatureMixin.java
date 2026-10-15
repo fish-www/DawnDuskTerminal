@@ -19,13 +19,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Shifts the chrono dimension's temperature noise by the terminator offset so biome selection tracks
- * the day/night side of the chrono line.
+ * 给晨昏线维度的温度噪声加上晨昏线偏移，让群系选择跟着线的昼夜侧走
  *
- * <p>The dimension is identified the same way the vein-palette mixin does: only the chrono noise
- * settings use portal_fluid as their default fluid. The flag is captured in the constructor because
- * {@code cachedClimateSampler} - where the temperature is handed to the climate sampler - does not
- * receive the noise settings.
+ * <p>识别维度的方式与矿脉调色板 mixin 相同：只有晨昏线的噪声设置把默认流体设为 portal_fluid。标记
+ * 在构造函数里捕获，因为 {@code cachedClimateSampler}（把温度交给气候采样器的地方）拿不到噪声设置
  */
 @Mixin(NoiseChunk.class)
 public abstract class NoiseChunkTemperatureMixin {

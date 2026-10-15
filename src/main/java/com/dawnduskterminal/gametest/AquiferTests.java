@@ -12,9 +12,10 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 /**
- * The chrono noise settings are a port of {@code minecraft:noise_settings/overworld.json} whose
- * terrain block, aquifer fluid and surface rule already name the chrono palette - the dimension
- * generates its own blocks directly, rather than generating a vanilla column that gets rewritten.
+ * 晨昏线的噪声设置是 {@code minecraft:noise_settings/overworld.json} 的移植版本
+ *
+ * 地形方块 含水层流体 地表规则都直接指向晨昏线调色板：维度生成时就铺自己的方块，而不是先生成一列
+ * 原版再改写
  */
 @GameTestHolder("dawnduskterminal")
 @PrefixGameTestTemplate(false)
@@ -30,7 +31,7 @@ public final class AquiferTests {
         return settings;
     }
 
-    /** The generator itself must name the mod's blocks - that is what makes the palette native. */
+    /** 生成器本身必须指向模组方块，这才是「原生调色板」的关键 */
     @GameTest(template = "ddt_empty")
     public static void terrainAndFluidUseTheModPalette(GameTestHelper helper) {
         NoiseGeneratorSettings settings = chronoSettings(helper);

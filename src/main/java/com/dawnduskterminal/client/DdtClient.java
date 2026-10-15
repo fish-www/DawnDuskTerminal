@@ -63,9 +63,9 @@ public final class DdtClient {
             com.dawnduskterminal.registry.ModTerrainBlocks.WITHERED_DAWN_LEAVES.get(),
             com.dawnduskterminal.registry.ModTerrainBlocks.WITHERED_DUSK_LEAVES.get(),
             com.dawnduskterminal.registry.ModTerrainBlocks.WITHERED_CHRONO_LEAVES.get());
-        // Vanilla registers grass tinting per block (BlockColors.createDefault -> Blocks.GRASS_BLOCK, FERN, ...); a
-        // modded block gets no tint at all, so its tintindex 0 faces render as the raw grey texture. Same provider
-        // as vanilla, including the null-level fallback used by the item renderer.
+        // 原版按方块逐个注册草色（BlockColors.createDefault 里的 GRASS_BLOCK、FERN 等），模组方块完全不
+        // 上色，tintindex 0 的面会直接渲染成灰白贴图。这里用与原版相同的取色器，包含物品渲染器用的
+        // level 为空时的兜底
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0) {
                 return -1;
@@ -77,15 +77,13 @@ public final class DdtClient {
     }
 
     private static void registerItemColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Item event) {
-        // Vanilla ItemColors delegates block-item tints back to the block colours with a null level
-        // (ItemColors.createDefault), which is the registration that makes a modded grass block grey in the
-        // inventory / in hand. Item rendering always has a null level, so this resolves to the default grass colour.
+        // 原版 ItemColors 会以 level 为空把方块物品的颜色转回方块取色器（ItemColors.createDefault），
+        // 缺了这条注册，模组草方块在背包和手里就是灰的。物品渲染的 level 恒为空，所以这里落到默认草色
         event.register((stack, tintIndex) -> tintIndex == 0
             ? net.minecraft.world.level.GrassColor.getDefaultColor()
             : -1,
             com.dawnduskterminal.registry.ModTerrainBlocks.ROSY_GRASS_ITEM.get());
-        // Leaves render with a null level in the inventory / in hand, so this resolves to the default foliage colour
-        // (the same 0x48B518 fallback the block colour provider uses at line 39 above).
+        // 树叶在背包和手里渲染时 level 为空，所以落到默认树叶色（与上面方块取色器用的 0x48B518 兜底一致）
         event.register((stack, tintIndex) -> tintIndex == 0 ? 0x48B518 : -1,
             com.dawnduskterminal.registry.ModTerrainBlocks.DAWN_LEAVES_ITEM.get(),
             com.dawnduskterminal.registry.ModTerrainBlocks.DUSK_LEAVES_ITEM.get(),
@@ -112,20 +110,19 @@ public final class DdtClient {
     }
 
     /**
-     * The portal fluid's own flow properties already mirror vanilla water (see
-     * {@link com.dawnduskterminal.registry.ModFluids}), so this is the render half of the same mirroring:
-     * vanilla puts {@code Fluids.WATER} and {@code Fluids.FLOWING_WATER} into
-     * {@code ItemBlockRenderTypes.TYPE_BY_FLUID} as {@link RenderType#translucent()}
-     * ({@code ItemBlockRenderTypes} static init), and {@code SectionCompiler} asks that map which chunk layer a
-     * fluid surface belongs to.
+     * 传送门流体的流动参数已经照抄了原版水（见 {@link com.dawnduskterminal.registry.ModFluids}），
+     * 这里是同一套照抄的渲染侧
      *
-     * <p>Without it the fluid lands in the solid layer, and the solid layer's shader ignores the alpha channel:
-     * {@code portal_fluid_still.png} / {@code portal_fluid_flow.png} are a uniform alpha of 230/255, which is
-     * exactly what makes them look semi transparent, so they would render fully opaque.
+     * <p>原版把 {@code Fluids.WATER} 与 {@code Fluids.FLOWING_WATER} 以 {@link RenderType#translucent()}
+     * 放进 {@code ItemBlockRenderTypes.TYPE_BY_FLUID}（在 {@code ItemBlockRenderTypes} 的静态初始化里），
+     * {@code SectionCompiler} 再查这张表决定流体表面属于哪个区块渲染层
      *
-     * <p>{@code setRenderLayer(Fluid, RenderType)} refuses to run outside client mod loading
-     * ({@code ClientModLoader.isLoading()}), which is why this is a client setup listener rather than a
-     * client-side event somewhere later.
+     * <p>不注册就会落到实体层，而实体层的着色器忽略 alpha 通道：{@code portal_fluid_still.png} 与
+     * {@code portal_fluid_flow.png} 的 alpha 统一是 230/255，这正是它们看起来半透明的原因，落到实体层
+     * 就会完全不透明
+     *
+     * <p>{@code setRenderLayer(Fluid, RenderType)} 只在客户端模组加载期（{@code ClientModLoader.isLoading()}）
+     * 允许调用，所以这里是客户端 setup 监听，而不是更晚的客户端事件
      */
     private static void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(ModFluids.PORTAL_FLUID.get(), RenderType.translucent());

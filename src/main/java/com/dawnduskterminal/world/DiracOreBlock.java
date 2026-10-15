@@ -14,9 +14,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Dirac ore is a high-hardness trap block: mining it with any pickaxe below diamond tier does not
- * harvest it, but instead "teleports" the ore away - an enderman teleport sound, portal particles, and
- * the block is replaced in place by portal fluid.
+ * 狄拉克石是高硬度陷阱方块：用低于钻石级的镐挖不会掉落，而是把矿石「传送」走——末影人传送音效、传送门
+ * 粒子，方块原地变成传送门流体
  */
 public class DiracOreBlock extends Block {
     public DiracOreBlock(Properties properties) {

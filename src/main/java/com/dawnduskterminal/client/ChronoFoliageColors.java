@@ -12,13 +12,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Applies the Twilight Forest foliage (leaf) colour to the chrono dimension's ported biomes.
+ * 把暮色森林的树叶染色搬到晨昏线维度的群系副本上
  *
- * <p>TF colours leaves with an ASM transformer that patches {@code BiomeColors.FOLIAGE_COLOR_RESOLVER}
- * and then looks the biome up in a map keyed by TF's own biome ids. The chrono copies live under
- * {@code dawnduskterminal:*}, so that lookup misses and the leaves fall back to the plain foliage
- * colour. This class re-implements the two TF foliage algorithms and is wired in by
- * {@link com.dawnduskterminal.mixin.BiomeColorsFoliageMixin}.
+ * <p>暮色森林用 ASM 改写 {@code BiomeColors.FOLIAGE_COLOR_RESOLVER}，再按它自己的群系 ID 查表
+ * 上色。晨昏线的副本在 {@code dawnduskterminal:*} 命名空间下，查表必然落空，树叶只会用普通的
+ * 树叶色。本类复刻暮色森林的两套树叶算法，由
+ * {@link com.dawnduskterminal.mixin.BiomeColorsFoliageMixin} 接入
  */
 public final class ChronoFoliageColors {
     private static final ResourceKey<Biome> JUNGLE = biomeKey("jungle");
@@ -34,8 +33,8 @@ public final class ChronoFoliageColors {
             return enchanted(original, (int) x, (int) z);
         }
         if (DARK_FOREST.equals(key)) {
-            // TF's darkForestCenterFoliage always returns 0xE94E14: its branch condition
-            // `(noise + 1) / 2 < -0.1` can never be true, so the noise never selects the other colour.
+            // 暮色森林的 darkForestCenterFoliage 恒返回 0xE94E14：它的分支条件
+            // `(noise + 1) / 2 < -0.1` 永远不成立，噪声选不到另一种颜色
             return 0xE94E14;
         }
         return original;
@@ -64,7 +63,7 @@ public final class ChronoFoliageColors {
         return key;
     }
 
-    /** TF's {@code BiomeColorAlgorithms.enchanted}: a position-based blue gradient across the biome. */
+    /** 暮色森林的 {@code BiomeColorAlgorithms.enchanted}：按坐标在整个群系上做蓝色渐变 */
     private static int enchanted(int original, int x, int z) {
         BlockPos center = nearestCenterXZ(x >> 4, z >> 4);
         int cx = center.getX();
@@ -79,7 +78,7 @@ public final class ChronoFoliageColors {
         return (original & 0xFFFF00) + color;
     }
 
-    /** TF's {@code LegacyLandmarkPlacements.getNearestCenterXZ}: a deterministic, seed-free grid centre. */
+    /** 暮色森林的 {@code LegacyLandmarkPlacements.getNearestCenterXZ}：确定性的、不依赖种子的栅格中心 */
     private static BlockPos nearestCenterXZ(int chunkX, int chunkZ) {
         int regionX = (chunkX + 8) >> 4;
         int regionZ = (chunkZ + 8) >> 4;

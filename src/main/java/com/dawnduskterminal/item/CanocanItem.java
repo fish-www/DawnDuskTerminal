@@ -19,9 +19,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
 /**
- * The "canocan" is the only container allowed to scoop the chrono dimension's two special fluids
- * (portal_fluid and enthu_fluid). It produces {@code portal_bucket} / {@code enthu_fluid_bucket}
- * respectively; any other fluid is left untouched.
+ * 「苍穹罐」是唯一允许舀起晨昏线维度两种特殊流体（portal_fluid 与 enthu_fluid）的容器
+ *
+ * 分别产出 {@code portal_bucket} 与 {@code enthu_fluid_bucket}，其它流体一律不动
  */
 public class CanocanItem extends Item {
     public CanocanItem(Properties properties) {

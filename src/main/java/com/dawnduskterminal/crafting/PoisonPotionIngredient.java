@@ -13,9 +13,9 @@ import net.neoforged.neoforge.common.crafting.IngredientType;
 import java.util.stream.Stream;
 
 /**
- * Matches any potion (drinkable, splash or lingering) whose combined effects include
- * {@link MobEffects#POISON}. This lets the mixed-carminite recipe accept any poison potion rather
- * than only the exact base {@code minecraft:poison} variant.
+ * 匹配任意一种效果里带 {@link MobEffects#POISON} 的药水，饮用 喷溅 滞留都算
+ *
+ * 这样砷铅铁混合物的配方能接受任何毒药水，而不是只认基础的 {@code minecraft:poison}
  */
 public final class PoisonPotionIngredient implements ICustomIngredient {
     public static final PoisonPotionIngredient INSTANCE = new PoisonPotionIngredient();

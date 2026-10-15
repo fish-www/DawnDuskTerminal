@@ -145,8 +145,6 @@
 
 ## 已知问题
 
-`PaletteBiomeSource` 的 javadoc 说 floatrees 在深度 -1.5 到 -1.3，代码实际是低于 -1.6，注释与实现不一致
-
 `data/dawnduskterminal/tags/worldgen/biome/` 下的旧标签只保留 `palette_biomes`
 
 ## 改地形注意

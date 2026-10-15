@@ -1,45 +1,40 @@
 #!/usr/bin/env python3
-"""Port the vanilla Overworld worldgen into the DawnDuskTerminal "chrono" dimension.
+"""把原版主世界世界生成移植进 DawnDuskTerminal 的「晨昏线」维度。
 
-What this script does
----------------------
-1. Extracts ``data/minecraft/worldgen/{density_function,noise,noise_settings}`` from the
-   NeoForge-decompiled Minecraft client jar found in the Gradle cache.
-2. Copies the Overworld noise router (density functions) plus every *portable* noise
-   parameter they transitively reference into the ``dawnduskterminal`` namespace.
-3. Writes ``worldgen/noise_settings/chrono.json`` as a faithful port of
-   ``minecraft:noise_settings/overworld.json``, repointed at the ported ids.
-4. Validates that every reference inside the ported documents resolves, and prints a
-   report of anything that stays vanilla and why.
+脚本做什么
+----------
+1. 从 Gradle 缓存里反编译出的 NeoForge 客户端 jar 中提取
+   ``data/minecraft/worldgen/{density_function,noise,noise_settings}``。
+2. 把主世界噪声路由（密度函数）以及它们间接引用的所有*可移植*噪声参数复制进
+   ``dawnduskterminal`` 命名空间。
+3. 写出 ``worldgen/noise_settings/chrono.json``，作为
+   ``minecraft:noise_settings/overworld.json`` 的忠实移植，引用改指移植后的 id。
+4. 校验移植文档里的每个引用都能解析，并打印一份报告，说明哪些仍是原版以及原因。
 
-Why moving the namespace *is* the seed derivation
--------------------------------------------------
-``Noises.instantiate(registry, randomFactory, key)`` builds each noise field as
-``NormalNoise.create(randomFactory.fromHashOf(key.location()), params)``, and
+为什么换命名空间*就是*种子派生
+------------------------------
+``Noises.instantiate(registry, randomFactory, key)`` 把每个噪声场建成
+``NormalNoise.create(randomFactory.fromHashOf(key.location()), params)``，而
 
     RandomState.random = settings.getRandomSource().newInstance(worldSeed).forkPositional()
 
-so a noise field is a pure function of ``(world seed, noise key ResourceLocation)``.
-Re-registering the very same ``firstOctave``/``amplitudes`` under ``dawnduskterminal:*``
-therefore produces terrain with Overworld character but a *different, seed-derived*
-realisation, instead of a 1:1 clone of the Overworld at the same coordinates.
+所以一个噪声场是 ``(世界种子, 噪声键 ResourceLocation)`` 的纯函数。把完全相同的
+``firstOctave``/``amplitudes`` 重新注册到 ``dawnduskterminal:*`` 下，得到的地形因此带有主世界的
+特征，却是*另一个、由种子派生的*实现，而不是同坐标下主世界的一比一克隆。
 
-Boundaries that a datapack cannot cross (documented, not bugs)
---------------------------------------------------------------
-* ``old_blended_noise`` (the base 3D noise) is seeded from the hardcoded
-  ``minecraft:terrain`` location (``RandomState.wrapNew``), so that one component is
-  identical to the Overworld's.
-* The aquifer and ore positional randoms are hardcoded to ``minecraft:aquifer`` and
-  ``minecraft:ore``.
-* Code-registered singletons (``minecraft:zero``, ``minecraft:y``,
-  ``minecraft:blend_density``, ``minecraft:blend_alpha``, ``minecraft:blend_offset``,
-  ``minecraft:beardifier``, ``minecraft:end_islands``) stay vanilla; they carry no
-  seed-dependent noise of their own.
+数据包跨不过去的边界（是记录，不是 bug）
+----------------------------------------
+* ``old_blended_noise``（基础三维噪声）的种子来自写死的 ``minecraft:terrain`` 位置
+  （``RandomState.wrapNew``），所以那一个分量与主世界相同。
+* 含水层与矿石的位置随机源写死为 ``minecraft:aquifer`` 与 ``minecraft:ore``。
+* 代码注册的单例（``minecraft:zero``、``minecraft:y``、``minecraft:blend_density``、
+  ``minecraft:blend_alpha``、``minecraft:blend_offset``、``minecraft:beardifier``、
+  ``minecraft:end_islands``）保持原版；它们自身不携带依赖种子的噪声。
 
-Usage
------
-    python tools/port_overworld_worldgen.py            # port + validate
-    python tools/port_overworld_worldgen.py --check     # validate only, write nothing
+用法
+----
+    python tools/port_overworld_worldgen.py            # 移植并校验
+    python tools/port_overworld_worldgen.py --check     # 只校验，不写文件
 """
 
 from __future__ import annotations
@@ -61,11 +56,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 OUT_ROOT = REPO_ROOT / "src" / "main" / "resources" / "data" / MOD_ID / "worldgen"
 
 # --------------------------------------------------------------------------------------
-# What gets ported
+# 移植范围
 # --------------------------------------------------------------------------------------
 
-# The Overworld noise router, lifted from `minecraft:noise_settings/overworld.json`.
-# `shift_x`/`shift_z` are included so the positional shift is re-derived as well.
+# 主世界噪声路由，取自 `minecraft:noise_settings/overworld.json`
+# 一并带上 `shift_x` 与 `shift_z`，让坐标偏移也重新派生
 PORT_DENSITY_FUNCTIONS = [
     "shift_x",
     "shift_z",
@@ -87,15 +82,15 @@ PORT_DENSITY_FUNCTIONS = [
     "overworld/caves/spaghetti_roughness_function",
 ]
 
-# Keys whose string values are *not* worldgen references and must never be rewritten.
-#   type        - a registered codec id
-#   Name        - a block id inside a `result_state` / `default_block`
-#   random_name - a random source name, not a registry id
-#   biome_is    - biome ids
+# 这些键的字符串值*不是*世界生成引用，绝不能改写
+#   type        - 注册的 codec id
+#   Name        - `result_state` 或 `default_block` 里的方块 id
+#   random_name - 随机源名字，不是注册表 id
+#   biome_is    - 群系 id
 NEVER_REWRITE_KEYS = {"type", "Name", "random_name", "biome_is"}
 
-# Density functions registered in code (NoiseRouterData.bootstrap) rather than shipped as
-# datapack files. They resolve in any datapack and are deliberately left vanilla.
+# 在代码里注册的密度函数（NoiseRouterData.bootstrap），不以数据包文件形式发出
+# 它们在任何数据包里都能解析，所以有意保持原版
 CODE_REGISTERED_DENSITY_FUNCTIONS = {
     "zero",
     "y",
@@ -107,19 +102,19 @@ CODE_REGISTERED_DENSITY_FUNCTIONS = {
 }
 
 # --------------------------------------------------------------------------------------
-# The chrono block palette
+# 晨昏线方块调色板
 # --------------------------------------------------------------------------------------
-# The chrono dimension generates its own blocks, not the vanilla ones the Overworld pipeline is
-# written with. Everything the worldgen data can own is swapped right here:
+# 晨昏线维度生成自己的方块，而不是主世界管线写死的那批
+# 世界生成数据能掌控的部分，全部在这里换掉：
 #
-#   * `default_block`   - the bulk terrain, plus what the surface rule defaults to
-#   * `default_fluid`   - aquifers and oceans
-#   * every `result_state` the surface rule can emit
+#   * `default_block`   - 主体地形，也是地表规则的默认产物
+#   * `default_fluid`   - 含水层与海洋
+#   * 地表规则能产出的每一个 `result_state`
 #
-# The swap is applied to any `"Name": ...` inside the settings document, which covers all three.
-# Blocks that only ever arrive through *biome features* (granite / diorite / andesite / tuff ore
-# blobs, lava lakes and springs, pile_snow, ice patches, disks) cannot be reached from here - a
-# biome's feature list is global, so those need per-dimension biomes to move too.
+# 替换施加在设置文档里所有的 `"Name": ...` 上，三类都覆盖到了
+# 只通过*群系特征*出现的方块（花岗岩 闪长岩 安山岩 凝灰岩矿
+# 簇、岩浆湖与岩浆泉、雪堆、冰斑、圆盘状沉积）在这里够不到，因为
+# 群系特征表是全局的，那些必须连维度自己的群系一起换掉
 PALETTE = {
     "minecraft:grass_block": "dawnduskterminal:rosy_grass",
     "minecraft:dirt": "dawnduskterminal:rosy_dirt",
@@ -143,7 +138,7 @@ PALETTE = {
 
 
 # --------------------------------------------------------------------------------------
-# Locating the vanilla datapack
+# 定位原版数据包
 # --------------------------------------------------------------------------------------
 
 
@@ -166,7 +161,7 @@ def find_minecraft_client_jars() -> list[Path]:
             "caches/modules-2/files-2.1/net.neoforged/minecraft*/**/*.jar",
         ):
             found.extend(sorted(root.glob(pattern)))
-    # Keep only archives that actually carry the vanilla worldgen datapack.
+    # 只保留真正带原版世界生成数据包的归档
     usable = []
     for jar in found:
         try:
@@ -212,7 +207,7 @@ def extract_vanilla_worldgen(dest: Path) -> Path:
 
 
 # --------------------------------------------------------------------------------------
-# Reference resolution
+# 引用解析
 # --------------------------------------------------------------------------------------
 
 
@@ -326,21 +321,21 @@ def apply_palette(node):
 
 
 # --------------------------------------------------------------------------------------
-# The palette layer: biomes and the features they place
+# 调色板层：群系以及它们铺的特征
 # --------------------------------------------------------------------------------------
-# Anything that arrives through a *biome feature* cannot be reached from the noise settings,
-# because a biome's feature list is part of the global biome registry. So the dimension owns
-# faithful copies of the biomes and features that touch a palette block, wired to each other:
+# 凡是经由*群系特征*出现的，噪声设置都够不到，
+# 因为群系特征表属于全局群系注册表。所以维度自己拥有一份
+# 会碰到调色板方块的群系与特征副本，并互相接好：
 #
-#   configured_feature  (block providers / predicates swapped)
+#   configured_feature  （换掉方块提供器与判据）
 #        ^
-#   placed_feature      (points at our configured feature)
+#   placed_feature      （指向我们的 configured feature）
 #        ^
-#   biome               (feature list points at our placed feature)
+#   biome               （特征表指向我们的 placed feature）
 #        ^
-#   multi_noise parameter list  (points at our biome)
+#   multi_noise 参数表  （指向我们的群系）
 #
-# Whatever is not affected keeps its vanilla id, and the copies keep vanilla's ids one level down.
+# 不受影响的保持原版 id，副本往下一层也沿用原版的 id
 
 
 def load_json_dir(root: Path) -> dict[str, object]:
@@ -432,9 +427,9 @@ def id_map(names) -> dict[str, str]:
     return {f"{VANILLA_NS}:{k}": f"{MOD_ID}:{k}" for k in names}
 
 
-# Block tags the copied features test through. Vanilla's own copies are shared with the Overworld, so
-# the dimension gets its own and the copied features point at those instead of widening vanilla's -
-# widening them also let every ore feature replace every palette stone, not just stone.
+# 拷贝后的特征要判断的方块标签。原版自己的标签与主世界共用，
+# 所以维度用自己那份，拷贝的特征指向它们，而不是去拓宽原版的标签，
+# 拓宽还会让每个矿石特征替换掉所有调色板石头，而不只是石头
 BLOCK_TAG_RETARGET = (
     "base_stone_overworld",
     "stone_ore_replaceables",
@@ -491,8 +486,8 @@ def build_palette_layer(vanilla_root: Path, vanilla_tag_root: Path, out_root: Pa
     carver_all = load_json_dir(vanilla_root / "configured_carver")
     overworld = overworld_biome_names(vanilla_tag_root)
 
-    # 1. configured features that place or test a palette block, closed upward: a vanilla parent
-    #    feature would otherwise keep pointing at the vanilla child that places palette blocks
+    # 1. 会放置或判断调色板方块的配置特征，并向上闭包：否则原版父特征
+    #    会继续指向那个铺调色板方块的原版子特征
     cf_keep = {k for k, v in cf_all.items() if references_palette(v)}
     while True:
         grown = cf_keep | {k for k, v in cf_all.items() if collect_refs(v, cf_keep)}
@@ -500,18 +495,18 @@ def build_palette_layer(vanilla_root: Path, vanilla_tag_root: Path, out_root: Pa
             break
         cf_keep = grown
 
-    # 2. placed features that reach a kept configured feature, or touch a palette block themselves
+    # 2. 能到达保留的配置特征、或自己就碰到调色板方块的放置特征
     pf_keep = {k for k, v in pf_all.items() if references_palette(v) or collect_refs(v, cf_keep)}
 
-    # 3. the overworld biomes whose feature lists reference a kept placed feature
+    # 3. 特征表引用了保留放置特征的主世界群系
     biome_keep = {k for k, v in biome_all.items() if k in overworld and collect_refs(v, pf_keep)}
 
-    # 4. carvers are configured features reached from the biome's `carvers` map rather than from its
-    #    feature list, and they carve through a block tag too - miss them and there are no caves
+    # 4. 雕刻器是从群系的 `carvers` 映射而不是特征表到达的配置特征，
+    #    它们同样按方块标签雕刻，漏掉就没有洞穴
     carvers = {rel_id(ref) for k in biome_keep for refs in (biome_all[k].get("carvers") or {}).values()
                for ref in refs}
 
-    # 5. prune the feature sets to what the kept biomes actually reach (drops the nether features)
+    # 5. 把特征集裁剪到保留群系真正能到达的范围（顺带丢掉下界特征）
     biome_docs = {k: retarget(swap_block_ids(biome_all[k]),
                               id_map(pf_keep) | id_map(carvers)) for k in biome_keep}
     pf_keep = collect_refs(biome_docs, pf_all)
@@ -521,22 +516,22 @@ def build_palette_layer(vanilla_root: Path, vanilla_tag_root: Path, out_root: Pa
         if grown == cf_keep:
             break
         cf_keep = grown
-    # carvers live in their own registry (worldgen/carver), not in configured_feature, and they carve
-    # through `replaceable` - an uncopied carver would find no matching block and carve nothing
+    # 雕刻器有自己的注册表（worldgen/carver），不在 configured_feature，而且它们按
+    # `replaceable` 雕刻，没拷贝的雕刻器找不到匹配方块，什么也雕不出来
     for k in sorted(carvers & set(carver_all)):
         write_json(out_root / "configured_carver" / f"{k}.json",
                    retarget_block_tags(swap_block_ids(carver_all[k])))
 
-    # the biome references are rewritten only once, and only after both sets are final: step 3 built
-    # them from a provisional pf_keep that a biome-only feature like freeze_top_layer is not in yet
+    # 群系引用只改写一次，而且要在两个集合都定稿之后：第 3 步是用一份临时的
+    # pf_keep 建的，像 freeze_top_layer 这种只属于群系的特征当时还不在里面
     biome_docs = {k: retarget(swap_block_ids(biome_all[k]),
                               id_map(pf_keep) | id_map(carvers)) for k in biome_keep}
 
     for k in sorted(cf_keep):
         write_json(out_root / "configured_feature" / f"{k}.json",
                    retarget_block_tags(swap_block_ids(cf_all[k])))
-    # `minecraft:freeze_top_layer` writes ICE and SNOW from code, so no JSON swap can reach it - the
-    # dimension points the feature list at its own feature that places the palette's snow and ice
+    # `minecraft:freeze_top_layer` 在代码里写死 ICE 与 SNOW，JSON 替换够不到它，
+    # 所以维度把特征表指向自己那个铺调色板雪与冰的特征
     write_json(out_root / "configured_feature" / "freeze_top_layer.json",
                {"type": f"{MOD_ID}:freeze_top_layer", "config": {}})
     for k in sorted(pf_keep):
@@ -566,10 +561,10 @@ def build_palette_layer(vanilla_root: Path, vanilla_tag_root: Path, out_root: Pa
     }
 
 
-# Vanilla biome tags are load-bearing: structure placement, spawn gating and a pile of mob/scenery
-# behaviours are keyed on them. Our biome copies carry new ids, so every vanilla tag that mentioned
-# one of the originals has to mention the copy too. Datapack tags merge by default, so each generated
-# file only needs to list our ids.
+# 原版群系标签是承重的：结构摆放 刷怪门槛 以及一大堆生物与布景
+# 行为都挂在它们上面。我们的群系副本是新的 id，所以每个提到原版群系的
+# 原版标签也要提到副本。数据包标签默认是合并的，所以每个生成的
+# 文件只需列出我们的 id
 VANILLA_BIOME_TAG_OUT = REPO_ROOT / "src/main/resources/data/minecraft/tags/worldgen/biome"
 PALETTE_BIOME_TAG_OUT = REPO_ROOT / "src/main/resources/data" / MOD_ID / "tags/worldgen/biome"
 
@@ -578,12 +573,12 @@ VANILLA_BLOCK_TAG_OUT = REPO_ROOT / "src/main/resources/data/minecraft/tags/bloc
 PALETTE_BLOCK_TAG_OUT = REPO_ROOT / "src/main/resources/data" / MOD_ID / "tags/block"
 
 
-# Tags that *vanilla code* reads, not just data: SnowyDirtBlock tests `#minecraft:snow` to decide
-# whether a dirt block shows its snowy texture, BushBlock/StemBlock/SugarCaneBlock test
-# `#minecraft:dirt`, CactusBlock tests `#minecraft:sand`, Feature.isDirt/isStone and the dripstone
-# features test dirt and base stones, and OceanRuinPieces tests `#minecraft:ice`. No datapack can
-# point code at another tag, so these keep a vanilla merge beside our own tag. `leaves` and `logs` are
-# deliberately absent: the palette maps neither, so there is nothing of ours to add.
+# 这些标签是*原版代码*要读的，不只是数据：SnowyDirtBlock 判断 `#minecraft:snow` 来决定
+# 土方块要不要显示积雪贴图，BushBlock/StemBlock/SugarCaneBlock 判断
+# `#minecraft:dirt`，CactusBlock 判断 `#minecraft:sand`，Feature.isDirt/isStone 与
+# 钟乳石特征判断土与基础石，OceanRuinPieces 判断 `#minecraft:ice`。数据包没法
+# 让代码改指另一个标签，所以这些在我们自己的标签之外再留一份原版合并。`leaves` 与 `logs`
+# 有意缺席：调色板两者都不映射，没有我们的东西要加
 CODE_READ_TAGS = (
     "snow",
     "ice",
@@ -615,7 +610,7 @@ def build_block_tags(vanilla_tag_root: Path) -> int:
     """
     written = 0
     for name in BLOCK_TAG_RETARGET:
-        # nested vanilla tags are flattened, so nothing ends up pointing back at a vanilla tag
+        # 嵌套的原版标签被展平，这样不会有人再指回原版标签
         pending = [f"#{VANILLA_NS}:{name}"]
         pending += read_tag_entries(vanilla_tag_root / f"{name}.json")
         pending += read_tag_entries(VANILLA_BLOCK_TAG_OUT / f"{name}.json")
@@ -659,14 +654,14 @@ def build_biome_tags(vanilla_tag_root: Path, biome_map: dict[str, str]) -> int:
                    {"replace": False, "values": sorted(set(ours))})
         written += 1
 
-    # one tag naming every copied biome, so the dimension can point its biome source at the set
+    # 用一个标签列出所有群系副本，让维度能把群系源指向这个集合
     write_json(PALETTE_BIOME_TAG_OUT / "palette_biomes.json",
                {"replace": False, "values": sorted(biome_map.values())})
     return written
 
 
 # --------------------------------------------------------------------------------------
-# Validation
+# 校验
 # --------------------------------------------------------------------------------------
 
 
@@ -709,7 +704,7 @@ def validate(out_root: Path, vanilla: Vanilla) -> int:
             kind = "density_function" if path in vanilla.df else "noise"
             print(f"          {VANILLA_NS}:{path}  ({kind}) <- {', '.join(sorted(labels))}")
 
-    # palette coverage: the settings must not still emit a block the palette owns
+    # 调色板覆盖：设置里不能再产出调色板拥有的方块
     settings_path = out_root / "noise_settings" / "chrono.json"
     if settings_path.exists():
         names: dict[str, int] = {}
@@ -731,7 +726,7 @@ def validate(out_root: Path, vanilla: Vanilla) -> int:
 
 
 # --------------------------------------------------------------------------------------
-# Main
+# 主流程
 # --------------------------------------------------------------------------------------
 
 
@@ -756,7 +751,7 @@ def main() -> int:
         df_set, noise_set = compute_closure(vanilla, overworld_settings)
         print(f"porting        : {len(df_set)} density functions, {len(noise_set)} noise params")
 
-        # wipe everything this script owns, so nothing stale survives
+        # 清掉本脚本负责的一切，不留任何陈旧文件
         for sub in ("density_function", "noise", "noise_settings", "configured_feature",
                     "placed_feature", "biome", "configured_carver",
                     "multi_noise_biome_source_parameter_list"):
@@ -779,7 +774,7 @@ def main() -> int:
 
         settings = rewrite(overworld_settings, df_set, noise_set)
         settings = apply_palette(settings)
-        # the surface rule names biomes directly, so it has to name our copies
+        # 地表规则直接点名群系，所以必须点名我们的副本
         settings = retarget_biome_ids(settings, overworld_biome_names(vanilla_tag_root))
         target = OUT_ROOT / "noise_settings" / "chrono.json"
         target.parent.mkdir(parents=True, exist_ok=True)

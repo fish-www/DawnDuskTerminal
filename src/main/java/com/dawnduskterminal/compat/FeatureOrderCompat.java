@@ -100,9 +100,8 @@ public final class FeatureOrderCompat {
         List<FeatureData> order = new ArrayList<>(indegree.size());
         int broken = 0;
 
-        // `pending` keeps the un-emitted nodes ordered, so relaxing a cycle costs one lookup instead of
-        // a scan over every node. That matters here: the chrono palette roughly doubles the biome set,
-        // and this runs while the first chunk is still waiting to be generated.
+        // `pending` 让未输出的节点始终保持有序，所以拆环时只需一次查表，不必扫过所有节点
+        // 这里很有用：晨昏线调色板把群系数量翻了将近一倍，而这段代码跑在第一个区块还在等生成的时候
         while (!pending.isEmpty()) {
             FeatureData node = ready.isEmpty() ? null : ready.pollFirst();
             if (node == null) {

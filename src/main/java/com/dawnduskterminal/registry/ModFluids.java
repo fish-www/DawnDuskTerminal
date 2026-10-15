@@ -13,22 +13,19 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /**
- * The portal fluid reuses {@code minecraft:water} for both its flow behaviour and (client side) its render
- * behaviour:
+ * 传送门流体在流动行为与（客户端）渲染行为上都照搬 {@code minecraft:water}
  *
  * <ul>
- *   <li><b>flow</b> - {@link #properties()} carries water's numbers verbatim
- *       ({@code tickRate 5}, {@code slopeFindDistance 4}, {@code levelDecreasePerBlock 1},
- *       {@code explosionResistance 100.0F}, see {@code WaterFluid} / {@code Fluids.waterProperties}), and
- *       neither fluid overrides {@code tick} any more. {@code FlowingFluid.tick} - the method that actually
- *       spreads a fluid - is therefore the inherited one, so the fluid spreads, falls and re-levels exactly
- *       like water. That matters because this fluid is the chrono dimension's {@code default_fluid}
- *       (oceans, aquifers, springs and lakes are all generated as portal fluid).</li>
- *   <li><b>rendering</b> - the still and flowing textures carry a real alpha channel
- *       ({@code portal_fluid_still.png} / {@code portal_fluid_flow.png} are a uniform alpha of 230/255),
- *       so the fluid has to be drawn in the translucent chunk layer. That registration lives in
- *       {@link com.dawnduskterminal.client.DdtClient} and mirrors vanilla's
- *       {@code ItemBlockRenderTypes} entries for {@code Fluids.WATER} / {@code Fluids.FLOWING_WATER}.</li>
+ *   <li><b>流动</b>：{@link #properties()} 原样带着水的数值
+ *       （{@code tickRate 5}、{@code slopeFindDistance 4}、{@code levelDecreasePerBlock 1}、
+ *       {@code explosionResistance 100.0F}，见 {@code WaterFluid} / {@code Fluids.waterProperties}），
+ *       而且两个流体都不再覆写 {@code tick}。真正负责扩散的 {@code FlowingFluid.tick} 因此用的是继承
+ *       实现，流体铺开 下落 重新找平都和水一模一样。这一点很关键，因为本流体就是晨昏线维度的
+ *       {@code default_fluid}（海洋 含水层 泉 湖全部按传送门流体生成）</li>
+ *   <li><b>渲染</b>：静止与流动贴图带真实 alpha 通道
+ *       （{@code portal_fluid_still.png} / {@code portal_fluid_flow.png} 统一是 230/255），所以流体
+ *       必须画在半透明区块层。该注册在 {@link com.dawnduskterminal.client.DdtClient} 里，对照原版给
+ *       {@code Fluids.WATER} / {@code Fluids.FLOWING_WATER} 的 {@code ItemBlockRenderTypes} 条目</li>
  * </ul>
  */
 public final class ModFluids {
@@ -64,7 +61,7 @@ public final class ModFluids {
     private ModFluids() {}
 
     /**
-     * Vanilla water's flow properties, copied value for value:
+     * 原版水的流动属性，逐值照拄：
      *
      * <pre>
      * FlowingFluid.Properties waterProperties = new FlowingFluid.Properties(FluidTypes.WATER, FLOWING_WATER, WATER)
@@ -76,13 +73,13 @@ public final class ModFluids {
      *     .explosionResistance(100.0F);
      * </pre>
      *
-     * <p>Not carried over from vanilla water on purpose:
+     * <p>有意不照拄水的地方：
      * <ul>
-     *   <li>{@code canConvertToSource} - {@code WaterFluid} follows the water-source game rule, but the portal
-     *       fluid's {@link FluidType} keeps {@code canConvertToSource(false)}, so two adjacent sources never
-     *       spawn a third one (no infinite portal fluid).</li>
-     *   <li>{@code canBeReplacedWith} - {@code BaseFlowingFluid}'s implementation compares the fluid to itself
-     *       instead of testing {@code #minecraft:water}, so foreign water falling on top is not swallowed.</li>
+     *   <li>{@code canConvertToSource}：{@code WaterFluid} 跟随水源游戏规则，但传送门流体的
+     *       {@link FluidType} 保持 {@code canConvertToSource(false)}，所以两个相邻源不会生出第三个
+     *       （不会无限传送门流体）</li>
+     *   <li>{@code canBeReplacedWith}：{@code BaseFlowingFluid} 的实现是拿流体和自己比，而不是判断
+     *       {@code #minecraft:water}，所以从上方落下的外来水不会被吞掉</li>
      * </ul>
      */
     public static BaseFlowingFluid.Properties properties() {

@@ -18,26 +18,27 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Connected-texture model for "mounted towerwood", following the same approach as Create's
- * {@code create:andesite_casing}: it wraps the ordinary full-cube model and remaps each face's UV into a
- * single 8x8 atlas (the standard 47-tile sequence) using Create's {@code OMNIDIRECTIONAL} index formula.
+ * 「镶边塔木」的连接纹理模型，做法参考 Create 的 {@code create:andesite_casing}
  *
- * <p>The neighbour connections are read from the level at render time (see
- * {@link #getModelData(BlockAndTintGetter, BlockPos, BlockState, ModelData)}), so the block carries no
- * connection state. The item uses a separate plain {@code mounted_towerwood.png} model and is not wrapped.
+ * 包住普通的整方块模型，用 Create 的 {@code OMNIDIRECTIONAL} 索引公式把每个面的 UV 重映射进一张
+ * 8x8 图集（标准的 47 格序列）
+ *
+ * <p>邻居连接在渲染时从世界读取（见
+ * {@link #getModelData(BlockAndTintGetter, BlockPos, BlockState, ModelData)}），方块本身不存连接状
+ * 态。物品用的是另一张普通的 {@code mounted_towerwood.png} 模型，不经过这里
  */
 public class MountedTowerWoodModel extends BakedModelWrapper<BakedModel> {
-    /** Create's OMNIDIRECTIONAL sheet size: the atlas is an 8x8 grid. */
+    /** Create 的 OMNIDIRECTIONAL 图集大小：8x8 栅格 */
     public static final int SHEET_SIZE = 8;
 
     private static final ModelProperty<int[]> CT_INDICES = new ModelProperty<>();
 
-    // DefaultVertexFormat.BLOCK: 8 ints per vertex (3 pos + 1 color + 2 uv + 1 light + 1 normal).
+    // DefaultVertexFormat.BLOCK：每个顶点 8 个 int（3 位置 + 1 颜色 + 2 UV + 1 光照 + 1 法线）
     private static final int VERTEX_STRIDE = 8;
     private static final int U_OFFSET = 4;
     private static final int V_OFFSET = 5;
 
-    /** Per face side (0..5), the [right, up] in-plane directions, matching Create's buildContext. */
+    /** 面序号（0 到 5）对应的面内 [右, 上] 方向，与 Create 的 buildContext 一致 */
     private static final Direction[][] HV = {
         { Direction.EAST, Direction.SOUTH },   // DOWN
         { Direction.EAST, Direction.NORTH },   // UP
@@ -94,8 +95,8 @@ public class MountedTowerWoodModel extends BakedModelWrapper<BakedModel> {
         int[] vertices = quad.getVertices().clone();
         for (int vertex = 0; vertex < 4; vertex++) {
             int offset = vertex * VERTEX_STRIDE;
-            // The vertex UV is the sprite's region in the whole atlas (u0..u1). Convert to the
-            // sprite-local 0..16, remap to the tile, then convert back to the atlas coordinate.
+            // 顶点 UV 是贴图在整个图集里的区间（u0 到 u1）。先换算成贴图内 0 到 16，重映射到目标格，
+            // 再换算回图集坐标
             float u = Float.intBitsToFloat(vertices[offset + U_OFFSET]);
             float v = Float.intBitsToFloat(vertices[offset + V_OFFSET]);
             float u16 = (u - u0) / (u1 - u0) * 16f;
@@ -108,7 +109,7 @@ public class MountedTowerWoodModel extends BakedModelWrapper<BakedModel> {
         return new BakedQuad(vertices, quad.getTintIndex(), quad.getDirection(), quad.getSprite(), quad.isShade());
     }
 
-    /** Create's {@code OMNIDIRECTIONAL.getTextureIndex}, ported 1:1. */
+    /** Create 的 {@code OMNIDIRECTIONAL.getTextureIndex}，一比一移植 */
     private static int ctmIndex(BlockAndTintGetter level, BlockPos pos, Block block, Direction face) {
         int side = sideOf(face);
         Direction h = HV[side][0];

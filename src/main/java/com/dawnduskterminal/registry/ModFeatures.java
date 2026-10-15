@@ -12,7 +12,7 @@ public final class ModFeatures {
     public static final DeferredRegister<Feature<?>> FEATURES =
         DeferredRegister.create(Registries.FEATURE, DawnDuskTerminal.MOD_ID);
 
-    /** Takes over {@code minecraft:freeze_top_layer}, which places vanilla snow and ice from code. */
+    /** 接管 {@code minecraft:freeze_top_layer}，原版那个是在代码里放原版雪与冰 */
     public static final DeferredHolder<Feature<?>, ChronoFreezeFeature> FREEZE_TOP_LAYER =
         FEATURES.register("freeze_top_layer", ChronoFreezeFeature::new);
 

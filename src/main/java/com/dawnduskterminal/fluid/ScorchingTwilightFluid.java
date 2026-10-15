@@ -26,20 +26,17 @@ import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.fluids.FluidType;
 
 /**
- * The "enthu_fluid" (热情的暮光) fluid. It reuses minecraft:lava's *properties* but deliberately drops
- * every lava-like *behaviour*:
+ * 「热情的暮光」(enthu_fluid) 流体。复用 minecraft:lava 的*属性*，但有意砍掉一切岩浆式*行为*：
  *
  * <ul>
- *   <li><b>no burning entities</b> - {@code ScorchingTwilightBlock.entityInside} no longer calls
- *       {@code lavaHurt()}. (Note vanilla only ignites entities inside {@code NeoForgeMod.LAVA_TYPE},
- *       and this fluid has its own {@link FluidType}, so there is no second burn path.)</li>
- *   <li><b>no igniting blocks</b> - vanilla's fire-spreading {@code LavaFluid.randomTick} is not
- *       overridden here, so the base {@code Fluid.randomTick} no-op applies. Random ticking is still
- *       enabled ({@link #isRandomlyTicking()}) because the liquid block relies on it to run
- *       {@code FluidReactions}.</li>
- *   <li><b>no lava particles</b> - no {@code ParticleTypes.LAVA} / {@code LAVA_POP} /
- *       {@code LAVA_AMBIENT} animation, no {@code DRIPPING_LAVA} drip particle, and no
- *       {@code LevelEvent.LAVA_FIZZ} block-destroy effect.</li>
+ *   <li><b>不点燃生物</b>：{@code ScorchingTwilightBlock.entityInside} 不再调 {@code lavaHurt()}。
+ *       （原版只会点燃 {@code NeoForgeMod.LAVA_TYPE} 里的实体，而本流体有自己的 {@link FluidType}，
+ *       所以没有第二条燃烧路径）</li>
+ *   <li><b>不引燃方块</b>：原版蔓延火焰的 {@code LavaFluid.randomTick} 没有被覆写，因此走基类
+ *       {@code Fluid.randomTick} 的空实现。随机 tick 仍然开着（{@link #isRandomlyTicking()}），因为流
+ *       体方块要靠它跑 {@code FluidReactions}</li>
+ *   <li><b>不放岩浆粒子</b>：没有 {@code ParticleTypes.LAVA} / {@code LAVA_POP} / {@code LAVA_AMBIENT}
+ *       动画，没有 {@code DRIPPING_LAVA} 滴落粒子，也没有 {@code LevelEvent.LAVA_FIZZ} 的方块销毁效果</li>
  * </ul>
  */
 public abstract class ScorchingTwilightFluid extends FlowingFluid {
@@ -72,8 +69,8 @@ public abstract class ScorchingTwilightFluid extends FlowingFluid {
     }
 
     /**
-     * Plays lava's ambient soundscape near the player without the lava particles. This is the audio
-     * half of {@code LavaFluid#animateTick}, which the fluid deliberately drops (see the class doc).
+     * 在玩家附近播放岩浆的环境音，但不放岩浆粒子。这是 {@code LavaFluid#animateTick} 的音频那一半，本流
+     * 体有意只留下它（见类注释）
      */
     @Override
     public void animateTick(Level level, BlockPos pos, FluidState state, RandomSource random) {
@@ -96,9 +93,8 @@ public abstract class ScorchingTwilightFluid extends FlowingFluid {
 
     @Override
     protected void beforeDestroyingBlock(LevelAccessor level, BlockPos pos, BlockState state) {
-        // Intentionally empty. Vanilla lava raises LevelEvent.LAVA_FIZZ (1501) here, which the client
-        // turns into the lava-extinguish sound plus smoke particles - both are lava effects this fluid
-        // must not produce. FlowingFluid declares this method abstract, so it cannot simply be dropped.
+        // 有意留空。原版岩浆在这里触发 LevelEvent.LAVA_FIZZ (1501)，客户端会把它变成岩浆熄灭音加烟雾
+        // 粒子，两者都是本流体不能产生的岩浆效果。FlowingFluid 把本方法声明为抽象，所以不能直接去掉
     }
 
     @Override

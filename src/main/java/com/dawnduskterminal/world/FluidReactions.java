@@ -11,24 +11,22 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidInteractionRegistry;
 
 /**
- * Registers the fluid contact reactions through {@link FluidInteractionRegistry}, the same hook
- * vanilla uses for {@code water + lava -> cobblestone / obsidian}.
+ * 通过 {@link FluidInteractionRegistry} 注册流体接触反应，原版 {@code 水 + 岩浆 -> 圆石 / 黑曜石} 走的
+ * 是同一个钩子
  *
- * <p>Each reaction is directional, mirroring vanilla: the mod fluid (portal_fluid / enthu_fluid) is
- * the <em>source</em> and is replaced by the result block the moment a matching neighbour shows up,
- * exactly like a lava block is replaced by obsidian/cobblestone when it touches water. The neighbour
- * fluid is left untouched, so one contact yields exactly one block.
+ * <p>每条反应都是有方向的，与原版一致：模组流体（portal_fluid / enthu_fluid）是<em>发动方</em>，一旦
+ * 旁边出现匹配的邻居就被替换成产物方块，正如岩浆碰到水会变成黑曜石或圆石。邻居流体保持不动，所以一次
+ * 接触只产出一个方块
  *
- * <p>The reaction fires from {@code LiquidBlock#onPlace} / {@code LiquidBlock#neighborChanged}
- * (immediately on contact, no random tick), and is keyed by {@code FluidType} - which source and
- * flowing variants share - so source vs flowing is never distinguished.
+ * <p>反应由 {@code LiquidBlock#onPlace} 与 {@code LiquidBlock#neighborChanged} 触发（接触立即生效，
+ * 不等随机 tick），键是 {@code FluidType}，源与流动共用同一个，所以从不区分源与流动
  */
 public final class FluidReactions {
     private FluidReactions() {}
 
-    /** Registers every reaction once, after the fluid-type registry is populated. */
+    /** 在流体类型注册表填充完毕后，把所有反应注册一次 */
     public static void register() {
-        // 不稳定液体 (portal_fluid)
+        // 不稳定液体（portal_fluid）
         FluidInteractionRegistry.addInteraction(
             ModFluids.PORTAL_FLUID_TYPE.value(),
             new FluidInteractionRegistry.InteractionInformation(
@@ -42,7 +40,7 @@ public final class FluidReactions {
             new FluidInteractionRegistry.InteractionInformation(
                 ModScorchingTwilight.TYPE.value(), ModTerrainBlocks.CANOPY_STONE.get().defaultBlockState()));
 
-        // 热情暮光 (enthu_fluid)
+        // 热情暮光（enthu_fluid）
         FluidInteractionRegistry.addInteraction(
             ModScorchingTwilight.TYPE.value(),
             new FluidInteractionRegistry.InteractionInformation(

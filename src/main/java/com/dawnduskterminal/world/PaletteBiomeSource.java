@@ -18,17 +18,14 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Points the chrono dimension at its own copies of the overworld biomes.
+ * 让晨昏线维度用自己那份主世界群系副本
  *
- * <p>The overworld's climate-to-biome table cannot be expressed in a datapack: {@code
- * MultiNoiseBiomeSourceParameterList.DIRECT_CODEC} has a single {@code preset} field and the table
- * itself is built in code by {@code OverworldBiomeBuilder}. So rather than replacing the table, this
- * source keeps the vanilla preset and swaps every biome it reports for the copy of the same name in
- * the {@code dawnduskterminal} namespace.
+ * <p>主世界的气候到群系表没法用数据包表达：{@code MultiNoiseBiomeSourceParameterList.DIRECT_CODEC} 只有
+ * 一个 {@code preset} 字段，表本身由 {@code OverworldBiomeBuilder} 在代码里构建。所以这里不替换表，而
+ * 是保留原版预设，把它报出的每个群系换成 {@code dawnduskterminal} 命名空间下的同名副本
  *
- * <p>Those copies carry the chrono block palette in their feature lists, which is what makes the
- * dimension place its own blocks while it generates instead of generating vanilla ones and patching
- * them up afterwards.
+ * <p>这些副本的特征表里带着晨昏线方块调色板，维度因此能在生成时就铺自己的方块，而不是先生成原版的再
+ * 事后打补丁
  */
 public final class PaletteBiomeSource extends BiomeSource {
     public static final MapCodec<PaletteBiomeSource> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
@@ -39,11 +36,9 @@ public final class PaletteBiomeSource extends BiomeSource {
     private final BiomeSource delegate;
     private final HolderSet<Biome> palette;
     /**
-     * Built lazily, and deliberately so: the biome source is constructed while the datapack is still
-     * being parsed, and at that moment the holders coming out of the {@code #tag} have no keys yet -
-     * {@code unwrapKey()} is empty, so building this map in the constructor silently produced an empty
-     * map and the substitution did nothing. By the first chunk the tag is bound and the keys are
-     * there. Volatile because chunk generation is multi-threaded; the build is idempotent.
+     * 有意延迟构建：群系源是在数据包还在解析时构造的，那一刻从 {@code #tag} 取出的 holder 还没有 key，
+     * {@code unwrapKey()} 是空的，所以在构造函数里建这张表只会静默得到空表，替换等于没做。到第一个区块
+     * 时标签已绑定，key 就在了。用 volatile 是因为区块生成是多线程的，构建本身幂等
      */
     private volatile Map<ResourceLocation, Holder<Biome>> replacements;
     private volatile Holder<Biome> floatrees;
@@ -54,9 +49,8 @@ public final class PaletteBiomeSource extends BiomeSource {
     }
 
     /**
-     * The overworld climate table is built in code (OverworldBiomeBuilder), so no datapack can add a
-     * biome to a custom climate range. The floatrees biome therefore rides on this source: wherever the
-     * sampled depth lands in (-1.5, -1.3) it is returned directly, before the vanilla delegate runs.
+     * 主世界的气候表是代码构建的（OverworldBiomeBuilder），数据包无法把群系加进自定义气候区间。所以
+     * floatrees 群系搭在这个群系源上：采样深度低于 -1.6 时直接返回它，早于原版 delegate 运行
      */
     private Holder<Biome> floatrees() {
         Holder<Biome> holder = this.floatrees;

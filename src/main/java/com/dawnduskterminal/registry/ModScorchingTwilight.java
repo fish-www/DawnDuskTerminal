@@ -57,10 +57,10 @@ public final class ModScorchingTwilight {
     public static final DeferredBlock<LiquidBlock> BLOCK = BLOCKS.registerBlock(
         "enthu_fluid",
         props -> new com.dawnduskterminal.block.ScorchingTwilightBlock(SOURCE.get(), props),
-        // Reuses minecraft:lava's block properties verbatim (mapColor FIRE, replaceable, noCollission,
-        // randomTicks, strength 100, lightLevel 15, pushReaction DESTROY, noLootTable, liquid, EMPTY sound).
-        // The lava-like *behaviours* (burning entities, igniting blocks, lava particles) are removed in
-        // ScorchingTwilightFluid / ScorchingTwilightBlock instead.
+        // 原样复用 minecraft:lava 的方块属性（mapColor 火焰色、可替换、无碰撞、randomTicks、强度 100、
+        // 光照 15、pushReaction DESTROY、无战利品表、liquid、EMPTY 音效）
+        // 岩浆式的*行为*（点燃生物 引燃方块 岩浆粒子）改在 ScorchingTwilightFluid 与
+        // ScorchingTwilightBlock 里去掉了
         BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.LAVA));
 
     public static final DeferredItem<BucketItem> BUCKET = ITEMS.register(
