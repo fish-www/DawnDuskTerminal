@@ -1,0 +1,10 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "render_type": "cutout_mipped",
+  "textures": {
+    "bottom": "dawnduskterminal:block/rosy_dirt",
+    "particle": "dawnduskterminal:block/rosy_dirt",
+    "side": "dawnduskterminal:block/rosy_grass_frost",
+    "top": "dawnduskterminal:block/rosy_grass2"
+  }
+}

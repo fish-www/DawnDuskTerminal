@@ -1,0 +1,24 @@
+{
+  "variants": {
+    "snowy=false": [
+      {
+        "model": "dawnduskterminal:block/rosy_grass"
+      },
+      {
+        "model": "dawnduskterminal:block/rosy_grass",
+        "y": 90
+      },
+      {
+        "model": "dawnduskterminal:block/rosy_grass",
+        "y": 180
+      },
+      {
+        "model": "dawnduskterminal:block/rosy_grass",
+        "y": 270
+      }
+    ],
+    "snowy=true": {
+      "model": "dawnduskterminal:block/rosy_grass_snow"
+    }
+  }
+}

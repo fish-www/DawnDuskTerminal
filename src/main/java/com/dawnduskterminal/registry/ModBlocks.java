@@ -37,13 +37,6 @@ public final class ModBlocks {
             .noLootTable()
             .lightLevel(state -> 3));
 
-    public static final DeferredBlock<Block> SKY_SOIL = BLOCKS.registerSimpleBlock(
-        "sky_soil",
-        BlockBehaviour.Properties.of()
-            .mapColor(MapColor.GRASS)
-            .strength(0.6F)
-            .sound(SoundType.GRASS));
-
     private ModBlocks() {}
 
     public static void register(IEventBus bus) {

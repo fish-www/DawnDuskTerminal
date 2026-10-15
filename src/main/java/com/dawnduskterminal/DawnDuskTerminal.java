@@ -14,17 +14,20 @@ import com.dawnduskterminal.registry.ModFeatures;
 import com.dawnduskterminal.registry.ModFluids;
 import com.dawnduskterminal.advancement.ModCriteria;
 import com.dawnduskterminal.command.DdtCommands;
+import com.dawnduskterminal.registry.ModIngredients;
 import com.dawnduskterminal.registry.ModItems;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.registry.ModSounds;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
 import com.dawnduskterminal.server.DdtServerEvents;
+import com.dawnduskterminal.world.FluidReactions;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
@@ -42,22 +45,25 @@ public final class DawnDuskTerminal {
         ModTerrainBlocks.register(modBus);
         ModChronoOres.register(modBus);
         ModItems.register(modBus);
+        ModIngredients.register(modBus);
         ModEffects.register(modBus);
         ModEntities.register(modBus);
-        ModFeatures.register(modBus);
         ModAttachments.register(modBus);
         ModSounds.register(modBus);
         ModCriteria.register(modBus);
         ModBiomeSources.register(modBus);
+        ModFeatures.register(modBus);
         ModCreativeTabs.register(modBus);
 
         modBus.addListener(ModNetwork::registerPayloads);
+        modBus.addListener((FMLCommonSetupEvent event) -> FluidReactions.register());
 
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onServerStarted);
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onPlayerTick);
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onSpawnPlacement);
+        NeoForge.EVENT_BUS.addListener(DdtServerEvents::onRightClickItem);
         NeoForge.EVENT_BUS.addListener(DdtCommands::register);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {

@@ -1,3 +1,6 @@
 {
-  "parent": "dawnduskterminal:block/ochre"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dawnduskterminal:item/ochre"
+  }
 }

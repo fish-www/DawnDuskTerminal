@@ -22,29 +22,35 @@ public final class ModCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main",
         () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.dawnduskterminal.main"))
-            .icon(() -> new ItemStack(ModItems.HYDRA_TROPHY.get()))
+            .icon(() -> new ItemStack(ModItems.ENCASED_DUST.get()))
             .displayItems((params, output) -> {
                 accept(output, ModItems.HYDRA_TROPHY.get());
                 accept(output, ModItems.UR_GHAST_TROPHY.get());
                 accept(output, ModItems.SNOW_QUEEN_TROPHY.get());
-                accept(output, ModItems.CHRONO_CORE.get());
+                accept(output, ModItems.ENCASED_DUST.get());
+                accept(output, ModItems.CANOCAN.get());
+                accept(output, ModItems.PORTAL_BUCKET.get());
                 accept(output, ModScorchingTwilight.BUCKET.get());
-                accept(output, ModItems.SKY_SOIL.get());
                 accept(output, ModItems.CHRONO_CRUST.get());
-                accept(output, ModTerrainBlocks.EMBER_SOIL_ITEM.get());
-                accept(output, ModTerrainBlocks.SKY_STONE_ITEM.get());
+                accept(output, ModTerrainBlocks.ROSY_GRASS_ITEM.get());
+                accept(output, ModTerrainBlocks.ROSY_DIRT_ITEM.get());
+                accept(output, ModTerrainBlocks.CANOPY_STONE_ITEM.get());
                 accept(output, ModTerrainBlocks.OCHRE_ITEM.get());
                 accept(output, ModTerrainBlocks.GREENSCHIST_ITEM.get());
                 accept(output, ModTerrainBlocks.ECLOGITE_ITEM.get());
-                accept(output, ModTerrainBlocks.PERIDOTITE_ITEM.get());
+                accept(output, ModTerrainBlocks.CHARNOCKITE_ITEM.get());
                 accept(output, ModTerrainBlocks.TWILIGHT_STONE_ITEM.get());
                 accept(output, ModTerrainBlocks.ROAD_SAND_ITEM.get());
-                accept(output, ModTerrainBlocks.SLEEPLESS_SAND_ITEM.get());
+                accept(output, ModTerrainBlocks.UNCONSCIOUS_SAND_ITEM.get());
                 accept(output, ModTerrainBlocks.SILTSTONE_ITEM.get());
                 accept(output, ModTerrainBlocks.FROZEN_CANOPY_ITEM.get());
                 accept(output, ModTerrainBlocks.FRAGILE_CANOPY_ITEM.get());
+                accept(output, ModTerrainBlocks.CANOPY_FROST_ITEM.get());
+                accept(output, ModTerrainBlocks.CANOPY_FROST_BLOCK_ITEM.get());
                 accept(output, ModTerrainBlocks.CHAOS_STONE_ITEM.get());
                 accept(output, ModTerrainBlocks.BLAZING_BLOCK_ITEM.get());
+                accept(output, ModTerrainBlocks.MOUNTED_TOWERWOOD_ITEM.get());
+                accept(output, ModTerrainBlocks.ENCASED_TOWERBEAM_ITEM.get());
                 accept(output, ModTerrainBlocks.DAWN_LOG_ITEM.get());
                 accept(output, ModTerrainBlocks.DUSK_LOG_ITEM.get());
                 accept(output, ModTerrainBlocks.CHRONO_LOG_ITEM.get());
@@ -54,7 +60,28 @@ public final class ModCreativeTabs {
                 accept(output, ModTerrainBlocks.WITHERED_DAWN_LEAVES_ITEM.get());
                 accept(output, ModTerrainBlocks.WITHERED_DUSK_LEAVES_ITEM.get());
                 accept(output, ModTerrainBlocks.WITHERED_CHRONO_LEAVES_ITEM.get());
+                accept(output, ModTerrainBlocks.SKYGATE_PINE_LOG_ITEM.get());
+                accept(output, ModTerrainBlocks.SKYGATE_PINE_LEAVES_ITEM.get());
+                accept(output, ModTerrainBlocks.SKYGATE_PINE_SAPLING_ITEM.get());
                 accept(output, ModTerrainBlocks.SCARLET_MOLYBDENUM_ORE_ITEM.get());
+                accept(output, ModChronoOres.DEEP_SCARLET_ITEM.get());
+                accept(output, ModChronoOres.CARID_ORE_ITEM.get());
+                accept(output, ModChronoOres.DIRAC_ORE_ITEM.get());
+                accept(output, ModItems.RAW_SCARLET_MOLYBDENUM.get());
+                accept(output, ModItems.GARNET.get());
+                accept(output, ModItems.SKY_SLICES.get());
+                accept(output, ModItems.OCHRE.get());
+                accept(output, ModItems.CANOPY_FROST_BALL.get());
+                accept(output, ModItems.ILLUSTRIOUS_POWDER.get());
+                accept(output, ModItems.CARID.get());
+                accept(output, ModItems.AOI.get());
+                accept(output, ModItems.CANOPY_INGOT.get());
+                accept(output, ModItems.DIRAC.get());
+                accept(output, ModItems.MIXED_CARMINITE.get());
+                accept(output, ModItems.CARMINITE_INGOT.get());
+                accept(output, ModItems.SCARLET_MOLYBDENUM_INGOT.get());
+                accept(output, ModItems.HUI_INGOT.get());
+                accept(output, ModItems.DIRAC_INGOT.get());
                 acceptForeign(output, "twilightforest:aurora_block");
             })
             .build());

@@ -1,6 +1,7 @@
 package com.dawnduskterminal.registry;
 
 import com.dawnduskterminal.DawnDuskTerminal;
+import com.dawnduskterminal.world.DiracOreBlock;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -46,6 +47,27 @@ public final class ModChronoOres {
     public static final DeferredBlock<Block> INFESTED = ore("chrono_ore_infested");
     public static final DeferredBlock<Block> MAGMA = ore("chrono_ore_magma");
 
+    public static final DeferredBlock<Block> DEEP_SCARLET = BLOCKS.registerSimpleBlock(
+        "charnockite_scarlet_molybdenum_ore", BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_RED)
+            .requiresCorrectToolForDrops()
+            .strength(5F, 9.0F)
+            .sound(SoundType.STONE));
+
+    public static final DeferredBlock<Block> CARID_ORE = BLOCKS.registerSimpleBlock(
+        "carid_ore", BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_CYAN)
+            .requiresCorrectToolForDrops()
+            .strength(3.0F, 9.0F)
+            .sound(SoundType.STONE));
+
+    public static final DeferredBlock<DiracOreBlock> DIRAC_ORE = BLOCKS.registerBlock(
+        "dirac_ore", DiracOreBlock::new, BlockBehaviour.Properties.of()
+            .mapColor(MapColor.COLOR_PURPLE)
+            .requiresCorrectToolForDrops()
+            .strength(6.0F, 9.0F)
+            .sound(SoundType.STONE));
+
     public static final DeferredItem<BlockItem> COAL_LOWER_ITEM = ITEMS.registerSimpleBlockItem(COAL_LOWER);
     public static final DeferredItem<BlockItem> COAL_UPPER_ITEM = ITEMS.registerSimpleBlockItem(COAL_UPPER);
     public static final DeferredItem<BlockItem> IRON_SMALL_ITEM = ITEMS.registerSimpleBlockItem(IRON_SMALL);
@@ -75,6 +97,9 @@ public final class ModChronoOres {
     public static final DeferredItem<BlockItem> CLAY_ITEM = ITEMS.registerSimpleBlockItem(CLAY);
     public static final DeferredItem<BlockItem> INFESTED_ITEM = ITEMS.registerSimpleBlockItem(INFESTED);
     public static final DeferredItem<BlockItem> MAGMA_ITEM = ITEMS.registerSimpleBlockItem(MAGMA);
+    public static final DeferredItem<BlockItem> DEEP_SCARLET_ITEM = ITEMS.registerSimpleBlockItem(DEEP_SCARLET);
+    public static final DeferredItem<BlockItem> CARID_ORE_ITEM = ITEMS.registerSimpleBlockItem(CARID_ORE);
+    public static final DeferredItem<BlockItem> DIRAC_ORE_ITEM = ITEMS.registerSimpleBlockItem(DIRAC_ORE);
 
     private static DeferredBlock<Block> ore(String name) {
         return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
