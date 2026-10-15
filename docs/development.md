@@ -50,13 +50,7 @@ NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 
 ### 已知的失败与卡死
 
-**装了暮色森林时固定有 2 个测试失败**，与代码改动无关，是测试与环境不匹配
-
-`scorchingtwilightwithwater` 断言 `blazing_block`，但装了暮色森林时「热情的暮光 加 水」产出 `twilightforest:aurora_block`
-
-`buildfillspoolwithportalfluid` 断言水池里全是 `portal_fluid`，实际得到 `fragile_canopy`
-
-所以退出码是失败数，装了暮色森林时恒为 1，其余 32 个应当全绿
+34 个应当全绿，退出码是失败数，全绿时为 0
 
 **结构所在区块等不到实体刻会把整轮测试挂死**（已由 `mixin/GameTestChunkWaitMixin` 兜底）
 
@@ -187,8 +181,6 @@ feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则�
 天光烘焙进区块，改天光后老存档要重算
 
 改世界生成后建议删掉 `run/<端>/world` 重建
-
-`runGameTestServer` 偶发卡死（区块等不到实体刻）由 `mixin/GameTestChunkWaitMixin` 兜底，详见「游戏内测试」
 
 ## 新增内容放哪
 
