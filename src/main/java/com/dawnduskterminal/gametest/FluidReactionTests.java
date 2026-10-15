@@ -3,6 +3,7 @@ package com.dawnduskterminal.gametest;
 import com.dawnduskterminal.registry.ModBlocks;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
+import com.dawnduskterminal.world.FluidReactions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -53,7 +54,7 @@ public final class FluidReactionTests {
     public static void scorchingTwilightWithWater(GameTestHelper helper) {
         helper.setBlock(PORTAL, ModScorchingTwilight.BLOCK.get());
         helper.setBlock(PORTAL.east(), Blocks.WATER);
-        helper.assertBlockPresent(ModTerrainBlocks.BLAZING_BLOCK.get(), PORTAL);
+        helper.assertBlockPresent(FluidReactions.auroraBlock(), PORTAL);
         helper.assertBlockPresent(Blocks.WATER, PORTAL.east());
         helper.succeed();
     }

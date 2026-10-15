@@ -51,7 +51,8 @@ public final class FluidReactions {
                 NeoForgeMod.LAVA_TYPE.value(), ModTerrainBlocks.BLAZING_BLOCK.get().defaultBlockState()));
     }
 
-    private static Block auroraBlock() {
+    /** 热情的暮光加水之后得到的方块：暮色森林的极光方块，取不到时退化为炽热方块。也是测试的期望值来源 */
+    public static Block auroraBlock() {
         Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse("twilightforest:aurora_block"));
         return block == Blocks.AIR ? ModTerrainBlocks.BLAZING_BLOCK.get() : block;
     }
