@@ -44,8 +44,8 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 | 功能 | 状态 | 说明 |
 |---|---|---|
 | 晨昏线维度 | 已实现 | 独立维度 时间锁黄昏 坐标 1 比 1 |
-| 晨昏线朝向 | 已实现 | 世界创建时随机 指向南北加减 30 度 存进世界数据 |
-| 群系按坐标分区 | 已实现 | 沿晨昏线法向分五档 极昼 昼区 常规 夜区 极夜 |
+| 晨昏线朝向 | 已实现 | 由世界种子派生 指向南北加减 30 度 存进世界数据 |
+| 群系 | 已实现 | 复用原版主世界群系 由气候参数分布 其中 forest 已换成暮色森林森林 |
 | 传送门流体 | 已实现 | 自发光 可流动 桶可装 |
 | 传送门建造判定 | 已实现 | 水池 4 格以上 8 乘 8 以下 四周可种植方块 上方有植物 投入投料物 |
 | 传送触发与冷却 | 已实现 | 条件化触发 带冷却 防来回刷 |
@@ -53,11 +53,11 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 | 落点搜索 | 已实现 | 地表优先 避开山体内部 带搜索提示语 |
 | 进度门槛 | 已实现 | 击败暮色森林三 boss 之一解锁 |
 | 三种战利品投料 | 已实现 | 九头蛇 暮色恶魂 冰雪女王各掉一种 |
-| 结构复用与排除 | 已实现 | 复用原版与暮色森林结构 排除 12 个大结构 |
-| 地形分层 | 已实现 | 地壳 地下空岛 地表 天空空岛四层 |
-| 15 种地形方块 | 已实现 | 见下表 |
+| 结构生成白名单 | 已实现 | 仅白名单内 17 个结构生成 其余一律压制 |
+| 地形 | 已实现 | 移植原版主世界地形管线 自有噪声键 由世界种子派生 |
+| 维度方块调色板 | 已实现 | 地形方块整体换成模组方块 见下表 |
 | 5 组流体反应 | 已实现 | 见下表 |
-| 洞穴群系 | 已实现 | cave 与 lush_cave |
+| 洞穴群系 | 已实现 | 使用原版 dripstone_caves 与 lush_caves |
 | 自绘天空与假太阳 | 部分 | 客户端渲染有代码 观感未定稿 |
 | 减益效果 | 部分 | 已注册 参数未定稿 |
 | 美术资源 | 未实现 | 全部使用程序生成或占位贴图 |
@@ -86,26 +86,48 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 
 碰到传送门流体会受减益 具体效果待定
 
-## 15 种地形方块
+## 维度方块调色板
+
+维度内生成的方块全部换成模组方块 替换关系如下
+
+| 原版方块 | 维度内生成 | 换算 |
+|---|---|---|
+| `grass_block` | `rosy_grass` | 霞草 |
+| `dirt` | `rosy_dirt` | 霞土 |
+| `stone` | `canopy_stone` | 苍穹石 |
+| `granite` | `ochre` | 赭石 |
+| `diorite` | `greenschist` | 绿片岩 |
+| `andesite` | `eclogite` | 榴辉岩 |
+| `deepslate` | `charnockite` | 紫苏岩 |
+| `tuff` | `twilight_stone` | 暮光石 |
+| `sand` | `road_sand` | 路之沙 |
+| `red_sand` | `unconscious_sand` | 不醒沙 |
+| `sandstone` | `siltstone` | 粉砂岩 |
+| `red_sandstone` | `siltstone` | 粉砂岩 |
+| `water` | `portal_fluid` | 不稳定液体 |
+| `lava` | `enthu_fluid` | 热情的暮光 |
+| `ice` | `frozen_canopy` | 凝固的苍穹 |
+| `packed_ice` | `frozen_canopy` | 凝固的苍穹 |
+| `snow` | `canopy_frost` | 苍穹霜 保留层数 |
+| `snow_block` | `canopy_frost_block` | 苍穹霜块 |
+
+> **海水与含水层都是传送门流体** 水里待久了会传送与受减益 这是刻意设计
+>
+> **热情的暮光不烧东西** 不引燃实体 不引燃方块 不出岩浆粒子 也不破坏周边植物
+
+未列出的方块保持原版 包括砂砾 方解石 陶瓦 粗泥 灰化土 菌丝体 泥 细雪 基岩
+
+不参与地形生成的模组方块
 
 | 注册名 | 中文名 | 用途 |
 |---|---|---|
-| `chrono_crust` | 晨昏地壳 | 地壳层 |
-| `peridotite` | 紫苏岩 | 底层岩石 |
-| `sky_stone` | 苍穹石 | 主岩石 |
-| `sky_soil` | 浮空壤土 | 表层土壤 |
-| `ember_soil` | 霞土 | 替代泥土 |
-| `twilight_stone` | 暮光石 | 岩石变种 |
-| `ochre` | 赭石 | 岩石变种 |
-| `greenschist` | 绿片岩 | 岩石变种 |
-| `eclogite` | 榴辉岩 | 岩石变种 |
-| `siltstone` | 粉砂岩 | 岩石变种 |
-| `road_sand` | 路之沙 | 替代沙子 |
-| `sleepless_sand` | 不醒沙 | 替代沙子 |
-| `frozen_canopy` | 凝固的苍穹 | 替代冰 |
-| `fragile_canopy` | 易碎的苍穹 | 反应产物 |
-| `chaos_stone` | 混乱石 | 反应产物 |
-| `blazing_block` | 炽热的方块 | 反应产物 |
+| `chrono_crust` | 晨昏地壳 | 装饰 已不由世界生成铺出 |
+| `fragile_canopy` | 易碎的苍穹 | 流体反应产物 |
+| `chaos_stone` | 混乱石 | 流体反应产物 |
+| `blazing_block` | 炽热的方块 | 流体反应产物 |
+| `scarlet_molybdenum_ore` | 绯红钼矿 | 已无世界生成入口 |
+
+方块属性按「后者复用前者」处理 见下方开发者部分
 
 极光方块不自行注册 直接使用暮色森林的 `twilightforest:aurora_block`
 
@@ -118,6 +140,9 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 | 传送门流体 加 热情的暮光 | 苍穹石 |
 | 热情的暮光 加 水 | 暮色森林 极光方块 |
 | 热情的暮光 加 岩浆 | 炽热的方块 |
+
+> **注意** 维度内已经没有原版水与岩浆了 所以只有从外面带进去的流体才会触发前两组与后两组反应
+> 维度内部自然发生的是「传送门流体 加 热情的暮光」这一组
 
 ## 常见问题
 
@@ -139,8 +164,17 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 **Q 多人游戏里别人看到的天空不一样**
 正常 每个人按自己的坐标算
 
+**Q 海洋里一走就传送**
+刻意设计 维度里的水就是传送门流体 站在水里达到 2 个以上相邻液体就会被判定为传送门
+
+**Q 热情的暮光为什么烧不起来**
+刻意设计 它只复用岩浆的方块属性 烧实体 点火 岩浆粒子与清除植被都被去掉了
+
+**Q 地形和主世界一模一样**
+地形管线确实是从原版主世界移植过来的 但噪声参数注册在本模组命名空间 噪声场由世界种子重新派生 所以是同坐标下的另一套地形
+
 **Q 地形有洞或穿模**
-开发阶段 地形参数仍在调整 遇到异常请提交截图与坐标
+地形已换回原版主世界管线 若仍有异常请提交截图与坐标
 
 ## 速查表
 
@@ -164,9 +198,9 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 | 结构 | 存什么 | 落点 |
 |---|---|---|
 | `ChronoLineState` | 晨昏线原点与法向 五档群系分界宽度 | 世界数据 |
-| `ChronoBiomeSource` | 把到晨昏线的距离折进气候参数 | 群系源 |
-| `YBand` | 按高度强制指定群系 | 群系源内 |
-| `SideShift` | 昼侧夜侧的群系替换映射 | 群系源内 |
+| `worldgen/noise/` | 移植后的噪声参数 由世界种子派生噪声场 | 数据包 json |
+| `worldgen/density_function/` | 移植后的主世界噪声路由器 | 数据包 json |
+| `worldgen/noise_settings/chrono.json` | 维度地形设置 | 数据包 json |
 | `BossProgressTracker` | 三个 boss 的击败标记 | 玩家附件 |
 | 密度函数 | 空岛与空置域的密度 | 数据包 json |
 
@@ -176,63 +210,110 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 |---|---|
 | 无昼夜 | `dimension_type` 锁 `fixed_time` |
 | 太阳高度 | 玩家坐标在晨昏线法向上的投影 除 5000 乘最大角 |
-| 群系分区 | 投影值 落进五档 |
-| 按高度强制群系 | `y_bands` 优先于水平分区 |
-| 昼侧夜侧群系替换 | `side_shift` 按投影正负选热侧或冷侧 |
+| 群系分布 | `minecraft:multi_noise` 主世界预设 |
+| 地形与主世界区分 | 噪声键改到本命名空间 引擎按 世界种子 加 键位置 派生 |
 | 传送触发 | 满足主动动作且冷却结束 |
 | 防止弹回 | 回程落点固定 落点周围豁免建造判定 |
 | 结构悬空避免 | 挖空放在洞穴阶段 结构在其后生成 |
 
 ## 完整对照表
 
-### 五档群系
+### 群系
 
-| 档 | 位置 | 亮度 |
-|---|---|---|
-| 极昼 `polar_dawn` | 昼侧最远 | 15 |
-| 昼区 `dawn_zone` | 昼侧 | 14 |
-| 常规 `normal` | 线上 | 13 |
-| 夜区 `dusk_zone` | 夜侧 | 12 |
-| 极夜 `polar_dusk` | 夜侧最远 | 11 |
+维度不自带群系 直接用原版主世界的 55 个群系 由 `minecraft:multi_noise` 的主世界预设按气候参数分布
 
 ### 按高度群系
 
-| 高度 | 群系 |
-|---|---|
-| -64 到 0 | `earth_light` |
-| 176 到 384 | `sky_island` |
-| 洞穴 | `cave` `lush_cave` |
-
-### 群系全表
-
-`day` `night` `normal` `polar_dawn` `polar_dusk` `dawn_zone` `dusk_zone` `refusal_ocean` `solidcanopy_ocean` `earth_light` `sky_island` `cave` `lush_cave`
+已移除 维度只有一条连续地表 不再按高度强制群系
 
 ## 地形生成要点
 
-### 四层结构
+### 移植自原版主世界
 
-| 层 | 高度 | 机制 |
-|---|---|---|
-| 地壳 | -64 以下 | `surface_rule` 垂直渐变铺 `peridotite` |
-| 地下空岛 | -64 到 0 | `underground_island` 噪声加渐变 |
-| 地表 | 0 到 176 | `mainland` 噪声加高原截断 |
-| 天空空岛 | 176 以上 | `sky_island_density` 噪声加高度窗 |
+`worldgen/` 下的地形层是原版主世界地形管线的整体移植 由脚本生成 不要手改
 
-`final_density` 取三者的最大值 再减去绝对噪声挖洞穴
+| 目录 | 内容 |
+|---|---|
+| `worldgen/noise/` | 42 个噪声参数 与主世界同名同参数 |
+| `worldgen/density_function/` | 19 个密度函数 主世界噪声路由器整套搬入 |
+| `worldgen/noise_settings/chrono.json` | 主世界 `noise_settings/overworld.json` 的移植 |
+
+生成脚本 `tools/port_overworld_worldgen.py` 从 Gradle 缓存里的 Minecraft 客户端 jar 提取原版数据 把引用重新指向本命名空间 并校验每条引用都能解析
+
+```
+python tools/port_overworld_worldgen.py          # 重新移植并校验
+python tools/port_overworld_worldgen.py --check  # 只校验
+```
+
+### 种子派生
+
+引擎给噪声场播种的方式是
+
+```
+NormalNoise.create(randomFactory.fromHashOf(噪声键的资源位置), 参数)
+randomFactory = 噪声设置.随机源.newInstance(世界种子).forkPositional()
+```
+
+噪声场因此是世界种子与噪声键资源位置的纯函数
+
+把同一份参数注册到 `dawnduskterminal:` 命名空间 噪声场就随之改变 维度地形于是有主世界的质感 却是从世界种子派生出来的另一套地形 而不是同坐标的主世界复制品
+
+### 移植边界
+
+下面这些不经过数据包 仍然是原版那一份
+
+| 部分 | 原因 |
+|---|---|
+| `old_blended_noise` 基础三维噪声 | 引擎硬编码用 `minecraft:terrain` 播种 |
+| 含水层与矿脉的位置随机 | 硬编码 `minecraft:aquifer` 与 `minecraft:ore` |
+| `minecraft:zero` `minecraft:y` `minecraft:blend_*` | 代码注册的单例 本身不含噪声 |
+
+### 方块替换
+
+维度自己生成模组方块 没有「生成完再改」这一步
+
+| 来源 | 交给谁 |
+|---|---|
+| 地形主体 | `noise_settings/chrono.json` 的 `default_block` = `canopy_stone` |
+| 含水层与海洋 | 同文件的 `default_fluid` = `portal_fluid` |
+| 地表规则 | 同文件 `surface_rule` 里每个 `result_state` |
+| 群系特征铺出的（花岗岩 闪长岩 安山岩 凝灰岩 岩浆 雪 浮冰 沙洲 湖底石壳） | 维度自带的群系副本 其 `features` 指向自带特征副本 |
+| `y < -54` 的岩浆层 | 一处 mixin 引擎把这一层写死在代码里 |
+
+维度自带的副本与 `minecraft:*` 一一同名 只把要铺的方块换成模组方块
+
+| 内容 | 数量 |
+|---|---|
+| 群系副本 | 53 |
+| 配置特征副本 | 52 |
+| 放置特征副本 | 151 |
+| 原版群系标签合并 | 50 |
+
+原版气候表（climate 到 biome）只在代码里生成 数据包写不出来
+所以 `dimension/chrono.json` 用 `dawnduskterminal:palette` 群系源 委托原版 `multi_noise` 预设 再按同名换成副本
+
+> **群系 id 会变** F3 与 `locate biome` 显示 `dawnduskterminal:plains` 而不是 `minecraft:plains`
+> 原版群系连同其标签原样保留 主世界不受影响
+>
+> **那 50 个标签合并是必须的** 结构生成与刷怪门控都挂在原版群系标签上
+> 不把副本加进去 白名单内的结构也找不到落点 刷怪规则也不对
+
+整条链路由 `tools/port_overworld_worldgen.py` 生成 重跑即重新移植并逐项校验
 
 ### 关键参数
 
-| 参数 | 值 | 说明 |
-|---|---|---|
-| `sea_level` | 62 | 海平面 |
-| `default_block` | `sky_stone` | 默认填充方块 |
-| `default_fluid` | `minecraft:air` | 必须是空气 设成水会灌满所有洞穴 |
-| `aquifers_enabled` | false | 关闭含水层 |
-| `ore_veins_enabled` | false | 关闭原版矿脉 否则会生成花岗岩安山岩 |
+照抄主世界
 
-> **踩过的坑** `default_fluid` 若留默认值 `water` 配合 `sea_level: 62` 会把海平面以下所有洞穴灌满水 表现为「地下 100% 是水」看起来像实体
->
-> **踩过的坑** `ore_veins_enabled` 留 `true` 时原版大矿脉会生成 `granite` `andesite` 与自定义岩石混在一起
+| 参数 | 值 |
+|---|---|
+| `sea_level` | 63 |
+| `default_block` | `minecraft:stone` |
+| `default_fluid` | `minecraft:water` |
+| `aquifers_enabled` | true |
+| `ore_veins_enabled` | true |
+| `surface_rule` | 主世界那一套 按群系铺草 泥土 沙 沙岩 深板岩 |
+
+> **注意** `default_fluid` 是水 但维度里的水不会传送 触发传送的是本模组的 `portal_fluid` 方块 水池只是建门的判定条件之一
 
 ## 逆向结论
 
@@ -269,9 +350,15 @@ Minecraft 1.21.1 NeoForge 模组 添加一个「晨昏线」维度 维度内没�
 | 锁时间 | `dimension_type.fixed_time` |
 | 允许睡觉 | `dimension_type.bed_works` |
 | 坐标 1 比 1 | `dimension_type.coordinate_scale` |
-| 按坐标分区群系 | 自定义 `BiomeSource` |
-| 按高度强制群系 | 群系源内 `y_bands` |
-| 空岛 | 自定义密度函数 |
+| 主世界地形 | 移植 `noise_settings/overworld.json` 与整套密度函数 |
+| 与主世界地形区分 | 噪声参数改注册到本命名空间 由世界种子派生 |
+| 群系 | `minecraft:multi_noise` 主世界预设 |
+| 维度方块（地形与地表） | 直接写进 `noise_settings/chrono.json` 的 `default_block` `default_fluid` `surface_rule` |
+| 维度方块（特征铺出的） | 维度自带的群系副本 + 特征副本 |
+| 群系 | 委托原版 `multi_noise` 预设 再按同名换成自带副本（`dawnduskterminal:palette` 群系源） |
+| 群系标签 | 生成 50 个原版群系标签合并 把副本加进去 |
+| `y < -54` 的岩浆层 | 一处 mixin 引擎把这层写死在代码里 |
+| 方块属性 | 模组方块用 `BlockBehaviour.Properties.ofFullCopy(原版方块)` 复用属性 |
 | 传送门建造 | 抄上游建造判定思路 |
 | 击杀门槛 | 玩家附件记进度 |
 | 掉落投料 | 战利品表修改器 |
@@ -309,6 +396,7 @@ src/main/resources/
 | 多人实测 | 未开始 |
 | 性能实测 | 未开始 |
 | 光影兼容说明 | 未开始 |
+| 失效方块清理 | 待定 29 种 `chrono_ore_*` 已不再生成 方块与贴图仍在注册表里 |
 
 ## 许可
 
