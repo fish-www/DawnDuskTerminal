@@ -1,80 +1,38 @@
 package com.dawnduskterminal.block;
 
-import com.dawnduskterminal.world.FluidReactions;
+import com.dawnduskterminal.registry.ModDamageTypes;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FlowingFluid;
-import net.minecraft.world.level.material.FluidState;
 
+/**
+ * The liquid block for "enthu_fluid" (热情的暮光). It borrows minecraft:lava's block properties but
+ * not its destructive behaviour: it does not ignite entities, does not spread fire, and does not
+ * clear neighbouring plants.
+ *
+ * <p>What it <em>does</em> take from lava is the contact hazard: entities standing in it take 6
+ * points of damage per hit (respecting the vanilla hurt invulnerability window, exactly like lava's
+ * 4 points), using the {@code enhtu_fluid} damage type so the death message is the mod's own.
+ *
+ * <p>Flow scheduling and the fluid contact reactions are inherited from {@link LiquidBlock}: the base
+ * block schedules its own spread tick and runs {@code FluidInteractionRegistry} on place / neighbour
+ * change, exactly like vanilla water and lava.
+ */
 public class ScorchingTwilightBlock extends LiquidBlock {
-    public ScorchingTwilightBlock(FlowingFluid fluid, Properties properties) {
+    public ScorchingTwilightBlock(FlowingFluid fluid, BlockBehaviour.Properties properties) {
         super(fluid, properties);
     }
 
     @Override
-    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        scheduleSpread(state, level, pos);
-        clearPlants(level, pos);
-    }
-
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
-                                   BlockPos neighborPos, boolean movedByPiston) {
-        scheduleSpread(state, level, pos);
-    }
-
-    @Override
-    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        scheduleSpread(state, level, pos);
-        FluidReactions.handle(level, pos);
-        clearPlants(level, pos);
-    }
-
-    @Override
-    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+    protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         super.entityInside(state, level, pos, entity);
-        if (level.isClientSide) {
-            return;
-        }
-        if (entity instanceof LivingEntity living) {
-            living.lavaHurt();
-        }
-    }
-
-    private static void scheduleSpread(BlockState state, Level level, BlockPos pos) {
-        if (level.isClientSide) {
-            return;
-        }
-        FluidState fluidState = state.getFluidState();
-        if (fluidState.isEmpty()) {
-            return;
-        }
-        level.scheduleTick(pos, fluidState.getType(), Math.max(1, fluidState.getType().getTickDelay(level)));
-    }
-
-    private void clearPlants(Level level, BlockPos pos) {
-        if (level.isClientSide) {
-            return;
-        }
-        for (Direction dir : Direction.values()) {
-            BlockPos target = pos.relative(dir);
-            BlockState state = level.getBlockState(target);
-            if (state.isAir() || state.is(this) || !state.getFluidState().isEmpty()) {
-                continue;
-            }
-            if (!state.canBeReplaced()) {
-                continue;
-            }
-            level.setBlock(target, Blocks.AIR.defaultBlockState(), 3);
+        if (!level.isClientSide && entity instanceof LivingEntity living) {
+            living.hurt(living.damageSources().source(ModDamageTypes.ENTHU_FLUID), 6.0F);
         }
     }
 }

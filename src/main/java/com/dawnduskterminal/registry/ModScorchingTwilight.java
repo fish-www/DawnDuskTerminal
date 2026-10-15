@@ -7,10 +7,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.SoundActions;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -31,9 +28,9 @@ public final class ModScorchingTwilight {
         DeferredRegister.createItems(DawnDuskTerminal.MOD_ID);
 
     public static final DeferredHolder<FluidType, FluidType> TYPE = FLUID_TYPES.register(
-        "scorching_twilight",
+        "enthu_fluid",
         () -> new FluidType(FluidType.Properties.create()
-            .descriptionId("fluid_type.dawnduskterminal.scorching_twilight")
+            .descriptionId("fluid_type.dawnduskterminal.enthu_fluid")
             .density(3000)
             .viscosity(6000)
             .temperature(1300)
@@ -51,32 +48,26 @@ public final class ModScorchingTwilight {
 
     public static final DeferredHolder<net.minecraft.world.level.material.Fluid,
         com.dawnduskterminal.fluid.ScorchingTwilightFluid.Source> SOURCE =
-        FLUIDS.register("scorching_twilight", com.dawnduskterminal.fluid.ScorchingTwilightFluid.Source::new);
+        FLUIDS.register("enthu_fluid", com.dawnduskterminal.fluid.ScorchingTwilightFluid.Source::new);
 
     public static final DeferredHolder<net.minecraft.world.level.material.Fluid,
         com.dawnduskterminal.fluid.ScorchingTwilightFluid.Flowing> FLOWING =
-        FLUIDS.register("flowing_scorching_twilight", com.dawnduskterminal.fluid.ScorchingTwilightFluid.Flowing::new);
+        FLUIDS.register("flowing_enthu_fluid", com.dawnduskterminal.fluid.ScorchingTwilightFluid.Flowing::new);
 
     public static final DeferredBlock<LiquidBlock> BLOCK = BLOCKS.registerBlock(
-        "scorching_twilight",
+        "enthu_fluid",
         props -> new com.dawnduskterminal.block.ScorchingTwilightBlock(SOURCE.get(), props),
-        BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_ORANGE)
-            .replaceable()
-            .noCollission()
-            .randomTicks()
-            .strength(100.0F)
-            .lightLevel(state -> 15)
-            .pushReaction(PushReaction.DESTROY)
-            .noLootTable()
-            .liquid()
-            .sound(SoundType.EMPTY));
+        // Reuses minecraft:lava's block properties verbatim (mapColor FIRE, replaceable, noCollission,
+        // randomTicks, strength 100, lightLevel 15, pushReaction DESTROY, noLootTable, liquid, EMPTY sound).
+        // The lava-like *behaviours* (burning entities, igniting blocks, lava particles) are removed in
+        // ScorchingTwilightFluid / ScorchingTwilightBlock instead.
+        BlockBehaviour.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.LAVA));
 
     public static final DeferredItem<BucketItem> BUCKET = ITEMS.register(
-        "scorching_twilight_bucket",
+        "enthu_fluid_bucket",
         () -> new BucketItem(SOURCE.get(), new net.minecraft.world.item.Item.Properties()
             .craftRemainder(Items.BUCKET)
-            .stacksTo(1)
+            .stacksTo(64)
             .rarity(Rarity.UNCOMMON)));
 
     private ModScorchingTwilight() {}
