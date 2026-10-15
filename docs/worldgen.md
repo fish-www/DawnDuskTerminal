@@ -4,9 +4,11 @@
 
 生成类型 `minecraft:noise`
 
-群系源 `dawnduskterminal:chrono`
+群系源 `dawnduskterminal:palette`
 
 地形设置 `dawnduskterminal:chrono`
+
+思路是把原版主世界世界生成整份移植进本模组命名空间，再把方块换成自己的调色板
 
 相关文件都在 `src/main/resources/data/dawnduskterminal/`
 
@@ -18,19 +20,17 @@
 
 `bed_works` 为 true，允许睡觉，只重置重生点
 
-`coordinate_scale` 为 1.0，坐标一比一
+`coordinate_scale` 为 1.0
 
 `has_skylight` 为 true
 
-`has_ceiling` 为 false
-
-`has_raids` 为 false
+`has_ceiling` 与 `has_raids` 为 false
 
 `ambient_light` 为 0.0
 
-`height` 与 `logical_height` 都是 368
+`height` 与 `logical_height` 都是 384
 
-`min_y` 为 -48
+`min_y` 为 -64
 
 `effects` 指向 `dawnduskterminal:chrono`，客户端特效在 `client/ChronoDimensionEffects`
 
@@ -40,304 +40,119 @@
 
 文件 `worldgen/noise_settings/chrono.json`
 
-`default_block` 是 `dawnduskterminal:sky_stone`
+`default_block` 是 `dawnduskterminal:canopy_stone`
 
-`default_fluid` 是 `minecraft:water`
+`default_fluid` 是 `dawnduskterminal:portal_fluid`，等级 0
 
 `aquifers_enabled` 是 true
 
-`sea_level` 是 62
+`sea_level` 是 63
 
-`ore_veins_enabled` 是 false
+`ore_veins_enabled` 是 true
 
-`lava` 噪声是常量 0.0
+`lava` 噪声指向 `dawnduskterminal:aquifer_lava`
 
-`noise` 的 `height` 368，`min_y` -48，`size_horizontal` 1，`size_vertical` 2
+`noise` 的 `height` 384，`min_y` -64
 
-`disable_mob_generation` 是 false
+`noise_router` 取自移植后的原版主世界路由
 
-`legacy_random_source` 是 false
+`surface_rule` 是一张按群系分支的大表，默认产物是 `canopy_stone`
 
-`continents` `depth` `erosion` `ridges` 直接取原版主世界
+`spawn_target` 沿用原版主世界
 
-`temperature` 与 `vegetation` 用原版噪声加偏移
+## 移植文件
 
-`barrier` 用 `minecraft:aquifer_barrier`
+`tools/port_overworld_worldgen.py` 从 Gradle 缓存里的反编译客户端 jar 抽取原版
+`density_function` `noise` `noise_settings`，改写命名空间后写入本模组
 
-`fluid_level_floodedness` 取含水层噪声与一条 8 到 40 的梯度中的较小值，所以在 y 小于等于 8 处恒为 -1，地下不生成水
+`density_function/` 共 21 个文件，含 `overworld/` 子目录
 
-`fluid_level_spread` 用 `minecraft:aquifer_fluid_level_spread`
+`noise/` 共 42 个噪声参数
 
-`vein_toggle` `vein_ridged` `vein_gap` 保留但配合 `ore_veins_enabled=false` 不生成原版大矿脉
+`multi_noise_biome_source_parameter_list/` 是原版主世界与下界的多噪声参数表副本
 
-`surface_rule` 是单条，条件为 `above_preliminary_surface` 加 `stone_depth` 的 floor，产物是 `dawnduskterminal:sky_soil`
+`configured_carver/` 3 个，洞穴与峡谷
 
-## 最终密度
+`configured_feature/` 57 个，`placed_feature/` 155 个
 
-文件顺序
+移植脚本会把文档里所有 `minecraft:` 特征引用改写到 `dawnduskterminal:` 命名空间
 
-`final_density = min( max( max(mainland_windowed, underground_island), sky_island_density ), void_band )`
+## 调色板群系源
 
-分四个高度带
+`world/PaletteBiomeSource`，注册为 `dawnduskterminal:palette`
 
-地下岛 `underground_island`
+维度 JSON 里的 `biome_source` 有 `delegate` 与 `palette` 两个字段
 
-大陆 `mainland_windowed`
+`delegate` 是原版 `multi_noise` 的主世界预设
 
-空置域由 `void_band` 归零
+`palette` 指向 `#dawnduskterminal:palette_biomes`
 
-空岛 `sky_island_density`
+`getNoiseBiome` 先问 delegate 要群系，再把 `minecraft:` 命名空间的结果换成同名副本
 
-### underground_island
+换名按路径匹配，例如 `minecraft:plains` 变成 `dawnduskterminal:plains`
 
-文件 `density_function/underground_island.json`
+副本携带本模组的方块特征表，所以维度在生成期就铺自己的方块，而不是事后打补丁
 
-用 `squeeze` 包 `interpolated` 包 `blend_density`
+`worldgen/biome/` 共 54 份，其中 53 份与主世界群系同名，另一份是 `floatrees`
 
-高度窗上沿 -45 到 -33 抬升，下沿 -27 到 0 收束
+`floatrees` 不走替换表，采样深度低于阈值时直接返回
 
-噪声是 `old_blended_noise`，`xz_factor` 80，`y_factor` 160，`smear_scale_multiplier` 8
-
-### mainland
-
-文件 `density_function/mainland_depth.json` `mainland_sloped_cheese.json` `vanilla_final_density.json` `mainland_window.json` `mainland_windowed.json`
-
-`mainland_depth` 是 -7.6 到 205.8 的梯度，值 1.5 到 -1.5，再加原版 offset
-
-`mainland_sloped_cheese` 用 `mainland_depth` 加原版 jaggedness 与 factor，再叠 base_3d_noise
-
-`vanilla_final_density` 是原版主世界最终密度的拷贝，把 sloped_cheese 换成自写的 `mainland_sloped_cheese`
-
-`mainland_window` 是 -8 到 0 的梯度，值 0 到 1
-
-`mainland_windowed` 是 `vanilla_final_density` 乘窗口，窗口外减 10000，所以地面之下归为空气
-
-### void_band
-
-文件 `density_function/void_band.json`
-
-`min(1.0, grad(126 到 128: 1 到 0) + grad(190 到 192: 0 到 1))`
-
-结果是 y 在 128 到 190 之间恒为 0
-
-所以 126 到 128 与 190 到 192 是两段过渡
-
-### sky_island_density
-
-文件 `density_function/sky_island_density.json`
-
-用 `squeeze` 包 `interpolated` 包 `blend_density`
-
-高度窗上沿 196 到 212 抬升，下沿 220 到 256 收束
-
-噪声是 `old_blended_noise`，`xz_factor` 320，`y_factor` 160，`smear_scale_multiplier` 8
-
-## 高度分带
-
-维度 JSON 里的 `y_bands` 按高度强制群系
-
-`-48` 到 `0` 是 `dawnduskterminal:earth_light`
-
-`176` 到 `384` 是 `dawnduskterminal:sky_island`
-
-`y_bands` 的优先级高于水平分区
-
-## 自定义 Feature
-
-全部在 `world/`，注册在 `registry/ModFeatures`
-
-### turf
-
-类 `TurfFeature`
-
-配置 `min_y` `max_y` `soil_depth`
-
-把 `sky_soil` 铺在 `sky_stone` 的露顶，下面几格换成 `ember_soil`
-
-只处理是当前表面且上方是空气的 `sky_stone`
-
-placed_feature `turf.json` 用 count 1 加 in_square 加 biome
-
-### bedrock_layer
-
-类 `BedrockLayerFeature`
-
-配置 `range_min_y` `range_max_y` `thickness` `seal_y` `pocket_grid_chunks` `pocket_min_chunks` `pocket_max_chunks`
-
-当前配置 `range_min_y` -8，`range_max_y` 48，`thickness` 3，`seal_y` -1，`pocket_grid_chunks` 219
-
-铺 `chrono_crust`
-
-用 3 乘 3 区块的地形高度算裙边，`MAX_SKIRT` 8
-
-在空置域边缘挖穿，把基岩与地壳换成空气，形成上下贯通的口
-
-### root_pillar
-
-类 `RootPillarFeature`
-
-把悬空的原木向下补柱子
-
-只补下方空气 2 到 64 格的段落
-
-### hollow_pocket
-
-类 `HollowPocketFeature`
-
-配置 `grid_chunks` `min_chunks` `max_chunks` `floor_y` `top_y`
-
-当前 `grid_chunks` 219，`min_chunks` 8，`max_chunks` 12，`floor_y` -48，`top_y` 128
-
-按网格单元挖出不定形状的空腔，边缘带噪声抖动
-
-`BAND` 为 24，球形半径按分瓣与多频值噪声调制
-
-### sky_island
-
-类 `SkyIslandFeature`
-
-配置 `spacing` `min_y` `max_y` `min_radius` `max_radius` `min_thickness` `max_thickness`
-
-按网格单元确定性放置，一个单元一个岛
-
-`spacing` 单位是区块
-
-半径与厚度取区间随机，中心对齐到区块种子
-
-用 3 个尺度的值噪声决定实心范围
-
-填充 `sky_stone`，并按高度与 roll 撒矿
-
-placed_feature `sky_island.json` 在 192 到 256 之间，count 1，in_square，biome
-
-## 群系分区
-
-群系源 `world/ChronoBiomeSource`
-
-维度 JSON 的 `biome_source` 字段
-
-`delegate` 是原版 `multi_noise` 的 overworld preset
-
-`bands` 是四个越界群系，少于 4 个会退回 delegate
-
-`line_half_width` 200，线两侧 200 格是线上群系
-
-`band_half_width` 1000，换算成 param 的内边界
-
-`max_distance` 5000
-
-边界加 `BOUNDARY_JITTER` 60 格抖动
-
-抖动基于 `BOUNDARY_SCALE` 128 的栅格值噪声
-
-判定顺序是先 `y_bands`，再线上群系，再内外分区
-
-`side_shift` 按 param 正负把 delegate 群系换成 hot 或 cold 自定义群系
-
-`replacements` 与 `fallback` 做位置哈希替换
-
-## 群系
-
-`polar_dawn` 极昼平原，太阳最高
-
-`dawn_zone` 晨区
-
-`day` 昼区平原
-
-`normal` 晨昏平原，线附近
-
-`night` 夜区平原
-
-`dusk_zone` 昏区
-
-`polar_dusk` 极夜平原，太阳最低
-
-`refusal_ocean` 昼侧海洋
-
-`solidcanopy_ocean` 夜侧海洋
-
-`earth_light` 地下带
-
-`sky_island` 高空带
-
-`cave` 溶洞
-
-`lush_cave` 繁茂洞穴
-
-群系标签 `chrono_surface` 收录了除两个洞穴群系外的全部
-
-`is_polar_dawn` 与 `is_polar_dusk` 各只含对应极区群系
-
-## biome_modifier
-
-在 `data/dawnduskterminal/neoforge/biome_modifier/`
-
-`chrono_turf` 给 chrono_surface 加 turf
-
-`chrono_bedrock_layer` 加 bedrock_layer
-
-`chrono_root_pillars` 加 root_pillar
-
-`chrono_hollow_pockets` 加 hollow_pocket
-
-`chrono_custom_trees` 加自定义树
-
-`chrono_sky_ores` 加 8 种高空矿
-
-`chrono_molybdenum_ore` 加绯红钼矿
-
-`chrono_ores` 加一批自定义矿石
-
-`chrono_spawns` 加刷怪配置
-
-`chrono_scorching_lakes` 加热情的暮光湖
-
-`chrono_feature_filter` 用 `dawnduskterminal:chrono_feature_filter` 移除非本模组特征
-
-`chrono_remove_lava` 移除原版岩浆湖与岩浆泉
-
-`chrono_remove_vanilla_ores` 移除原版矿石
-
-`chrono_remove_vanilla_trees` 移除原版树
-
-引用的 feature ID 必须真实存在，否则注册表加载失败
+替换表在第一次使用时构建，因为 biome source 在数据包解析期创建，那一刻标签 holder 还没有 key
 
 ## 标签
 
-方块标签写在 `data/minecraft/tags/block/`
+`tags/worldgen/biome/palette_biomes.json` 列出全部 54 份群系副本
 
-`base_stone_overworld` 加自定义岩石
+`tags/block/` 共 15 个本模组方块标签，供移植过的特征引用
 
-`stone_ore_replaceables` 加可换矿的岩石
+`data/minecraft/tags/worldgen/biome/` 共 50 个群系标签，把副本挂进结构生成与刷怪规则
 
-`deepslate_ore_replaceables` 加 `peridotite`
+`data/minecraft/tags/block/` 把模组方块加进原版石类 土类 沙类 树叶等标签
 
-`dirt` 加 `sky_soil` 与 `ember_soil`
+## 世界生成补丁
 
-`dirt_replaceable` 再加两种沙
+数据包够不到的原版硬编码由 mixin 接管，逐条见 `architecture.md`
 
-`sand` 指向 `siltstone`
+`LavaBandPaletteMixin` 处理 y 以下整条岩浆带
 
-`ice` 指向 `frozen_canopy`
+`LavaAquiferPaletteMixin` 处理深部岩浆含水层
 
-`leaves` 与 `logs` 收录自定义树叶与木头
+`PillarsFluidBlockMixin` 让石柱洞穴保持干燥
 
-## 矿物
+`NoiseChunkVeinPaletteMixin` 处理大矿脉的花岗岩与凝灰岩
 
-自定义矿石方块在 `registry/ModChronoOres`，前缀 `chrono_ore_`
+`NoiseChunkTemperatureMixin` 给温度噪声加晨昏线偏移，群系随昼夜侧分布
 
-高空矿用 `sky_ore_` 系列 placed_feature，高度 196 到 236
+`MineshaftHeightMixin` 与 `MineshaftChestLootMixin` 限制废弃矿井高度并换战利品表
 
-绯红钼矿 `scarlet_molybdenum_ore` 在 2 到 51 之间生成
-
-空岛 Feature 内部也按 roll 撒原版矿与绯红钼矿
+识别维度统一靠噪声设置的 `default_fluid` 是不是 `portal_fluid`
 
 ## 结构
 
-排除与复用表在 `structure/StructureExclusions` 与 `structure/StructurePlacements`
+`structure/StructureExclusions` 是白名单，只放行废弃传送门 沉船 前哨站 沙漠神殿 雪屋 废弃矿井，以及暮色森林的树洞 倒下空心木 蘑菇城堡 营地 树篱迷宫 空心矿山
 
-复用的结构来自原版与暮色森林
+`StructureExclusionMixin` 排除不在白名单里的结构
 
-`StructureExclusionMixin` 在晨昏线维度拦截排除表里的结构
+`structure/StructurePlacements` 记录复用与未映射项，服务端启动时校验并记日志
 
-两张表在服务端启动时校验，缺失只记日志
+## 高度与空置域
+
+地形高度范围 -64 到 320
+
+原版主世界的密度函数被整份移植，所以地形形态与原版一致
+
+空置域与空岛属于旧设计，已在移植中移除
+
+## 已知问题
+
+`PaletteBiomeSource` 的 javadoc 说 floatrees 在深度 -1.5 到 -1.3，代码实际是低于 -1.6，注释与实现不一致
+
+`data/dawnduskterminal/tags/worldgen/biome/` 下的旧标签只保留 `palette_biomes`
+
+## 改地形注意
+
+改世界生成后建议删掉 `run/<端>/world` 重建
+
+天光烘焙进区块，改天光后老存档要重算
+
+`AquiferTests` 与 `WorldgenTests` 会断言调色板与流体，改前先看测试

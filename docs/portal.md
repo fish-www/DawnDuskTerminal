@@ -1,8 +1,10 @@
-# 传送门
+# 传送门与流体
 
-传送门由水池加水池边植物加投料物构成
+传送门由水池 池边植物 投料物三者构成
 
-判定与传送代码在 `portal/` 包
+判定与传送在 `portal/` 包
+
+两种模组流体是门与危险源，反应在 `world/FluidReactions`
 
 ## 三个标签
 
@@ -12,8 +14,6 @@
 
 `tags/block/portal/decoration` 定义可算作植物的方块，含空气类
 
-标签文件在 `data/dawnduskterminal/tags/block/portal/`
-
 ## 建造判定
 
 判定在 `portal/PortalShape.find`
@@ -22,9 +22,7 @@
 
 从种子水平洪泛，只走同一 y 的水方块
 
-水池方块数下限 `MIN_WATER` 4
-
-上限 `MAX_WATER` 64，超过即判失败
+水池方块数下限 `MIN_WATER` 4，上限 `MAX_WATER` 64，超过即失败
 
 每列水向下最多找 16 格到达的地板，地板必须能站
 
@@ -34,7 +32,7 @@
 
 植物数须大于等于 `max(2, 环长 / 4)`
 
-满足则返回一个 `PortalShape`，带水池 边框 植物三组坐标
+满足则返回 `PortalShape`，带水池 边框 植物三组坐标
 
 ## 生成传送门
 
@@ -44,13 +42,9 @@
 
 已经是传送门流体的跳过
 
-`probe` 只做判定不改方块
-
 ## 触发
 
-投料物是 `dawnduskterminal:chrono_core`
-
-`PortalBlock.isCatalyst` 判定
+投料物是 `dawnduskterminal:encased_dust`
 
 两条触发路径
 
@@ -58,7 +52,7 @@
 
 玩家附近 12 格内落在水里的投料物由 `DdtServerEvents.scanFuelItems` 每 10 tick 扫描并调 `tryIgnite`
 
-`tryIgnite` 会先调 `build`，成功才消耗一个物品
+`tryIgnite` 先调 `build`，成功才消耗一个物品
 
 成功后触发 `build_gate` 进度，召雷，放粒子，放 `portal_open` 音效
 
@@ -66,99 +60,87 @@
 
 `portal/PortalBlock` 继承 `LiquidBlock`
 
-`randomTick` 里若四周没有相邻传送门方块，就变回空气，实现自愈
-
-否则调用 `FluidReactions.handle`
+`randomTick` 里若四周没有相邻传送门方块就变回空气，实现自愈
 
 `isCompletePortalPart` 要求相邻传送门方块至少 2 个
 
-## 传送
+`PortalTrigger.shouldTeleport` 判定实体是否处在完整传送门里，玩家游泳时不触发
 
-`portal/PortalTrigger.shouldTeleport` 判定实体是否处在完整传送门里
+## 即时传送
 
-玩家进入方块时由 `PortalBlock.entityInside` 调 `PortalTeleporter.tick`
+`portal/PortalTeleporter.teleportEntity`
 
-落点搜索是分帧的
+进入方块的下一个 tick 就传送，没有蓄力 没有冷却
 
-进入时先蓄力 100 tick
+当前维度不是晨昏线维度时目标是晨昏线维度，否则是主世界
 
-每 tick 预算 2 个区块加载
+传送到目标后播 `minecraft:portal_travel`
 
-从 16 格环开始搜，进入目标最大半径 320，回程最大半径 48
+落点搜索 `findSafeLanding`
 
-环步长取 16 与 环半径除以 6 的较大值
+先用原点列，再按 16 格环扩到半径 320，最多加载 64 个区块
 
-`scanColumn` 判定单列
+单列判定用 `MOTION_BLOCKING_NO_LEAVES` 表面，表面须在 0 到 128，下方能站，脚部无碰撞且无流体
 
-用 `MOTION_BLOCKING_NO_LEAVES` 取表面
+搜不到时铺一块半径 6 的兜底平台，用霞草 霞土 苍穹石
 
-表面必须大于世界最低高度且不超过 128
+进入维度时在落点附近建到达门 `buildArrivalPortal`
 
-下方方块必须能站
+先在 24 格环内找平缓地面，铺半径 4 的苍穹石台面
 
-脚部方块无碰撞体积且无流体
-
-搜不到时在原点铺一块半径 6 的兜底平台
-
-## 回程落点
-
-回程坐标存在玩家附件 `portal_state`
-
-字段 `return_dim` 与 `x y z`
-
-进维度时写入当前维度与坐标
-
-回程时 `returnSpot` 在正负 3 格内按距离排序找安全站位
-
-`isSafeStanding` 排除岩浆块 仙人掌 火 灵魂火 营火 甜浆果 细雪
-
-传入回程坐标只有 1 格的下探余量
-
-## 到达传送门
-
-进入维度时的落点会建一座到达门
-
-`buildArrivalPortal` 先在落点附近 24 格环内找平缓地面
-
-铺半径 4 的 `sky_stone` 台面
-
-在台面上开 2 乘 2 的传送门流体池
-
-池边铺 `sky_soil` 与 `ember_soil`
-
-清掉台上方的方块
-
-落点返回在池子西侧一格半
+台面上开 2 乘 2 的传送门流体池，池边铺霞草与霞土
 
 回程不建新门，直接传送到记住的坐标
 
-## 冷却
+## 回程坐标
 
-冷却 tick 存在 `portal_state`
+存在玩家附件 `portal_state`，字段 `returnDim` 与 `x y z`
 
-进入或回程后写入，取配置 `portal.cooldown_ticks` 与 40 的较大值
+进维度时写入当前维度与坐标
 
-冷却期间在传送门里会显示剩余秒数
+## 稳定效果
 
-## 减益
+效果 `dawnduskterminal:stability`，纯标记，方向由 `PortalBlock.entityInside` 决定
 
-效果 `dawnduskterminal:portal_sickness`，在 `registry/ModEffects`
+玩家有稳定则不过门，非玩家生物有稳定则过门
 
-类 `world/PortalSicknessEffect`
+不过门且受到伤害时累计，每 40 tick 造成 2 点 `stability` 伤害并播 `portal_hurt`
 
-判定周期是每 40 tick
+## 两种流体
 
-只在晨昏线维度生效，造成 1 加等级点魔法伤害
+`dawnduskterminal:portal_fluid` 是传送门水体与维度的默认流体
 
-非玩家生物碰到传送门会获得 200 tick 该效果，受配置 `portal.entity_debuff` 控制
+流动参数照抄原版水，但不无限生成源，也不吞掉外来水
 
-玩家到达时会获得 300 tick 中毒
+`dawnduskterminal:enthu_fluid`（热情的暮光）借用岩浆的方块属性，但不点火 不清植物
 
-## 传输到客户端
+接触它的生物每受击窗口受 6 点 `enthu_fluid` 伤害
 
-`network/PortalSearchPayload` 在开始与结束搜索时下发
+## 流体反应
 
-客户端 `client/PortalDistortion` 据此做红屏与视角扭曲
+反应用 NeoForge `FluidInteractionRegistry` 注册，在 `FMLCommonSetupEvent` 上执行
+
+源流体一侧被替换为产物，邻居不动
+
+`portal_fluid` 加水得 `fragile_canopy`
+
+`portal_fluid` 加岩浆得 `chaos_stone`
+
+`portal_fluid` 加热情的暮光得 `canopy_stone`
+
+热情的暮光加水得暮色森林的 `aurora_block`，取不到时退化为 `blazing_block`
+
+热情的暮光加岩浆得 `blazing_block`
+
+## 桶
+
+原版桶舀不动这两种流体
+
+`DdtServerEvents.onRightClickItem` 拦截，取消交互，播物品破碎音，销毁一个桶
+
+`dawnduskterminal:canocan` 是唯一能舀的容器
+
+舀 `portal_fluid` 得 `portal_bucket`，舀热情的暮光得 `enthu_fluid_bucket`
 
 ## 音效
 
@@ -168,12 +150,20 @@
 
 `portal_exit` 离开
 
+`portal_hurt` 受侵蚀
+
 `chrono_ambient` 维度环境音
 
-## 相关命令
+## 命令
 
-`/ddt tp <param>` 按投影参数传送到维度内指定位置
+`/ddt line` 打印当前位置的原点 法向 距离 参数 天光 维度
 
-`/ddt void tp` 传送到最近的空置域中心
+`/ddt tp <param>` 按投影参数在 -1 到 1 之间传送到维度内
 
-其余见 `development.md`
+需要权限等级 2
+
+## 已知遗留
+
+`ModEffects` 仍注册 `portal_sickness`，但没有代码再施加它
+
+语言文件里 `message.dawnduskterminal.searching` 已不再使用

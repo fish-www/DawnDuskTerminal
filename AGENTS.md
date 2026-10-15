@@ -1,18 +1,22 @@
 # AGENTS.md
 
-本文件面向在本仓库工作的 AI 与协作者，给出最短上手路径与硬约束
+面向在本仓库工作的 AI 与协作者，给最短上手路径与硬约束
 
 玩家说明在 `README.md`
 
-其他开发者的历史临时笔记在 `DEVNOTES.md`，注意当前开发者可能不同，要先检查
-
 开发细节在 `docs/`
+
+历史笔记在 `DEVNOTES.md`，部分内容已过时
 
 ## 项目
 
 Minecraft 1.21.1 NeoForge 模组
 
-新增一个「晨昏线」维度，维度内没有昼夜更替，太阳高度由玩家坐标决定
+新增「晨昏线」维度，世界被一条线切成昼侧与夜侧
+
+太阳高度由坐标在这条线法向上的投影决定，不随时间变化
+
+维度的地形与群系是把原版主世界世界生成移植到本模组命名空间后，用调色板群系源替换方块
 
 `mod_id` 为 `dawnduskterminal`
 
@@ -20,43 +24,43 @@ Minecraft 1.21.1 NeoForge 模组
 
 Java 21
 
-构建用 Gradle 与 ModDevGradle 2.0.95
+NeoForge 21.1.252 与 ModDevGradle，版本写在 `gradle.properties`
 
-版本号与依赖范围写在 `gradle.properties`
-
-## 目录结构
+## 目录
 
 `src/main/java/com/dawnduskterminal/` 代码
 
-`src/main/resources/assets/dawnduskterminal/` 贴图 模型 语言
+`src/main/resources/assets/dawnduskterminal/` 贴图 模型 语言 音效
 
-`src/main/resources/data/dawnduskterminal/` 维度 群系 地形 战利品 结构
+`src/main/resources/data/dawnduskterminal/` 维度 群系 地形 战利品 配方 进度
 
-`src/generated/resources/` `runData` 任务产物
+`tools/` 移植与校验用的 Python 脚本
 
 `docs/` 开发文档
 
 ## 构建与运行
 
-构建 `./gradlew build`，产物在 `build/libs/`
+`./gradlew build`，产物在 `build/libs/`
 
-运行客户端 `./gradlew runClient`
+`./gradlew runClient`
 
-运行服务端 `./gradlew runServer`
+`./gradlew runServer`
 
-生成数据 `./gradlew runData`，输出到 `src/generated/resources`
+`./gradlew runData`，输出到 `src/generated/resources`
 
-跑游戏内测试 `./gradlew runGameTestServer`
+`./gradlew runGameTestServer`
 
-## 硬依赖暮色森林
+`gradlew` 必须保持可执行位，CI 在 Linux 上跑，权限位丢了会直接失败
 
-运行必须同时安装暮色森林的 1.21.1 版本
+## 暮色森林
+
+运行必须装暮色森林 1.21.1
 
 构建期把 `libs/twilightforest-1.21.1.jar` 放好
 
-`src` 里没有 `import twilightforest.*`，只按字符串 ID 引用
+代码里只用字符串 ID 引用暮色森林，没有 `import twilightforest.*`
 
-所以缺 jar 仍可编译，但运行会缺注册项
+所以缺 jar 仍可编译，运行会缺注册项
 
 `gradle.properties` 的 `twilight_dependency` 控制依赖类型，默认 `required`
 
@@ -68,61 +72,47 @@ Java 21
 
 资源 ID 用 `DawnDuskTerminal.id(path)`
 
-新增方块放 `block/` 或 `registry/`
-
-新增世界生成放 `world/`
-
-配置项集中在 `config/DdtConfig`
-
 包名固定 `com.dawnduskterminal`
 
-## 世界生成
+## 世界生成约定
 
-维度定义在 `data/dawnduskterminal/dimension/chrono.json`
+维度 `dimension/chrono.json` 用 `dawnduskterminal:palette` 群系源
 
-群系源是自写的 `ChronoBiomeSource`
+`PaletteBiomeSource` 把原版按气候选出的群系换成同名副本，副本在 `worldgen/biome/`
 
-`bands` 少于 4 个会退回 `delegate`
+`data/dawnduskterminal/tags/worldgen/biome/palette_biomes.json` 列出全部副本
 
-自定义 Feature 在 `world/`，注册在 `registry/ModFeatures`
+副本里的特征引用必须指向 `dawnduskterminal:` 命名空间
 
-细节见 `docs/worldgen.md`
+数据包够不到的硬编码由 `mixin/` 里的补丁接管，见 `docs/worldgen.md`
 
 ## 硬约束与坑
 
-`noise_settings/chrono.json` 保持 `default_fluid=water`、`aquifers_enabled=true`、`sea_level=62`，`AquiferTests` 会断言这三项
+`noise_settings/chrono.json` 的 `default_fluid` 必须是 `dawnduskterminal:portal_fluid`，多个 mixin 靠它识别维度
 
-地下不灌水靠 `fluid_level_floodedness` 在 y 小于等于 8 时钳到 -1
+`AquiferTests` 与 `WorldgenTests` 断言地形 流体 矿脉都走模组调色板
 
-`lava` 噪声必须恒为 0
-
-`ore_veins_enabled` 必须是 `false`
-
-`neoforge:remove_features` 与 biome_modifier 引用的 ID 必须真实存在，否则注册表加载失败，整个存档起不来
+feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则注册表加载失败，整个存档起不来
 
 1.21.1 密度函数 JSON 字段是 `argument`，不是 `input`
 
 天光烘焙进区块，改天光后老存档要重算
 
-客户端自绘天空会被光影模组盖掉，`ShaderGuard` 检测 iris oculus optifine
-
-改纯资源后 `gradle build` 可能报 UP-TO-DATE，要验证 `build/libs/` 里的 jar
+改世界生成后建议删掉 `run/<端>/world` 重建
 
 ## 测试
 
-游戏内测试在 `gametest/`
+`./gradlew runGameTestServer`
 
-命令 `./gradlew runGameTestServer`
-
-共 20 个测试，覆盖地形密度 传送门形状 流体反应 群系注入 含水层
+共 34 个测试，覆盖世界生成 传送门形状 流体反应 霜层 半透明面剔除
 
 见 `docs/development.md`
 
 ## 提交
 
-用 Conventional Commits，格式 `type(scope): subject`
+提交说明用中文
 
-subject 一行，祈使句，句末不加句号
+格式 `type(scope): 中文说明`，subject 一行，句末不加句号
 
 正文只在携带 subject 装不下的信息时添加
 
@@ -134,7 +124,7 @@ subject 一行，祈使句，句末不加句号
 
 `docs/worldgen.md` 世界生成
 
-`docs/portal.md` 传送门
+`docs/portal.md` 传送门与流体
 
 `docs/development.md` 开发与构建
 

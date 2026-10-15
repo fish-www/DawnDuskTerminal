@@ -4,13 +4,11 @@
 
 JDK 21
 
-用仓库自带的 `gradlew`
+用仓库自带的 `gradlew`，并保持它的可执行位
 
 Minecraft 1.21.1
 
-NeoForge 21.1.252，范围在 `gradle.properties` 的 `neo_version_range`
-
-ModDevGradle 2.0.95，定义在 `settings.gradle`
+NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 
 ## 暮色森林依赖
 
@@ -26,51 +24,61 @@ ModDevGradle 2.0.95，定义在 `settings.gradle`
 
 `gradle.properties` 的 `twilight_dependency` 控制依赖类型，默认 `required`
 
-## 构建
+## 构建与运行
 
-`./gradlew build`
-
-产物在 `build/libs/`
-
-纯资源改动可能报 UP-TO-DATE，要验证 jar 里的内容
-
-## 运行
+`./gradlew build`，产物在 `build/libs/`
 
 `./gradlew runClient` 目录 `run/client`
 
-`./gradlew runServer` 目录 `run/server`，带 `--nogui`
+`./gradlew runServer` 目录 `run/server`
 
 `./gradlew runData` 目录 `run/data`，输出到 `src/generated/resources`
 
 `./gradlew runGameTestServer` 目录 `run/gametest`
 
-首次构建会下载并反编译 Minecraft，约 1 到 2 分钟
+首次构建会下载并反编译 Minecraft
 
-首次 `runServer` 还会额外下载资源
+纯资源改动可能报 UP-TO-DATE，要验证 jar 里的内容
 
 ## 游戏内测试
 
 `./gradlew runGameTestServer`
 
-命名空间 `dawnduskterminal`，模板 `ddt_empty`，结构在 `structure/ddt_empty.nbt`
+命名空间 `dawnduskterminal`，模板 `ddt_empty`
 
-共 20 个测试，分五组
+共 34 个测试
 
 ### WorldgenTests
 
-`densityFunctionsAreRegistered` 密度函数已注册
-
 `chronoDimensionTypeIsRegistered` 维度类型已注册
 
-`pocketZoneIsStableAndBounded` 空置域稳定且有界
+`portedDensityFunctionsAreRegistered` 移植的密度函数已注册
 
-`bedrockSealCoversPocketFreeColumns` 基岩封住非空腔的列
+`portedNoiseParametersAreRegistered` 移植的噪声参数已注册
+
+`terrainNoiseIsSeedDerived` 地形噪声随种子变化
+
+`paletteBiomeCopiesAreRegistered` 群系副本已注册
+
+`paletteBiomeCopiesCarryOurFeatures` 副本带本模组特征
+
+`paletteBiomeSourceIsRegistered` 调色板群系源已注册
+
+`chronoUsesThePaletteBiomeSource` 维度用的是调色板群系源
+
+`configuredFeaturesAreRegistered` 配置特征已注册
+
+`veinFillersUseThePalette` 矿脉填充走调色板
+
+`paletteBiomeSourceSubstitutesThePreset` 群系源替换原版预设
 
 ### AquiferTests
 
-`aquifersAreEnabledLikeVanilla` 断言含水层开启 默认流体为水 海平面 62
+`terrainAndFluidUseTheModPalette` 地形与流体走模组调色板
 
-`undergroundStaysDry` 断言 y 小于等于 8 处 floodedness 为 -1，lava 恒为 0
+`aquifersAreEnabledLikeVanilla` 含水层配置与原版一致
+
+`oreVeinsAreEnabledLikeVanilla` 大矿脉已开启
 
 ### PortalShapeTests
 
@@ -92,13 +100,33 @@ ModDevGradle 2.0.95，定义在 `settings.gradle`
 
 ### FluidReactionTests
 
-`portalFluidWithWater` `portalFluidWithLava` `portalFluidWithScorchingTwilight`
+`portalFluidWithWater`
 
-`scorchingTwilightWithWater` `scorchingTwilightWithLava`
+`portalFluidWithLava`
 
-### ChronoFeatureInjectionTests
+`portalFluidWithScorchingTwilight`
 
-`chronoBiomesReceiveIslandAndTerrainFeatures` 断言目标群系含必需特征且不含禁用特征
+`scorchingTwilightWithWater`
+
+`scorchingTwilightWithLava`
+
+`portalFluidWithFlowingWater`
+
+`flowingPortalFluidWithWater`
+
+### CanopyFrostMeltTests
+
+`canopyFrostSurvivesTheLightThatMeltsVanillaSnow` 苍穹霜不会像原版雪那样在亮光里融化
+
+### TranslucentFaceCullingTests
+
+`translucentCanopyCullsTheFaceBetweenTwoOfItself` 半透明方块之间剔除面
+
+`cullingAgreesWithTheVanillaReference` 与原版参照一致
+
+`differentBlocksAreNotCulledAgainstEachOther` 不同方块之间不剔除
+
+`portalFluidCullsTheFaceBetweenTwoOfItself` 传送门流体之间剔除面
 
 ## 指令
 
@@ -106,15 +134,15 @@ ModDevGradle 2.0.95，定义在 `settings.gradle`
 
 `/ddt line` 打印当前位置的原点 法向 距离 参数 天光 维度
 
-`/ddt void` 打印最近的空置域中心与尺寸
-
-`/ddt void tp` 传送到最近的空置域中心
-
-`/ddt sky` 打印 3072 格内最近空岛
-
-`/ddt sky tp` 传送到最近空岛
-
 `/ddt tp <param>` 按投影参数在 -1 到 1 之间传送到维度内
+
+## 移植脚本
+
+`tools/port_overworld_worldgen.py` 从 Gradle 缓存里的反编译客户端 jar 抽取原版世界生成，改写命名空间后写入本模组
+
+`tools/port_tf_biomes.py` 把暮色森林群系内容填进对应维度的群系副本，保留洞穴雕刻，重映射特征引用
+
+`tools/check_tf_biomes.py` 校验移植群系，检查 JSON 合法 无残留 `minecraft:*` 特征 以及 `twilightforest:*` 特征能在 TF jar 内解析
 
 ## CI
 
@@ -124,31 +152,21 @@ ModDevGradle 2.0.95，定义在 `settings.gradle`
 
 `release.yml` 在 v 标签触发，校验标签与 `mod_version` 一致，构建并 `gh release create`
 
-concurrency 只在 PR 上 cancel-in-progress，避免主分支历史出现红叉
+concurrency 只在 PR 上 cancel-in-progress
 
 ## 踩坑
 
-`noise_settings/chrono.json` 的 `default_fluid` 当前是 `water`，`aquifers_enabled` 是 true，`sea_level` 是 62
+`noise_settings/chrono.json` 的 `default_fluid` 必须是 `portal_fluid`，多个 mixin 靠它识别维度
 
-地下不灌水改由 `fluid_level_floodedness` 在 y 小于等于 8 钳到 -1 实现
+`ore_veins_enabled` 保持 true，矿脉填充由 `NoiseChunkVeinPaletteMixin` 换成调色板方块
 
-`AquiferTests` 会断言以上行为，改前先看测试
-
-根目录 `DEVNOTES.md` 里「default_fluid 必须是 air」是旧结论，已过时
-
-`ore_veins_enabled` 必须 false，否则生成 granite 与 andesite 杂石
-
-`neoforge:remove_features` 与 biome_modifier 引用的 feature ID 必须真实存在，否则注册表加载期抛错，整个存档起不来
+feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则注册表加载期抛错
 
 1.21.1 密度函数字段是 `argument`，不是 `input`
 
-`squeeze` 值域是 x 除以 2 的三次方再乘 3，x 为 1 时只有 0.375
+`gradlew` 必须是 100755，权限位丢了 Linux 上直接跑不了
 
 天光烘焙进区块，改天光后老存档要重算
-
-客户端自绘天空会被光影盖掉，`ShaderGuard` 检测 iris oculus optifine
-
-`ChronoBiomeSource` 的 `bands` 少于 4 个会静默退回 delegate
 
 改世界生成后建议删掉 `run/<端>/world` 重建
 
@@ -156,11 +174,15 @@ concurrency 只在 PR 上 cancel-in-progress，避免主分支历史出现红叉
 
 新增方块放 `block/` 或 `registry/ModTerrainBlocks` 或 `registry/ModBlocks`
 
-新增世界生成 Feature 放 `world/`，注册在 `registry/ModFeatures`
+新增世界生成数据放 `src/main/resources/data/dawnduskterminal/worldgen/`
 
-新增自定义群系放 `data/dawnduskterminal/worldgen/biome/`
+新增自定义 Feature 放 `world/`，注册在 `registry/ModFeatures`
 
 新增矿石放 `registry/ModChronoOres`
+
+新增物品放 `registry/ModItems`
+
+新增流体放 `registry/ModFluids` 或 `registry/ModScorchingTwilight`
 
 新增配置放 `config/DdtConfig`
 

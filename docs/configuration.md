@@ -8,7 +8,7 @@
 
 改动后需要重启
 
-代码里每个 getter 都有兜底值，配置未加载时返回兜底而不是抛错
+每个 getter 都有兜底值，配置未加载时返回兜底而不是抛错
 
 ## lighting
 
@@ -18,7 +18,7 @@
 
 getter 兜底值是 30.0
 
-同时影响服务端的 `ChronoLine.sunAngleDegrees` 和客户端天空
+同时影响服务端的 `ChronoLine` 与客户端天空
 
 `sky_light_by_distance` 默认 true
 
@@ -26,17 +26,11 @@ true 时天光按坐标在晨昏线两侧衰减
 
 false 时维度内天光恒为 15
 
-`sky_light_day` 默认 15，范围 0 到 15
+`sky_light_day` 默认 15，范围 0 到 15，昼侧最远处天光
 
-昼侧最远处天光
+`sky_light_center` 默认 14，范围 0 到 15，晨昏线上天光
 
-`sky_light_center` 默认 14，范围 0 到 15
-
-晨昏线上天光
-
-`sky_light_night` 默认 12，范围 0 到 15
-
-夜侧最远处天光
+`sky_light_night` 默认 12，范围 0 到 15，夜侧最远处天光
 
 注释里提醒 8 及以下会让怪物生成
 
@@ -46,27 +40,19 @@ false 时维度内天光恒为 15
 
 `ChronoLine.param` 的除数，也决定转换到最大太阳角的距离
 
-注意维度 JSON 的 `biome_source.max_distance` 是另一个值，只影响群系分区
-
-只改配置不会改群系分带，要一起改 JSON
-
 `normal_override` 默认空字符串
 
-填 `x,z` 可固定晨昏线法向，非法输入会回退到随机
+填 `x,z` 可固定晨昏线法向，非法输入回退到随机
 
-空字符串表示每个世界创建时随机，基准朝东，抖动正负 30 度
+空字符串表示每个世界创建时随机，基准朝东，抖动正负 30 度，再随机决定是否翻转朝西
 
 ## portal
 
 `cooldown_ticks` 默认 100，范围 0 到 72000
 
-传送后再次触发的冷却 tick
-
-实际取该值与 40 的较大值
-
 `entity_debuff` 默认 true
 
-非玩家生物碰到传送门时是否获得 `portal_sickness`
+说明：传送改即时后这两个键已无读取方，属于遗留
 
 ## compat
 
@@ -75,6 +61,8 @@ false 时维度内天光恒为 15
 用可容忍环的特征排序替换原版 `FeatureSorter`
 
 同一维度混用原版与模组群系时需要开启
+
+调色板维度正属于这种情况
 
 ## client
 

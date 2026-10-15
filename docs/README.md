@@ -4,27 +4,27 @@
 
 玩家向说明在仓库根目录的 `README.md`
 
-时间较久或平台相关的临时笔记在 `DEVNOTES.md`
+历史笔记在 `DEVNOTES.md`，部分内容已过时
 
 ## 阅读顺序
 
-想快速上手，先读 `architecture.md` 再看 `development.md`
+快速上手先读 `architecture.md` 再看 `development.md`
 
-只想改地形，直接读 `worldgen.md`
+只改地形读 `worldgen.md`
 
-只想改传送门，直接读 `portal.md`
+只改传送门与流体读 `portal.md`
 
-要调数值，读 `configuration.md`
+要调数值读 `configuration.md`
 
 ## 文件
 
-`architecture.md` 模块职责 关键类 数据流 注册流程 事件 网络 Mixin
+`architecture.md` 模块职责 关键类 注册流程 事件 网络 Mixin 已知遗留
 
-`worldgen.md` 维度类型 密度函数 地形分层 自定义 Feature 群系源 标签 矿物
+`worldgen.md` 维度类型 噪声设置 调色板群系源 地表规则 特征移植 结构白名单
 
-`portal.md` 建造判定 触发 传送 回程落点 冷却 减益
+`portal.md` 传送门判定 触发 即时传送 落点门 稳定效果 流体与桶
 
-`development.md` 环境 构建 运行 游戏测试 指令 CI 踩坑
+`development.md` 环境 构建 运行 游戏测试 指令 CI 移植脚本 踩坑
 
 `configuration.md` 全部配置键 默认值 作用
 
@@ -34,4 +34,6 @@
 
 根目录 `README.md` 面向玩家
 
-根目录 `DEVNOTES.md` 历史临时笔记，部分内容已过时
+根目录 `DEVNOTES.md` 历史笔记，部分已过时
+
+`tools/` 把原版世界生成与暮色森林群系移植进本模组的脚本

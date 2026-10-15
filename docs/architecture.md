@@ -2,9 +2,9 @@
 
 一个 NeoForge 模组，新增「晨昏线」维度
 
-世界被一条晨昏线切成昼侧与夜侧
+维度里没有昼夜更替，太阳高度由玩家坐标在晨昏线法向上的投影决定
 
-太阳高度由玩家坐标在晨昏线法向上的投影决定，不随时间变化
+地形与群系来自原版主世界世界生成的移植版本，方块换成模组自己的调色板
 
 ## 模块职责
 
@@ -12,19 +12,23 @@
 
 `block/` 单独的自定义方块
 
-`client/` 客户端渲染 天空 屏幕效果 光影检测
+`client/` 客户端渲染 天空 染色 屏幕效果 光影检测
 
 `command/` `/ddt` 指令
 
-`compat/` 兼容层，目前只有特征排序兼容
+`compat/` 特征排序兼容
 
 `config/` 配置定义
 
-`fluid/` 自定义流体类型
+`crafting/` 自定义 Ingredient
+
+`fluid/` 自定义流体
 
 `gametest/` 游戏内测试
 
-`mixin/` 四个 Mixin
+`item/` 自定义物品
+
+`mixin/` 十二个 Mixin
 
 `network/` 网络包
 
@@ -36,9 +40,9 @@
 
 `server/` 服务端事件与刷怪规则
 
-`structure/` 结构摆放与排除表
+`structure/` 结构白名单与摆放表
 
-`world/` 群系源 密度相关 自定义 Feature 流体反应 状态
+`world/` 群系源 晨昏线 密度包装 自定义 Feature 与方块 流体反应 状态
 
 ## 入口
 
@@ -48,6 +52,8 @@
 
 注册网络负载 `ModNetwork::registerPayloads`
 
+在 `FMLCommonSetupEvent` 上注册流体反应 `FluidReactions::register`
+
 挂服务端事件，见下方「事件」
 
 客户端环境下调用 `DdtClient.init`
@@ -56,7 +62,7 @@
 
 静态方法 `id(path)` 生成 `dawnduskterminal:` 命名空间的 `ResourceLocation`
 
-## 维度与晨昏线状态
+## 维度与晨昏线
 
 `registry/ModDimensions.CHRONO` 是维度的 `ResourceKey`
 
@@ -66,49 +72,55 @@
 
 `ChronoLine.param(x,z)` 是距离除以最大距离后钳到 -1 到 1
 
-`ChronoLine.sunAngleDegrees(x,z)` 是 param 乘最大太阳角
-
-`ChronoLine.create(random)` 生成世界时随机法向，基准朝东，抖动正负 30 度
+`ChronoLine.create(random)` 每个世界随机一次法向，基准朝东，抖动正负 30 度，再随机决定是否转 180 度朝西
 
 配置 `normal_override` 可固定法向
 
-`world/ChronoLineState` 继承 `SavedData`，存在主世界
+`world/ChronoLineState` 继承 `SavedData`，存在主世界，键 `dawnduskterminal_chrono_line`
 
-存档键 `dawnduskterminal_chrono_line`
+服务端与客户端各有一份静态缓存 `serverLine` 与 `clientLine`
 
-服务端静态缓存 `serverLine`，客户端静态缓存 `clientLine`
-
-`setClientLine` 由网络包写入
+`network/ChronoLinePayload` 在玩家登录时把线下发到客户端
 
 法向只按维度算一次，多个玩家共用同一条线
 
-## 网络
-
-`network/ModNetwork` 注册两个 playToClient 包，版本号 `1`
-
-`ChronoLinePayload` 把 `ChronoLine` 发给客户端，登录时下发
-
-`PortalSearchPayload` 通知客户端开始或结束落点搜索，驱动屏幕红屏效果
-
 ## 群系源
 
-`world/ChronoBiomeSource` 是自写 `BiomeSource`
+`world/PaletteBiomeSource` 是自写 `BiomeSource`，注册为 `dawnduskterminal:palette`
 
-字段来自维度 JSON 的 `biome_source` 块
+它要求一个 `delegate` 与一个 `palette` 群系标签
 
-`bands` 少于 4 个时退回 `delegate`
+`delegate` 是原版 `multi_noise` 主世界预设
 
-判定顺序是先看 `y_bands`，再看线上群系，再看内外分区
+`getNoiseBiome` 先跑 delegate，再把 `minecraft:*` 群系换成同名副本
 
-边界加 60 格抖动，抖动用 128 格栅格的值噪声
+副本名与命名空间对应关系按路径匹配，例如 `minecraft:plains` 换成 `dawnduskterminal:plains`
 
-内外分区按距离取 `bands` 里的四个群系
+`floatrees` 群系走另一条路，采样深度低于阈值时直接返回
 
-`side_shift` 按昼侧或夜侧把 `delegate` 群系换成自定义群系
-
-`replacements` 与 `fallback` 做兜底替换
+替换表延迟构建，因为 biome source 在数据包解析期创建，那时标签里的 holder 还没有 key
 
 细节见 `worldgen.md`
+
+## 世界生成补丁
+
+数据包改不到的原版硬编码由 `mixin/` 接管
+
+`LavaBandPaletteMixin` 把 `createFluidPicker` 的 y 以下岩浆带换成热情的暮光
+
+`LavaAquiferPaletteMixin` 把深部岩浆含水层换成热情的暮光
+
+`PillarsFluidBlockMixin` 让石柱洞穴保持干燥
+
+`NoiseChunkVeinPaletteMixin` 用 `world/ChronoVeinPalette` 把大矿脉的花岗岩与凝灰岩换成赭石与暮光石
+
+`NoiseChunkTemperatureMixin` 用 `world/ChronoTemperature` 给温度噪声加晨昏线偏移
+
+`MineshaftHeightMixin` 把废弃矿井压到 y -64 到 -10
+
+`MineshaftChestLootMixin` 把矿井箱车战利品换成 `dawnduskterminal:chests/chrono_mineshaft`
+
+识别维度统一靠噪声设置的 `default_fluid` 是不是 `portal_fluid`
 
 ## 传送门
 
@@ -120,13 +132,25 @@
 
 `portal/PortalBlock` 是传送门流体的方块，处理方块内实体与自愈
 
-`portal/PortalTeleporter` 负责落点搜索 传送 回程 冷却
+`portal/PortalTeleporter` 负责即时传送 落点搜索 到达门
 
-`portal/PortalState` 是玩家附件，存冷却与回程坐标
+`portal/PortalState` 是玩家附件，存回程维度与坐标
 
 细节见 `portal.md`
 
-## 进度
+## 流体
+
+`registry/ModFluids` 注册 `portal_fluid`，流动参数照抄水
+
+`registry/ModScorchingTwilight` 注册 `enthu_fluid`（热情的暮光）的类型 流体 方块 桶
+
+`world/FluidReactions` 在 `FMLCommonSetupEvent` 上把接触反应注册进 NeoForge `FluidInteractionRegistry`
+
+`block/ScorchingTwilightBlock` 继承岩浆的方块属性，但不点火不清植物，接触造成 6 点 `enthu_fluid` 伤害
+
+`item/CanocanItem` 是唯一能舀这两种流体的容器，原版桶会被毁灭
+
+## 进度与效果
 
 `progression/BossKind` 枚举三个暮色森林 Boss 与对应战利品
 
@@ -134,72 +158,84 @@
 
 `progression/BossProgressTracker` 在击杀事件里写入附件
 
-附件定义在 `registry/ModAttachments`
+附件定义在 `registry/ModAttachments`，`boss_progress` 序列化并 `copyOnDeath`
 
-`boss_progress` 同时序列化并 `copyOnDeath`
+`registry/ModEffects` 注册 `stability` 与 `portal_sickness`
 
-`portal_state` 只序列化
+`world/StabilityEffect` 是纯标记效果，方向由 `PortalBlock` 决定
+
+`advancement/LineParamTrigger` 是自定义判定，按晨昏线投影参数给进度
 
 ## 客户端
 
-`client/DdtClient` 是客户端入口，注册事件
+`client/DdtClient` 是客户端入口，注册模型 颜色 渲染层 事件
 
 `client/ChronoDimensionEffects` 是维度特效，处理雾色 云 天空
 
 `client/ChronoSkyRenderer` 自绘天空与假太阳假月亮
 
-`client/ChronoLineStateHolder` 持有客户端线状态
+`client/ChronoFoliageColors` 复刻暮色森林的树叶染色算法
 
-`client/PortalDistortion` 传送时的红屏与视角扭曲
+`client/model/MountedTowerWoodModel` 做镶边塔木与封装塔木梁的连接模型
 
 `client/ShaderGuard` 检测光影模组并在登录时提示
 
-`client/PortalFluidExtensions` 与 `ScorchingTwilightFluidExtensions` 是流体客户端扩展
+`client/PortalFluidExtensions` 与 `ScorchingTwilightFluidExtensions` 是流体的客户端扩展
 
-`DdtClient` 还注册方块颜色，草色与树叶随坐标渐变
+`DdtClient` 注册方块与物品颜色，草与树叶随群系染色
 
 天空贴图在 `assets/dawnduskterminal/textures/environment/`
 
 ## Mixin
 
-配置文件 `dawnduskterminal.mixins.json`，四个都是 common
+配置 `dawnduskterminal.mixins.json`，公共 11 个，客户端 1 个
+
+`FluidStatusAccessor` 暴露 `Aquifer.FluidStatus` 的流体类型给其他 mixin
+
+`LavaBandPaletteMixin` `LavaAquiferPaletteMixin` `PillarsFluidBlockMixin` 见「世界生成补丁」
+
+`NoiseChunkVeinPaletteMixin` `NoiseChunkTemperatureMixin` 见「世界生成补丁」
+
+`MineshaftHeightMixin` `MineshaftChestLootMixin` 见「世界生成补丁」
 
 `FeatureSorterMixin` 替换原版特征排序为可容忍环的实现，受配置 `tolerate_feature_cycles` 控制
 
 `LightEngineSkyLightMixin` 在晨昏线维度把天光上限压到 `ChronoSkyLight.maxSkyLight`
 
-`StructureExclusionMixin` 在晨昏线维度抑制排除表里的结构
+`StructureExclusionMixin` 在晨昏线维度只放行结构白名单里的结构
 
-`NoLavaLevelMixin` 在 `default_fluid` 为空气时把流体选择器改成全空气
+`BiomeColorsFoliageMixin` 是客户端 mixin，把树叶染色接进 `ChronoFoliageColors`
 
 ## 事件
 
 `server/DdtServerEvents` 挂到 `NeoForge.EVENT_BUS`
 
-`onServerStarted` 读取并记录晨昏线，校验结构排除表
+`onServerStarted` 读取并记录晨昏线，校验结构与摆放表
 
 `onPlayerLoggedIn` 下发晨昏线包
 
-`onPlayerTick` 每 tick 走冷却，每 10 tick 扫玩家附近的投料物，进维度后触发进度判定，最后跑传送逻辑
+`onPlayerTick` 每 10 tick 扫玩家附近的投料物，进维度后触发进度判定
 
 `onLivingDeath` 记录 Boss 击杀
 
 `onSpawnPlacement` 走 `SpawnRules`
 
-## 流体反应
-
-`world/FluidReactions` 维护一张反应表
-
-传送门流体与水 岩浆 热情的暮光各有产物
-
-热情的暮光与水 岩浆各有产物
-
-极光方块按字符串 ID 取暮色森林的 `aurora_block`
+`onRightClickItem` 拦截原版桶，禁止舀两种模组流体
 
 ## 结构
 
-`structure/StructureExclusions` 列出排除的结构与白名单
+`structure/StructureExclusions` 是唯一白名单，`StructureExclusionMixin` 排除不在其中的结构
 
-`structure/StructurePlacements` 列出复用的结构
+`structure/StructurePlacements` 记录复用的原版与暮色森林结构，以及未映射项
 
 两张表都在服务端启动时校验，缺失只记日志
+
+## 已知遗留
+
+`registry/ModEffects` 仍注册 `portal_sickness`，但已无人施加，方向改由 `stability` 决定
+
+`config/DdtConfig` 的 `portal.cooldown_ticks` 与 `portal.entity_debuff` 已无读取方
+
+语言文件里 `death.attack.dawnduskterminal.portal` 与 `message.dawnduskterminal.searching` 已不再使用
+
+`world/PaletteBiomeSource` 的 javadoc 说 floatrees 在深度 -1.5 到 -1.3，代码实际是低于 -1.6
