@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:spring_feature",
+  "config": {
+    "hole_count": 1,
+    "requires_block_below": true,
+    "rock_count": 4,
+    "state": {
+      "Name": "dawnduskterminal:enthu_fluid",
+      "Properties": {
+        "falling": "true"
+      }
+    },
+    "valid_blocks": [
+      "dawnduskterminal:canopy_frost_block",
+      "minecraft:powder_snow",
+      "dawnduskterminal:frozen_canopy"
+    ]
+  }
+}

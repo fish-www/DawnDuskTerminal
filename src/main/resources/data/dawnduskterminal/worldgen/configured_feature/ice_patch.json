@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:disk",
+  "config": {
+    "half_height": 1,
+    "radius": {
+      "type": "minecraft:uniform",
+      "max_inclusive": 3,
+      "min_inclusive": 2
+    },
+    "state_provider": {
+      "fallback": {
+        "type": "minecraft:simple_state_provider",
+        "state": {
+          "Name": "dawnduskterminal:frozen_canopy"
+        }
+      },
+      "rules": []
+    },
+    "target": {
+      "type": "minecraft:matching_blocks",
+      "blocks": [
+        "dawnduskterminal:rosy_dirt",
+        "dawnduskterminal:rosy_grass",
+        "minecraft:podzol",
+        "minecraft:coarse_dirt",
+        "minecraft:mycelium",
+        "dawnduskterminal:canopy_frost_block",
+        "dawnduskterminal:frozen_canopy"
+      ]
+    }
+  }
+}

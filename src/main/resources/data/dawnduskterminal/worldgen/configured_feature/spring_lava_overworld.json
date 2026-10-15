@@ -1,0 +1,24 @@
+﻿{
+  "type": "minecraft:spring_feature",
+  "config": {
+    "hole_count": 1,
+    "requires_block_below": true,
+    "rock_count": 4,
+    "state": {
+      "Name": "dawnduskterminal:enthu_fluid",
+      "Properties": {
+        "falling": "true"
+      }
+    },
+    "valid_blocks": [
+      "dawnduskterminal:canopy_stone",
+      "dawnduskterminal:ochre_block",
+      "dawnduskterminal:greenschist",
+      "dawnduskterminal:eclogite",
+      "dawnduskterminal:charnockite",
+      "dawnduskterminal:twilight_stone",
+      "minecraft:calcite",
+      "dawnduskterminal:rosy_dirt"
+    ]
+  }
+}
