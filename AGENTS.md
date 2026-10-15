@@ -96,6 +96,10 @@ feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则�
 
 1.21.1 密度函数 JSON 字段是 `argument`，不是 `input`
 
+`runGameTestServer` 偶发卡死（区块等不到实体刻）由 `mixin/GameTestChunkWaitMixin` 兜底，见 `docs/development.md` 的「已知的失败与卡死」
+
+装了暮色森林时 2 个测试固定失败，退出码恒为 1，见 `docs/development.md` 的「已知的失败与卡死」
+
 天光烘焙进区块，改天光后老存档要重算
 
 改世界生成后建议删掉 `run/<端>/world` 重建
@@ -105,6 +109,8 @@ feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则�
 `./gradlew runGameTestServer`
 
 共 34 个测试，覆盖世界生成 传送门形状 流体反应 霜层 半透明面剔除
+
+装了暮色森林时其中 2 个固定失败，其余 32 个应当全绿，退出码是失败数所以恒为 1
 
 见 `docs/development.md`
 

@@ -48,6 +48,24 @@ NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 
 共 34 个测试
 
+### 已知的失败与卡死
+
+**装了暮色森林时固定有 2 个测试失败**，与代码改动无关，是测试与环境不匹配
+
+`scorchingtwilightwithwater` 断言 `blazing_block`，但装了暮色森林时「热情的暮光 加 水」产出 `twilightforest:aurora_block`
+
+`buildfillspoolwithportalfluid` 断言水池里全是 `portal_fluid`，实际得到 `fragile_canopy`
+
+所以退出码是失败数，装了暮色森林时恒为 1，其余 32 个应当全绿
+
+**结构所在区块等不到实体刻会把整轮测试挂死**（已由 `mixin/GameTestChunkWaitMixin` 兜底）
+
+原版 `GameTestInfo.tick` 只在 `chunksLoaded` 为真、或结构包围盒覆盖的每个区块都 `isPositionEntityTicking` 时才放结构、跑测试。实测会出现区块已经强制加载（`hasChunk` 为真）却永远不进入实体刻的情况：那时这个条件永远为假，测试既不开始也不超时（判超时的 `tickInternal` 只在这个条件为真之后才会被调用），于是进度格子里一直留着空格
+
+而 `GameTestServer` 叠加的 `waitUntilNextTick` 不睡觉，它会以每秒上万 tick 刷同一行，日志涨到过 102 MB，永不退出。实测 10 次里约 3 次，每次都是排在网格最前面的几个测试（结构网格由 `GameTestServer.startTests` 在随机原点铺开）
+
+`GameTestChunkWaitMixin` 等满 5 秒就把 `chunksLoaded` 置真放行。健康的一轮里几个 tick 内条件就为真（GameTestServer 每秒几万 tick），所以几乎不触发；触发时打一条 warn。修复前 21 次里 3 次卡死，修复后 37 次全部跑完，其中 4 次由这个兜底救回，通过数不变
+
 ### WorldgenTests
 
 `chronoDimensionTypeIsRegistered` 维度类型已注册
@@ -169,6 +187,8 @@ feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则�
 天光烘焙进区块，改天光后老存档要重算
 
 改世界生成后建议删掉 `run/<端>/world` 重建
+
+`runGameTestServer` 偶发卡死（区块等不到实体刻）由 `mixin/GameTestChunkWaitMixin` 兜底，详见「游戏内测试」
 
 ## 新增内容放哪
 

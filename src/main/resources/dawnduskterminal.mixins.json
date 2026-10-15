@@ -14,7 +14,8 @@
     "StructureExclusionMixin",
     "MineshaftChestLootMixin",
     "MineshaftHeightMixin",
-    "NoiseChunkTemperatureMixin"
+    "NoiseChunkTemperatureMixin",
+    "GameTestChunkWaitMixin"
   ],
   "client": [
     "BiomeColorsFoliageMixin"
