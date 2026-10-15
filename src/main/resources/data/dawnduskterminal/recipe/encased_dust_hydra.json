@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MPM",
+    "LHL",
+    "MEM"
+  ],
+  "key": {
+    "M": { "item": "twilightforest:mangrove_log" },
+    "P": { "item": "twilightforest:transformation_powder" },
+    "L": { "item": "minecraft:lapis_lazuli" },
+    "H": { "item": "dawnduskterminal:hydra_trophy" },
+    "E": { "item": "minecraft:ender_pearl" }
+  },
+  "result": {
+    "id": "dawnduskterminal:encased_dust",
+    "count": 1
+  }
+}

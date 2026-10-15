@@ -1,12 +1,11 @@
-{
+﻿{
   "replace": false,
   "values": [
-    "dawnduskterminal:sky_stone",
-    "dawnduskterminal:ochre",
-    "dawnduskterminal:greenschist",
+    "dawnduskterminal:canopy_stone",
+    "dawnduskterminal:charnockite",
     "dawnduskterminal:eclogite",
-    "dawnduskterminal:peridotite",
-    "dawnduskterminal:twilight_stone",
-    "dawnduskterminal:siltstone"
+    "dawnduskterminal:greenschist",
+    "dawnduskterminal:ochre_block",
+    "dawnduskterminal:twilight_stone"
   ]
 }

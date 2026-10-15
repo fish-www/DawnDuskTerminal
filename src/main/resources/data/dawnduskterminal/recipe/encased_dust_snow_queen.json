@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "ASA",
+    "IBI"
+  ],
+  "key": {
+    "I": { "item": "minecraft:copper_ingot" },
+    "P": { "item": "twilightforest:transformation_powder" },
+    "A": { "item": "twilightforest:aurora_block" },
+    "S": { "item": "dawnduskterminal:snow_queen_trophy" },
+    "B": { "item": "twilightforest:ice_bomb" }
+  },
+  "result": {
+    "id": "dawnduskterminal:encased_dust",
+    "count": 1
+  }
+}

@@ -17,19 +17,9 @@
   },
   "criteria": {
     "there": {
-      "trigger": "minecraft:location",
+      "trigger": "dawnduskterminal:line_param",
       "conditions": {
-        "player": [
-          {
-            "condition": "minecraft:entity_properties",
-            "entity": "this",
-            "predicate": {
-              "location": {
-                "biomes": "#dawnduskterminal:is_polar_dusk"
-              }
-            }
-          }
-        ]
+        "max": -0.6
       }
     }
   }

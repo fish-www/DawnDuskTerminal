@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "dawnduskterminal:canopy_frost_ball" },
+    { "item": "dawnduskterminal:canopy_frost_ball" },
+    { "item": "dawnduskterminal:canopy_frost_ball" },
+    { "item": "dawnduskterminal:canopy_frost_ball" }
+  ],
+  "result": {
+    "id": "dawnduskterminal:canopy_frost_block",
+    "count": 1
+  }
+}

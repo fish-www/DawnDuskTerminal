@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "dawnduskterminal:blazing_block",
+    "dawnduskterminal:canopy_stone",
+    "dawnduskterminal:charnockite",
+    "dawnduskterminal:eclogite",
+    "dawnduskterminal:greenschist",
+    "dawnduskterminal:ochre_block",
+    "dawnduskterminal:siltstone",
+    "dawnduskterminal:twilight_stone",
+    "dawnduskterminal:scarlet_molybdenum_ore",
+    "dawnduskterminal:charnockite_scarlet_molybdenum_ore",
+    "dawnduskterminal:carid_ore"
+  ]
+}

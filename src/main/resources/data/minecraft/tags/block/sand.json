@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "dawnduskterminal:siltstone"
+    "dawnduskterminal:road_sand",
+    "dawnduskterminal:unconscious_sand"
   ]
 }

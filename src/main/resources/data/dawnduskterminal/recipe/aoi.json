@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "dawnduskterminal:sky_slices"
+    },
+    {
+      "item": "dawnduskterminal:carid"
+    }
+  ],
+  "result": {
+    "id": "dawnduskterminal:aoi",
+    "count": 1
+  }
+}

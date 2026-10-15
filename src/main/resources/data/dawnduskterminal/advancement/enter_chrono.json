@@ -2,7 +2,7 @@
   "parent": "dawnduskterminal:build_gate",
   "display": {
     "icon": {
-      "id": "dawnduskterminal:sky_soil"
+      "id": "dawnduskterminal:rosy_grass"
     },
     "title": {
       "translate": "advancements.dawnduskterminal.enter_chrono.title"

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "dawnduskterminal:ochre_block",
+          "weight": 90
+        },
+        {
+          "type": "minecraft:item",
+          "name": "dawnduskterminal:ochre",
+          "weight": 10
+        }
+      ]
+    }
+  ],
+  "random_sequence": "dawnduskterminal:blocks/ochre_block"
+}

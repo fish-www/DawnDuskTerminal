@@ -1,10 +1,9 @@
-{
+﻿{
   "replace": false,
   "values": [
-    "dawnduskterminal:sky_stone",
-    "dawnduskterminal:ochre",
-    "dawnduskterminal:greenschist",
+    "dawnduskterminal:canopy_stone",
     "dawnduskterminal:eclogite",
-    "dawnduskterminal:twilight_stone"
+    "dawnduskterminal:greenschist",
+    "dawnduskterminal:ochre_block"
   ]
 }

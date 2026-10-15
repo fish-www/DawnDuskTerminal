@@ -1,8 +1,6 @@
 {
   "replace": false,
   "values": [
-    "dawnduskterminal:chrono_log",
-    "dawnduskterminal:dawn_log",
-    "dawnduskterminal:dusk_log"
+    "dawnduskterminal:skygate_pine_log"
   ]
 }

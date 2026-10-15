@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    { "item": "dawnduskterminal:greenschist" },
+    { "item": "dawnduskterminal:greenschist" },
+    { "item": "dawnduskterminal:greenschist" },
+    { "item": "dawnduskterminal:road_sand" },
+    { "item": "dawnduskterminal:road_sand" },
+    { "item": "dawnduskterminal:road_sand" }
+  ],
+  "result": {
+    "id": "dawnduskterminal:illustrious_powder",
+    "count": 1
+  }
+}
