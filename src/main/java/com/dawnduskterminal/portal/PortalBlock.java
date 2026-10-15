@@ -1,13 +1,12 @@
 package com.dawnduskterminal.portal;
 
-import com.dawnduskterminal.config.DdtConfig;
+import com.dawnduskterminal.registry.ModDamageTypes;
 import com.dawnduskterminal.registry.ModEffects;
 import com.dawnduskterminal.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
@@ -30,9 +29,7 @@ public class PortalBlock extends LiquidBlock {
             BlockPos pos, net.minecraft.util.RandomSource random) {
         if (com.dawnduskterminal.portal.PortalShape.countNeighbors(level, pos) == 0) {
             level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
-            return;
         }
-        com.dawnduskterminal.world.FluidReactions.handle(level, pos);
     }
 
     @Override
@@ -41,15 +38,17 @@ public class PortalBlock extends LiquidBlock {
         if (level.isClientSide) {
             return;
         }
-        if (entity instanceof LivingEntity living && !(entity instanceof Player)) {
-            if (DdtConfig.entityDebuff()) {
-                living.addEffect(new MobEffectInstance(ModEffects.PORTAL_SICKNESS, 200, 0, false, true));
-            }
-            return;
-        }
-        if (entity instanceof Player player) {
-            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-                PortalTeleporter.tick(serverPlayer);
+        if (entity instanceof LivingEntity living) {
+            boolean teleports = living instanceof Player
+                ? !living.hasEffect(ModEffects.STABILITY)
+                : living.hasEffect(ModEffects.STABILITY);
+            if (teleports) {
+                PortalTeleporter.teleportEntity(living);
+            } else if (living.tickCount % 40 == 0
+                    && living.hurt(living.damageSources().source(ModDamageTypes.STABILITY), 2.0F)) {
+                level.playSound(null, living.getX(), living.getY(), living.getZ(),
+                    com.dawnduskterminal.registry.ModSounds.PORTAL_HURT.get(), living.getSoundSource(),
+                    1.0F, 0.8F + living.getRandom().nextFloat() * 0.4F);
             }
             return;
         }
@@ -111,6 +110,6 @@ public class PortalBlock extends LiquidBlock {
     }
 
     public static boolean isCatalyst(ItemStack stack) {
-        return stack.is(ModItems.CHRONO_CORE.get());
+        return stack.is(ModItems.ENCASED_DUST.get());
     }
 }

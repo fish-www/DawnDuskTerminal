@@ -2,6 +2,7 @@ package com.dawnduskterminal.registry;
 
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.world.PortalSicknessEffect;
+import com.dawnduskterminal.world.StabilityEffect;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
 import net.neoforged.bus.api.IEventBus;
@@ -14,6 +15,9 @@ public final class ModEffects {
 
     public static final DeferredHolder<MobEffect, MobEffect> PORTAL_SICKNESS =
         EFFECTS.register("portal_sickness", PortalSicknessEffect::new);
+
+    public static final DeferredHolder<MobEffect, MobEffect> STABILITY =
+        EFFECTS.register("stability", StabilityEffect::new);
 
     private ModEffects() {}
 

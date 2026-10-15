@@ -2,8 +2,9 @@ package com.dawnduskterminal.server;
 
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.network.ChronoLinePayload;
+import com.dawnduskterminal.registry.ModFluids;
+import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.portal.PortalBlock;
-import com.dawnduskterminal.portal.PortalTeleporter;
 import com.dawnduskterminal.portal.PortalTrigger;
 import com.dawnduskterminal.progression.BossProgressTracker;
 import com.dawnduskterminal.structure.StructureExclusions;
@@ -16,13 +17,25 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -72,7 +85,6 @@ public final class DdtServerEvents {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        PortalTeleporter.tickCooldown(player);
         if (player.tickCount % 10 == 0) {
             scanFuelItems(player);
         }
@@ -82,7 +94,6 @@ public final class DdtServerEvents {
                 com.dawnduskterminal.advancement.ModCriteria.lineParam().trigger(player, param);
             }
         }
-        PortalTeleporter.tick(player);
     }
 
     private static void scanFuelItems(ServerPlayer player) {
@@ -112,6 +123,36 @@ public final class DdtServerEvents {
         }
         if (!SpawnRules.allow(level, event.getPos(), event.getEntityType())) {
             event.setResult(MobSpawnEvent.SpawnPlacementCheck.Result.FAIL);
+        }
+    }
+
+    /**
+     * A vanilla {@code minecraft:bucket} must not scoop portal_fluid / enthu_fluid. Trying to does not
+     * pick the fluid up: the interaction is cancelled, a tool-break sound plays, and one bucket is
+     * destroyed. The canocan handles these fluids instead (see {@link com.dawnduskterminal.item.CanocanItem}).
+     */
+    public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        ItemStack stack = event.getItemStack();
+        if (!stack.is(Items.BUCKET)) {
+            return;
+        }
+        Level level = event.getLevel();
+        BlockHitResult hit = Item.getPlayerPOVHitResult(level, event.getEntity(), ClipContext.Fluid.SOURCE_ONLY);
+        if (hit.getType() != HitResult.Type.BLOCK) {
+            return;
+        }
+        BlockPos pos = hit.getBlockPos();
+        FluidState fluidState = level.getFluidState(pos);
+        if (!fluidState.isSource()
+            || (fluidState.getType() != ModFluids.PORTAL_FLUID.get()
+                && fluidState.getType() != ModScorchingTwilight.SOURCE.get())) {
+            return;
+        }
+        event.setCanceled(true);
+        event.setCancellationResult(InteractionResult.CONSUME);
+        if (!level.isClientSide()) {
+            level.playSound(null, pos, SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 1.0F, 1.0F);
+            stack.shrink(1);
         }
     }
 }

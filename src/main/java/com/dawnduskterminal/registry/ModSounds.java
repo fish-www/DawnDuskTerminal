@@ -23,6 +23,9 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> CHRONO_AMBIENT =
         register("chrono_ambient");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> PORTAL_HURT =
+        register("portal_hurt");
+
     private ModSounds() {}
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {

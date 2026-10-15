@@ -22,5 +22,11 @@
     "sounds": [
       "dawnduskterminal:chrono_ambient"
     ]
+  },
+  "portal_hurt": {
+    "subtitle": "subtitles.dawnduskterminal.portal_hurt",
+    "sounds": [
+      "dawnduskterminal:portal_hurt"
+    ]
   }
 }

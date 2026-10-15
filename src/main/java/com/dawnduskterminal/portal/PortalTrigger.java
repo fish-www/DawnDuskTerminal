@@ -36,13 +36,7 @@ public final class PortalTrigger {
         if (!isInsidePortal(entity, pos)) {
             return false;
         }
-        if (!(entity instanceof Player player)) {
-            return true;
-        }
-        if (PortalTeleporter.cooldownActive(player)) {
-            return false;
-        }
-        if (player.isSwimming() || player.isVisuallySwimming()) {
+        if (entity instanceof Player player && (player.isSwimming() || player.isVisuallySwimming())) {
             return false;
         }
         return true;
