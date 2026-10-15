@@ -15,8 +15,8 @@ public final class ChronoLineState extends SavedData {
 
     private ChronoLine line;
 
-    public ChronoLineState() {
-        this.line = ChronoLine.create(RandomSource.create());
+    public ChronoLineState(long seed) {
+        this.line = ChronoLine.create(RandomSource.create(seed));
         setDirty();
     }
 
@@ -39,7 +39,7 @@ public final class ChronoLineState extends SavedData {
         return ChronoLine.CODEC.parse(NbtOps.INSTANCE, tag.get("line"))
             .result()
             .map(ChronoLineState::new)
-            .orElseGet(ChronoLineState::new);
+            .orElseGet(() -> new ChronoLineState(ChronoLine.fallback()));
     }
 
     @Override
@@ -53,7 +53,7 @@ public final class ChronoLineState extends SavedData {
     public static ChronoLineState get(ServerLevel anyLevel) {
         ServerLevel overworld = anyLevel.getServer().overworld();
         return overworld.getDataStorage().computeIfAbsent(
-            new SavedData.Factory<>(ChronoLineState::new, ChronoLineState::load, null), DATA_NAME);
+            new SavedData.Factory<>(() -> new ChronoLineState(overworld.getSeed()), ChronoLineState::load, null), DATA_NAME);
     }
 
     public static ChronoLine serverLine() {

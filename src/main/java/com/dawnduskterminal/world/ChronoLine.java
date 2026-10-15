@@ -32,6 +32,11 @@ public record ChronoLine(double originX, double originZ, double normalX, double 
             }
         }
         double jitter = (random.nextDouble() - 0.5D) * Math.toRadians(60.0D);
+        // The sun faces the normal. Half the worlds keep it in the east (0 deg +/-30), the other
+        // half flip it to the west (180 deg +/-30, i.e. 150..210 deg) so the sun rises in the west.
+        if (random.nextBoolean()) {
+            jitter += Math.PI;
+        }
         return new ChronoLine(0.0D, 0.0D, Math.cos(jitter), Math.sin(jitter));
     }
 

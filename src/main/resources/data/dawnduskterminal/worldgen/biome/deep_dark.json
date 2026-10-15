@@ -1,0 +1,99 @@
+{
+  "carvers": {
+    "air": [
+      "dawnduskterminal:cave",
+      "dawnduskterminal:cave_extra_underground",
+      "dawnduskterminal:canyon"
+    ]
+  },
+  "downfall": 0.4,
+  "effects": {
+    "fog_color": 12638463,
+    "mood_sound": {
+      "block_search_extent": 8,
+      "offset": 2.0,
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000
+    },
+    "music": {
+      "max_delay": 24000,
+      "min_delay": 12000,
+      "replace_current_music": false,
+      "sound": "minecraft:music.overworld.deep_dark"
+    },
+    "sky_color": 7907327,
+    "water_color": 4159204,
+    "water_fog_color": 329011
+  },
+  "features": [
+    [],
+    [],
+    [
+      "dawnduskterminal:amethyst_geode"
+    ],
+    [
+      "dawnduskterminal:monster_room",
+      "dawnduskterminal:monster_room_deep"
+    ],
+    [],
+    [],
+    [
+      "dawnduskterminal:ore_dirt",
+      "dawnduskterminal:ore_gravel",
+      "dawnduskterminal:ore_granite_upper",
+      "dawnduskterminal:ore_granite_lower",
+      "dawnduskterminal:ore_diorite_upper",
+      "dawnduskterminal:ore_diorite_lower",
+      "dawnduskterminal:ore_andesite_upper",
+      "dawnduskterminal:ore_andesite_lower",
+      "dawnduskterminal:ore_tuff",
+      "dawnduskterminal:ore_scarlet_molybdenum",
+      "dawnduskterminal:ore_carid",
+      "dawnduskterminal:ore_dirac",
+      "dawnduskterminal:ore_redstone",
+      "dawnduskterminal:ore_redstone_lower",
+      "dawnduskterminal:ore_diamond",
+      "dawnduskterminal:ore_diamond_medium",
+      "dawnduskterminal:ore_diamond_large",
+      "dawnduskterminal:ore_diamond_buried",
+      "dawnduskterminal:ore_lapis",
+      "dawnduskterminal:ore_lapis_buried",
+      "dawnduskterminal:underwater_magma",
+      "dawnduskterminal:disk_sand",
+      "dawnduskterminal:disk_clay",
+      "dawnduskterminal:disk_gravel"
+    ],
+    [
+      "dawnduskterminal:sculk_vein",
+      "dawnduskterminal:sculk_patch_deep_dark"
+    ],
+    [],
+    [
+      "dawnduskterminal:glow_lichen",
+      "dawnduskterminal:patch_tall_grass_2",
+      "dawnduskterminal:trees_plains",
+      "dawnduskterminal:flower_plains",
+      "dawnduskterminal:patch_grass_plain",
+      "dawnduskterminal:brown_mushroom_normal",
+      "dawnduskterminal:red_mushroom_normal",
+      "dawnduskterminal:patch_sugar_cane",
+      "dawnduskterminal:patch_pumpkin"
+    ],
+    [
+      "dawnduskterminal:freeze_top_layer"
+    ]
+  ],
+  "has_precipitation": true,
+  "spawn_costs": {},
+  "spawners": {
+    "ambient": [],
+    "axolotls": [],
+    "creature": [],
+    "misc": [],
+    "monster": [],
+    "underground_water_creature": [],
+    "water_ambient": [],
+    "water_creature": []
+  },
+  "temperature": 0.8
+}
