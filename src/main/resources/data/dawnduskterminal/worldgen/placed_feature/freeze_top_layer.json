@@ -1,0 +1,8 @@
+{
+  "feature": "dawnduskterminal:freeze_top_layer",
+  "placement": [
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}
