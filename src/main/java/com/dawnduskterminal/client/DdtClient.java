@@ -1,19 +1,24 @@
 package com.dawnduskterminal.client;
 
 import com.dawnduskterminal.DawnDuskTerminal;
-import com.dawnduskterminal.config.DdtConfig;
 import com.dawnduskterminal.client.model.MountedTowerWoodModel;
+import com.dawnduskterminal.config.DdtConfig;
 import com.dawnduskterminal.registry.ModDimensions;
 import com.dawnduskterminal.registry.ModFluids;
+import com.dawnduskterminal.registry.ModScorchingTwilight;
+import com.dawnduskterminal.registry.ModTerrainBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.world.level.GrassColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
@@ -46,23 +51,23 @@ public final class DdtClient {
         }
     }
 
-    private static void registerBlockColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Block event) {
+    private static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0) {
                 return -1;
             }
             if (level != null && pos != null) {
-                return net.minecraft.client.renderer.BiomeColors.getAverageFoliageColor(level, pos);
+                return BiomeColors.getAverageFoliageColor(level, pos);
             }
             return 0x48B518;
-        }, com.dawnduskterminal.registry.ModTerrainBlocks.DAWN_LEAVES.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.DUSK_LEAVES.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.CHRONO_LEAVES.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.SKYGATE_PINE_LEAVES.get());
+        }, ModTerrainBlocks.DAWN_LEAVES.get(),
+            ModTerrainBlocks.DUSK_LEAVES.get(),
+            ModTerrainBlocks.CHRONO_LEAVES.get(),
+            ModTerrainBlocks.SKYGATE_PINE_LEAVES.get());
         event.register((state, level, pos, tintIndex) -> tintIndex == 0 ? 0x9C7A50 : -1,
-            com.dawnduskterminal.registry.ModTerrainBlocks.WITHERED_DAWN_LEAVES.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.WITHERED_DUSK_LEAVES.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.WITHERED_CHRONO_LEAVES.get());
+            ModTerrainBlocks.WITHERED_DAWN_LEAVES.get(),
+            ModTerrainBlocks.WITHERED_DUSK_LEAVES.get(),
+            ModTerrainBlocks.WITHERED_CHRONO_LEAVES.get());
         // 原版按方块逐个注册草色（BlockColors.createDefault 里的 GRASS_BLOCK、FERN 等），模组方块完全不
         // 上色，tintindex 0 的面会直接渲染成灰白贴图。这里用与原版相同的取色器，包含物品渲染器用的
         // level 为空时的兜底
@@ -71,24 +76,24 @@ public final class DdtClient {
                 return -1;
             }
             return level != null && pos != null
-                ? net.minecraft.client.renderer.BiomeColors.getAverageGrassColor(level, pos)
-                : net.minecraft.world.level.GrassColor.getDefaultColor();
-        }, com.dawnduskterminal.registry.ModTerrainBlocks.ROSY_GRASS.get());
+                ? BiomeColors.getAverageGrassColor(level, pos)
+                : GrassColor.getDefaultColor();
+        }, ModTerrainBlocks.ROSY_GRASS.get());
     }
 
-    private static void registerItemColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Item event) {
+    private static void registerItemColors(RegisterColorHandlersEvent.Item event) {
         // 原版 ItemColors 会以 level 为空把方块物品的颜色转回方块取色器（ItemColors.createDefault），
         // 缺了这条注册，模组草方块在背包和手里就是灰的。物品渲染的 level 恒为空，所以这里落到默认草色
         event.register((stack, tintIndex) -> tintIndex == 0
-            ? net.minecraft.world.level.GrassColor.getDefaultColor()
+            ? GrassColor.getDefaultColor()
             : -1,
-            com.dawnduskterminal.registry.ModTerrainBlocks.ROSY_GRASS_ITEM.get());
+            ModTerrainBlocks.ROSY_GRASS_ITEM.get());
         // 树叶在背包和手里渲染时 level 为空，所以落到默认树叶色（与上面方块取色器用的 0x48B518 兜底一致）
         event.register((stack, tintIndex) -> tintIndex == 0 ? 0x48B518 : -1,
-            com.dawnduskterminal.registry.ModTerrainBlocks.DAWN_LEAVES_ITEM.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.DUSK_LEAVES_ITEM.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.CHRONO_LEAVES_ITEM.get(),
-            com.dawnduskterminal.registry.ModTerrainBlocks.SKYGATE_PINE_LEAVES_ITEM.get());
+            ModTerrainBlocks.DAWN_LEAVES_ITEM.get(),
+            ModTerrainBlocks.DUSK_LEAVES_ITEM.get(),
+            ModTerrainBlocks.CHRONO_LEAVES_ITEM.get(),
+            ModTerrainBlocks.SKYGATE_PINE_LEAVES_ITEM.get());
     }
 
     private static void onRenderLevelStage(RenderLevelStageEvent event) {
@@ -110,7 +115,7 @@ public final class DdtClient {
     }
 
     /**
-     * 传送门流体的流动参数已经照抄了原版水（见 {@link com.dawnduskterminal.registry.ModFluids}），
+     * 传送门流体的流动参数已经照抄了原版水（见 {@link ModFluids}），
      * 这里是同一套照抄的渲染侧
      *
      * <p>原版把 {@code Fluids.WATER} 与 {@code Fluids.FLOWING_WATER} 以 {@link RenderType#translucent()}
@@ -136,6 +141,6 @@ public final class DdtClient {
     private static void registerFluidExtensions(RegisterClientExtensionsEvent event) {
         event.registerFluidType(PortalFluidExtensions.INSTANCE, ModFluids.PORTAL_FLUID_TYPE.get());
         event.registerFluidType(ScorchingTwilightFluidExtensions.INSTANCE,
-            com.dawnduskterminal.registry.ModScorchingTwilight.TYPE.get());
+            ModScorchingTwilight.TYPE.get());
     }
 }
