@@ -40,15 +40,19 @@ GeckoLib 声明 `geckoanimfix` 为不兼容依赖，两者不能同时装
 
 ## 开发用的客户端模组
 
-`runClient` 会额外加载 JEI、拼音搜索（Just Enough Characters）、Xaero 小地图与 Xaero 世界地图，只供开发时看配方与看地图，不是本模组的依赖，不参与编译也不进产物
+`runClient` 会额外加载 JEI、拼音搜索（Just Enough Characters）、Xaero 小地图与 Xaero 世界地图、Jade、Chunky、Zume、Tweakerge（带前置 MaFgLib），只供开发时看配方 看地图 看方块信息 预生成区块 缩放与调 tweak，不是本模组的依赖，不参与编译也不进产物
 
-JEI 与 Xaero 走各自官方 maven，拼音搜索走 CurseMaven（`curse.maven:just-enough-characters-250702:9163765`，对应 4.5.30），版本写在 `gradle.properties`
+JEI 与 Xaero 走各自官方 maven，拼音搜索走 CurseMaven（`curse.maven:just-enough-characters-250702:9163765`，对应 4.5.30），Jade Chunky Zume Tweakerge MaFgLib 走 Modrinth maven（坐标是 `maven.modrinth:<项目 slug>:<版本号>`），版本写在 `gradle.properties`
+
+Chunky 在 Modrinth 上给 1.4.23 发了 fabric forge neoforge 三条同版本号的文件，按版本号取会拿到 forge 那个，FML 打一行 `Skipping jar ... is for Minecraft Forge ...` 就静默跳过，所以 `chunky_version` 写的是 neoforge 那条的版本 id `LuFhm4eU`
 
 它们在 `clientDevMods` 这个 configuration 里，由 `tasks.named('runClient') { classpathProvider.from(...) }` 挂到客户端运行的 classpath 上，`runServer` `runData` `runGameTestServer` 的 classpath 里没有它们
 
 踩过的三个坑：run 里写 `dependencies { runtimeOnly ... }` 会落到工程级 `runtimeOnly`，所有 run 都带上；run 的 `additionalRuntimeClasspathConfiguration` 只写进 `legacyClasspath.txt`，FML 不当模组扫，游戏里根本看不见；run 的 `classpath` 在任务执行时才从 `classpathProvider` 取，直接往 `classpath` 上加会被覆盖
 
-Xaero 两个依赖 `xaero.lib`，由它们的 pom 传递带上；JEI 要的 `mezz_config` 是 jar-in-jar 自带在 JEI 的 jar 里的，`net.mezzdev.config` 那个坐标是它的库不是模组
+Xaero 两个依赖 `xaero.lib`，由它们的 pom 传递带上；JEI 要的 `mezz_config` 是 jar-in-jar 自带在 JEI 的 jar 里的，`net.mezzdev.config` 那个坐标是它的库不是模组；Modrinth 的 pom 只有元信息不带依赖，所以 Tweakerge 的前置 `mafglib` 在 `clientDevMods` 里显式写了一条
+
+Voxy 与 MiniHUD Tweakeroo 在 1.21.1 上都没有 NeoForge 构建（Voxy 官方只发 fabric，最早 1.20.4，之后直接跳到 1.21.6），要自己把 jar 放进 `run/client/mods`
 
 ## 构建与运行
 
