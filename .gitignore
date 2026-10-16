@@ -11,3 +11,4 @@ server-test.log
 .vscode/
 libs/*.jar
 !libs/.gitkeep
+__pycache__/
