@@ -18,6 +18,8 @@
 
 `compat/` 特征排序兼容
 
+`entity/` 自定义生物
+
 `config/` 配置定义
 
 `crafting/` 自定义 Ingredient
@@ -61,6 +63,14 @@
 注册 COMMON 配置 `DdtConfig.SPEC`
 
 静态方法 `id(path)` 生成 `dawnduskterminal:` 命名空间的 `ResourceLocation`
+
+## 生物
+
+`registry/ModEntities` 注册 `tower_ghast`（高塔恶魂），属性走 `EntityAttributeCreationEvent`
+
+`entity/TowerGhastEntity` 由 GeckoLib 驱动，模型 动画 贴图从 Yes Steve Model 的 Bedrock 文件转换而来，转换与校验在 `tools/ysm/`
+
+`client/TowerGhastRenderer` 把三条资源路径直接写出，不走 GeckoLib 的命名约定
 
 ## 维度与晨昏线
 

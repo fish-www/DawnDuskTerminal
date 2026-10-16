@@ -37,3 +37,5 @@
 根目录 `DEVNOTES.md` 历史笔记，部分已过时
 
 `tools/` 把原版世界生成与暮色森林群系移植进本模组的脚本
+
+`tools/ysm/` 把 Yes Steve Model 的 Bedrock 动画转换成 GeckoLib 可编译的形式，说明与实测数据见它目录下的 `README.md`

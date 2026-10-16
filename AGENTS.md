@@ -34,7 +34,7 @@ NeoForge 21.1.252 与 ModDevGradle，版本写在 `gradle.properties`
 
 `src/main/resources/data/dawnduskterminal/` 维度 群系 地形 战利品 配方 进度
 
-`tools/` 移植与校验用的 Python 脚本
+`tools/` 移植 校验与动画转换用的 Python 脚本
 
 `docs/` 开发文档
 
@@ -63,6 +63,18 @@ NeoForge 21.1.252 与 ModDevGradle，版本写在 `gradle.properties`
 所以缺 jar 仍可编译，运行会缺注册项
 
 `gradle.properties` 的 `twilight_dependency` 控制依赖类型，默认 `required`
+
+## GeckoLib
+
+运行必须装 GeckoLib 4.9.3 以上，对应 1.21.1，`neoforge.mods.toml` 里是 `required`
+
+构建期不用放 jar，从 GeckoLib 官方 maven 拉 `compileOnly`，版本写在 `gradle.properties` 的 `geckolib_version`
+
+高塔恶魂（`tower_ghast`）的模型与动画由它驱动，三条资源路径在 `client/TowerGhastRenderer` 里直接写出，不走它的命名约定
+
+动画源文件是 Yes Steve Model 的 Bedrock 文件，先过 `tools/ysm/` 的转换与校验，见 `tools/ysm/README.md`
+
+它把 `geckoanimfix` 声明为不兼容依赖，两者不能同时装
 
 ## 代码约定
 

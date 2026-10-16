@@ -24,6 +24,20 @@ NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 
 `gradle.properties` 的 `twilight_dependency` 控制依赖类型，默认 `required`
 
+## GeckoLib 依赖
+
+运行时必须装 GeckoLib 4.9.3 以上，对应 1.21.1
+
+构建期不需要把 jar 放进 `libs/`，从 GeckoLib 官方 maven 拉 `compileOnly`，版本写在 `gradle.properties` 的 `geckolib_version`
+
+`neoforge.mods.toml` 里声明为 `required`，所以它和暮色森林一样是硬依赖
+
+高塔恶魂（`entity/tower_ghast`）的模型 动画 贴图与动画引擎都来自它 三条资源路径在 `client/TowerGhastRenderer` 里直接写出，不走 GeckoLib 的命名约定
+
+动画源文件是 Yes Steve Model 的 Bedrock 文件，要先过 `tools/ysm/` 的转换与校验，见 `tools/ysm/README.md`
+
+GeckoLib 声明 `geckoanimfix` 为不兼容依赖，两者不能同时装
+
 ## 构建与运行
 
 `./gradlew build`，产物在 `build/libs/`
@@ -155,6 +169,14 @@ NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 `tools/port_tf_biomes.py` 把暮色森林群系内容填进对应维度的群系副本，保留洞穴雕刻，重映射特征引用
 
 `tools/check_tf_biomes.py` 校验移植群系，检查 JSON 合法 无残留 `minecraft:*` 特征 以及 `twilightforest:*` 特征能在 TF jar 内解析
+
+`tools/ysm/ysm_to_geckolib.py` 把 Yes Steve Model 的 Bedrock 动画转换成 GeckoLib 能编译的形式，并输出逐子句的审计报告
+
+`tools/ysm/validate_geckolib.py` 按 GeckoLib 真实解析规则校验动画文件，列出会被静默跳过的片段 它同时是全仓库唯一的 GeckoLib 语法规则模块
+
+`tools/ysm/ysm_selftest.py` 转换表的自测，27 条断言
+
+`tools/ysm/` 的说明 转换表与实测数据都在它目录下的 `README.md`
 
 ## CI
 
