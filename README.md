@@ -422,6 +422,7 @@ src/main/resources/
 | 性能实测 | 未开始 |
 | 光影兼容说明 | 未开始 |
 | 失效方块清理 | 已完成 29 种 `chrono_ore_*` 已从注册表与资源里删除 |
+| 三个待补音频 | 待补 `portal_enter` `portal_exit` `chrono_ambient` 已在 `ModSounds` 与 `sounds.json` 里注册，但音频文件不在仓库里、代码里也没人播放 音频补进来就能用，别当成废弃代码删掉 |
 
 ## 许可
 
