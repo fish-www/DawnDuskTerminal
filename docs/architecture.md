@@ -74,9 +74,13 @@
 
 ## 装备与武器
 
-`registry/ModArmorMaterials` 注册护甲材质，目前只有一份 T1 绯色钼，数值对标钻石
+`registry/ModArmorMaterials` 注册护甲材质，目前四份：绯色钼、苍穹、砷铅铁是钻石级，天门松是铁级
 
-`item/ScarletMolybdArmorItem` 四个部件共用，穿齐时每件自己在 `inventoryTick` 里续生命恢复
+`registry/ModTiers` 注册工具分级，同样四份（绯色钼只有护甲，没有工具）
+
+`registry/ModEquipment` 按套注册工具与护甲，三套共 27 件，按套存在 `Map<String, Set>` 里而不是逐件写字段
+
+`item/ScarletMolybdArmorItem` 只有绯色钼一套用，四件穿齐时每件自己在 `inventoryTick` 里续生命恢复
 
 `item/CarminiteStaffItem` 近战按单手武器算，右键发射一颗 `entity/CarminiteBallEntity`
 
@@ -87,6 +91,8 @@
 `registry/ModDamageTypes` 的 `carminite_field` 是反应场伤害，条目在 `data/dawnduskterminal/damage_type/`
 
 这些内容从 `twilightextra`（MCreator 生成）迁移而来，原代码里的过程式实现已换成上面这些
+
+装备贴图目前是原版铁、钻石贴图加色阶的占位图，真美术进来后换掉 `textures/item/` 与 `textures/models/armor/` 里对应前缀的文件即可
 
 ## 维度与晨昏线
 

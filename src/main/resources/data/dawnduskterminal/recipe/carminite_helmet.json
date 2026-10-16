@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "aaa",
+    "a a"
+  ],
+  "key": {
+    "a": {
+      "item": "dawnduskterminal:carminite_ingot"
+    }
+  },
+  "result": {
+    "id": "dawnduskterminal:carminite_helmet",
+    "count": 1
+  }
+}

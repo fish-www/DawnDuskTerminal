@@ -42,6 +42,53 @@ public final class ModArmorMaterials {
             2.0F,
             0.0F));
 
+    /**
+     * 天门松原木，对标铁：护甲 15 点、韧性 0、附魔值 9、耐久倍率 15
+     */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> SKYGATE_PINE =
+        ARMOR_MATERIALS.register("skygate_pine", () -> new ArmorMaterial(
+            Map.of(
+                ArmorItem.Type.HELMET, 2,
+                ArmorItem.Type.CHESTPLATE, 6,
+                ArmorItem.Type.LEGGINGS, 5,
+                ArmorItem.Type.BOOTS, 2),
+            9,
+            SoundEvents.ARMOR_EQUIP_IRON,
+            () -> Ingredient.of(ModTerrainBlocks.SKYGATE_PINE_LOG.get()),
+            List.of(new ArmorMaterial.Layer(DawnDuskTerminal.id("skygate_pine"))),
+            0.0F,
+            0.0F));
+
+    /** 苍穹锭，对标钻石 */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> CANOPY =
+        ARMOR_MATERIALS.register("canopy", () -> new ArmorMaterial(
+            Map.of(
+                ArmorItem.Type.HELMET, 3,
+                ArmorItem.Type.CHESTPLATE, 8,
+                ArmorItem.Type.LEGGINGS, 6,
+                ArmorItem.Type.BOOTS, 3),
+            10,
+            SoundEvents.ARMOR_EQUIP_DIAMOND,
+            () -> Ingredient.of(ModItems.CANOPY_INGOT.get()),
+            List.of(new ArmorMaterial.Layer(DawnDuskTerminal.id("canopy"))),
+            2.0F,
+            0.0F));
+
+    /** 砷铅铁锭，对标钻石 */
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> CARMINITE =
+        ARMOR_MATERIALS.register("carminite", () -> new ArmorMaterial(
+            Map.of(
+                ArmorItem.Type.HELMET, 3,
+                ArmorItem.Type.CHESTPLATE, 8,
+                ArmorItem.Type.LEGGINGS, 6,
+                ArmorItem.Type.BOOTS, 3),
+            10,
+            SoundEvents.ARMOR_EQUIP_DIAMOND,
+            () -> Ingredient.of(ModItems.CARMINITE_INGOT.get()),
+            List.of(new ArmorMaterial.Layer(DawnDuskTerminal.id("carminite"))),
+            2.0F,
+            0.0F));
+
     private ModArmorMaterials() {}
 
     public static void register(IEventBus bus) {

@@ -3,7 +3,9 @@ package com.dawnduskterminal.gametest;
 import com.dawnduskterminal.item.CarminiteStaffItem;
 import com.dawnduskterminal.registry.ModArmorMaterials;
 import com.dawnduskterminal.registry.ModEntities;
+import com.dawnduskterminal.registry.ModEquipment;
 import com.dawnduskterminal.registry.ModItems;
+import com.dawnduskterminal.registry.ModTiers;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.core.component.DataComponents;
@@ -76,5 +78,39 @@ public final class EquipmentTests {
 
     private static boolean edible(Item item) {
         return new ItemStack(item).get(DataComponents.FOOD) != null;
+    }
+
+    /** 三套材料对标原版：天门松是铁，舋穹与砷铅铁是钻石 */
+    @GameTest(template = "ddt_empty")
+    public static void equipmentSetsMatchTheirVanillaTier(GameTestHelper helper) {
+        assertArmor(helper, ModArmorMaterials.SKYGATE_PINE.value(), 15, 0.0F, 9, "skygate_pine");
+        assertArmor(helper, ModArmorMaterials.CANOPY.value(), DIAMOND_DEFENSE, DIAMOND_TOUGHNESS, 10, "canopy");
+        assertArmor(helper, ModArmorMaterials.CARMINITE.value(), DIAMOND_DEFENSE, DIAMOND_TOUGHNESS, 10, "carminite");
+
+        helper.assertTrue(ModTiers.SKYGATE_PINE.getUses() == 250 && ModTiers.SKYGATE_PINE.getSpeed() == 6.0F,
+            "skygate pine tools must be iron tier");
+        helper.assertTrue(ModTiers.CANOPY.getUses() == 1561 && ModTiers.CANOPY.getSpeed() == 8.0F,
+            "canopy tools must be diamond tier");
+        helper.assertTrue(ModTiers.CARMINITE.getUses() == 1561 && ModTiers.CARMINITE.getSpeed() == 8.0F,
+            "carminite tools must be diamond tier");
+
+        // 三套各五件工具加四件护甲
+        int registered = ModEquipment.sets().values().stream().mapToInt(set -> set.items().size()).sum();
+        helper.assertTrue(registered == 27, "expected 27 equipment items, got " + registered);
+        helper.succeed();
+    }
+
+    private static void assertArmor(GameTestHelper helper, ArmorMaterial material, int defense, float toughness,
+                                    int enchantmentValue, String materialName) {
+        int total = 0;
+        for (ArmorItem.Type type : SLOTS) {
+            total += material.getDefense(type);
+        }
+        helper.assertTrue(total == defense,
+            materialName + " armor must total " + defense + " defense, got " + total);
+        helper.assertTrue(material.toughness() == toughness,
+            materialName + " armor toughness must be " + toughness + ", got " + material.toughness());
+        helper.assertTrue(material.enchantmentValue() == enchantmentValue,
+            materialName + " armor enchantment value must be " + enchantmentValue);
     }
 }

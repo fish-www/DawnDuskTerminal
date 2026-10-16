@@ -11,6 +11,7 @@ import com.dawnduskterminal.registry.ModChronoOres;
 import com.dawnduskterminal.registry.ModCreativeTabs;
 import com.dawnduskterminal.registry.ModEffects;
 import com.dawnduskterminal.registry.ModEntities;
+import com.dawnduskterminal.registry.ModEquipment;
 import com.dawnduskterminal.registry.ModFeatures;
 import com.dawnduskterminal.registry.ModFluids;
 import com.dawnduskterminal.advancement.ModCriteria;
@@ -48,6 +49,7 @@ public final class DawnDuskTerminal {
         ModChronoOres.register(modBus);
         ModItems.register(modBus);
         ModArmorMaterials.register(modBus);
+        ModEquipment.register(modBus);
         ModParticles.register(modBus);
         ModIngredients.register(modBus);
         ModEffects.register(modBus);
