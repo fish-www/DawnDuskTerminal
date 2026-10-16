@@ -51,15 +51,6 @@ public final class ModCreativeTabs {
                 accept(output, ModTerrainBlocks.BLAZING_BLOCK_ITEM.get());
                 accept(output, ModTerrainBlocks.MOUNTED_TOWERWOOD_ITEM.get());
                 accept(output, ModTerrainBlocks.ENCASED_TOWERBEAM_ITEM.get());
-                accept(output, ModTerrainBlocks.DAWN_LOG_ITEM.get());
-                accept(output, ModTerrainBlocks.DUSK_LOG_ITEM.get());
-                accept(output, ModTerrainBlocks.CHRONO_LOG_ITEM.get());
-                accept(output, ModTerrainBlocks.DAWN_LEAVES_ITEM.get());
-                accept(output, ModTerrainBlocks.DUSK_LEAVES_ITEM.get());
-                accept(output, ModTerrainBlocks.CHRONO_LEAVES_ITEM.get());
-                accept(output, ModTerrainBlocks.WITHERED_DAWN_LEAVES_ITEM.get());
-                accept(output, ModTerrainBlocks.WITHERED_DUSK_LEAVES_ITEM.get());
-                accept(output, ModTerrainBlocks.WITHERED_CHRONO_LEAVES_ITEM.get());
                 accept(output, ModTerrainBlocks.SKYGATE_PINE_LOG_ITEM.get());
                 accept(output, ModTerrainBlocks.SKYGATE_PINE_LEAVES_ITEM.get());
                 accept(output, ModTerrainBlocks.SKYGATE_PINE_SAPLING_ITEM.get());

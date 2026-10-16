@@ -2,8 +2,6 @@ package com.dawnduskterminal.registry;
 
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.world.CanopyFrostLayerBlock;
-import com.dawnduskterminal.world.ChronoLeavesBlock;
-import com.dawnduskterminal.world.WitheredLeavesBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -174,33 +172,6 @@ public final class ModTerrainBlocks {
     public static final DeferredItem<BlockItem> SCARLET_MOLYBDENUM_ORE_ITEM =
         ITEMS.registerSimpleBlockItem(SCARLET_MOLYBDENUM_ORE);
 
-    public static final DeferredBlock<RotatedPillarBlock> DAWN_LOG =
-        BLOCKS.registerBlock("dawn_log", RotatedPillarBlock::new, log(MapColor.WOOD));
-    public static final DeferredBlock<RotatedPillarBlock> DUSK_LOG =
-        BLOCKS.registerBlock("dusk_log", RotatedPillarBlock::new, log(MapColor.WOOD));
-    public static final DeferredBlock<RotatedPillarBlock> CHRONO_LOG =
-        BLOCKS.registerBlock("chrono_log", RotatedPillarBlock::new, log(MapColor.WOOD));
-
-    public static final DeferredBlock<WitheredLeavesBlock> WITHERED_DAWN_LEAVES =
-        BLOCKS.registerBlock("withered_dawn_leaves", WitheredLeavesBlock::new, witheredLeaves());
-    public static final DeferredBlock<WitheredLeavesBlock> WITHERED_DUSK_LEAVES =
-        BLOCKS.registerBlock("withered_dusk_leaves", WitheredLeavesBlock::new, witheredLeaves());
-    public static final DeferredBlock<WitheredLeavesBlock> WITHERED_CHRONO_LEAVES =
-        BLOCKS.registerBlock("withered_chrono_leaves", WitheredLeavesBlock::new, witheredLeaves());
-
-    public static final DeferredBlock<ChronoLeavesBlock> DAWN_LEAVES =
-        BLOCKS.registerBlock("dawn_leaves",
-            properties -> new ChronoLeavesBlock(properties, () -> WITHERED_DAWN_LEAVES.get()),
-            leaves());
-    public static final DeferredBlock<ChronoLeavesBlock> DUSK_LEAVES =
-        BLOCKS.registerBlock("dusk_leaves",
-            properties -> new ChronoLeavesBlock(properties, () -> WITHERED_DUSK_LEAVES.get()),
-            leaves());
-    public static final DeferredBlock<ChronoLeavesBlock> CHRONO_LEAVES =
-        BLOCKS.registerBlock("chrono_leaves",
-            properties -> new ChronoLeavesBlock(properties, () -> WITHERED_CHRONO_LEAVES.get()),
-            leaves());
-
     public static final DeferredBlock<RotatedPillarBlock> SKYGATE_PINE_LOG =
         BLOCKS.registerBlock("skygate_pine_log", RotatedPillarBlock::new, log(MapColor.COLOR_GREEN));
 
@@ -217,18 +188,6 @@ public final class ModTerrainBlocks {
         ), properties),
         sapling());
 
-    public static final DeferredItem<BlockItem> DAWN_LOG_ITEM = ITEMS.registerSimpleBlockItem(DAWN_LOG);
-    public static final DeferredItem<BlockItem> DUSK_LOG_ITEM = ITEMS.registerSimpleBlockItem(DUSK_LOG);
-    public static final DeferredItem<BlockItem> CHRONO_LOG_ITEM = ITEMS.registerSimpleBlockItem(CHRONO_LOG);
-    public static final DeferredItem<BlockItem> DAWN_LEAVES_ITEM = ITEMS.registerSimpleBlockItem(DAWN_LEAVES);
-    public static final DeferredItem<BlockItem> DUSK_LEAVES_ITEM = ITEMS.registerSimpleBlockItem(DUSK_LEAVES);
-    public static final DeferredItem<BlockItem> CHRONO_LEAVES_ITEM = ITEMS.registerSimpleBlockItem(CHRONO_LEAVES);
-    public static final DeferredItem<BlockItem> WITHERED_DAWN_LEAVES_ITEM =
-        ITEMS.registerSimpleBlockItem(WITHERED_DAWN_LEAVES);
-    public static final DeferredItem<BlockItem> WITHERED_DUSK_LEAVES_ITEM =
-        ITEMS.registerSimpleBlockItem(WITHERED_DUSK_LEAVES);
-    public static final DeferredItem<BlockItem> WITHERED_CHRONO_LEAVES_ITEM =
-        ITEMS.registerSimpleBlockItem(WITHERED_CHRONO_LEAVES);
     public static final DeferredItem<BlockItem> SKYGATE_PINE_LOG_ITEM =
         ITEMS.registerSimpleBlockItem(SKYGATE_PINE_LOG);
     public static final DeferredItem<BlockItem> SKYGATE_PINE_LEAVES_ITEM =
@@ -284,17 +243,6 @@ public final class ModTerrainBlocks {
             .randomTicks()
             .instabreak()
             .sound(SoundType.GRASS)
-            .pushReaction(PushReaction.DESTROY);
-    }
-
-    private static BlockBehaviour.Properties witheredLeaves() {
-        return BlockBehaviour.Properties.of()
-            .mapColor(MapColor.COLOR_BROWN)
-            .strength(0.2F)
-            .randomTicks()
-            .sound(SoundType.GRASS)
-            .noOcclusion()
-            .ignitedByLava()
             .pushReaction(PushReaction.DESTROY);
     }
 

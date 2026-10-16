@@ -20,12 +20,6 @@
     "dawnduskterminal:frozen_canopy",
     "dawnduskterminal:fragile_canopy",
     "dawnduskterminal:chaos_stone",
-    "dawnduskterminal:blazing_block",
-    "dawnduskterminal:dawn_log",
-    "dawnduskterminal:chrono_log",
-    "dawnduskterminal:dusk_log",
-    "dawnduskterminal:dawn_leaves",
-    "dawnduskterminal:chrono_leaves",
-    "dawnduskterminal:dusk_leaves"
+    "dawnduskterminal:blazing_block"
   ]
 }

@@ -61,14 +61,7 @@ public final class DdtClient {
                 return BiomeColors.getAverageFoliageColor(level, pos);
             }
             return 0x48B518;
-        }, ModTerrainBlocks.DAWN_LEAVES.get(),
-            ModTerrainBlocks.DUSK_LEAVES.get(),
-            ModTerrainBlocks.CHRONO_LEAVES.get(),
-            ModTerrainBlocks.SKYGATE_PINE_LEAVES.get());
-        event.register((state, level, pos, tintIndex) -> tintIndex == 0 ? 0x9C7A50 : -1,
-            ModTerrainBlocks.WITHERED_DAWN_LEAVES.get(),
-            ModTerrainBlocks.WITHERED_DUSK_LEAVES.get(),
-            ModTerrainBlocks.WITHERED_CHRONO_LEAVES.get());
+        }, ModTerrainBlocks.SKYGATE_PINE_LEAVES.get());
         // 原版按方块逐个注册草色（BlockColors.createDefault 里的 GRASS_BLOCK、FERN 等），模组方块完全不
         // 上色，tintindex 0 的面会直接渲染成灰白贴图。这里用与原版相同的取色器，包含物品渲染器用的
         // level 为空时的兜底
@@ -91,9 +84,6 @@ public final class DdtClient {
             ModTerrainBlocks.ROSY_GRASS_ITEM.get());
         // 树叶在背包和手里渲染时 level 为空，所以落到默认树叶色（与上面方块取色器用的 0x48B518 兜底一致）
         event.register((stack, tintIndex) -> tintIndex == 0 ? 0x48B518 : -1,
-            ModTerrainBlocks.DAWN_LEAVES_ITEM.get(),
-            ModTerrainBlocks.DUSK_LEAVES_ITEM.get(),
-            ModTerrainBlocks.CHRONO_LEAVES_ITEM.get(),
             ModTerrainBlocks.SKYGATE_PINE_LEAVES_ITEM.get());
     }
 
