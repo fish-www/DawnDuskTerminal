@@ -329,7 +329,7 @@ randomFactory = 噪声设置.随机源.newInstance(世界种子).forkPositional(
 
 ## 从源码构建
 
-准备一份暮色森林 1.21.1 的 jar 放进 `libs/`
+构建期从 maven 自动拉暮色森林（CurseMaven）与 GeckoLib，需要联网，不再需要往 `libs/` 放 jar
 
 ```
 ./gradlew build

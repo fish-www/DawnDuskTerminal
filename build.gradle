@@ -58,30 +58,35 @@ repositories {
         }
         filter { includeGroup 'software.bernie.geckolib' }
     }
+    // 暮色森林只有 CurseMaven 一条路：它自己的 modmaven 停更在 2024-07-06（最新 4.5.2428），
+    // 1.21.1 现在用的 4.8.3345 在那个源上只有空目录。同样是第三方源，同样用 exclusiveContent 摘出来
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'CurseMaven'
+                url = 'https://www.cursemaven.com'
+            }
+        }
+        filter { includeGroup 'curse.maven' }
+    }
     mavenLocal()
 }
 
-// GeckoLib 用 compileOnly：它是普通模组，必须装在游戏端
-// 运行时动画引擎由 FML 按 neoforge.mods.toml 解析，jar 不会被打进本模组的产物
-// 4.9.3 是 1.21.1 线上当前的版本，它声明 neoforge >= 21.1.150，本项目满足
-// GeckoLib 另有一个 geckoanimfix 是 incompatible 依赖，两者不能同时装
+// 两个前置模组都用 compileOnly 加 runtimeOnly：
+// compileOnly 供编译，runtimeOnly 让 runClient runServer runData 这些开发运行也加载它们
+// 它们都是普通模组，运行时必须装在游戏端，jar 不会被打进本模组的产物
 dependencies {
+    // 4.9.3 是 1.21.1 线上当前的版本，它声明 neoforge >= 21.1.150，本项目满足
+    // GeckoLib 另有一个 geckoanimfix 是 incompatible 依赖，两者不能同时装
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    runtimeOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+
+    // 坐标是「项目 id 加 file id」，7797302 对应 CurseForge 上 1.21.1 的 4.8.3345
+    compileOnly 'curse.maven:the-twilight-forest-227639:7797302'
+    runtimeOnly 'curse.maven:the-twilight-forest-227639:7797302'
 }
 
 def twilightDependency = providers.gradleProperty('twilight_dependency').getOrElse('required')
-def twilightFile = file("libs/twilightforest-1.21.1.jar")
-
-if (twilightFile.exists()) {
-    dependencies {
-        compileOnly files(twilightFile)
-        runtimeOnly files(twilightFile)
-    }
-}
-
-if (!twilightFile.exists()) {
-    logger.lifecycle("DawnDuskTerminal: libs/twilightforest-1.21.1.jar not found, the mod will build without a compile time dependency on Twilight Forest")
-}
 
 def replaceProperties = [
     minecraft_version      : minecraft_version,

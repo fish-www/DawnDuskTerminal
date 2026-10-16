@@ -14,13 +14,11 @@ NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 
 运行时必须装暮色森林 1.21.1
 
-构建期把 jar 放到 `libs/twilightforest-1.21.1.jar`
+构建期从 CurseMaven 拉，坐标 `curse.maven:the-twilight-forest-227639:7797302`，对应 1.21.1 的 4.8.3345
 
-`build.gradle` 检测到该文件才加 `compileOnly` 与 `runtimeOnly`
+它自己的 modmaven 停更在 2024-07-06（最新 4.5.2428），1.21.1 用的版本在那个源上只有空目录，所以只能走 CurseMaven 这个第三方代理，`build.gradle` 用 `exclusiveContent` 把 `curse.maven` 这一组摘出来
 
-代码里只按字符串 ID 引用暮色森林，没有 `import twilightforest.*`
-
-所以缺 jar 也能编译，功能会在运行时缺失
+代码里只按字符串 ID 引用暮色森林，没有 `import twilightforest.*`，所以缺依赖也能编译，功能会在运行时缺失（CI 现在也能拉到同一份 classpath）
 
 `gradle.properties` 的 `twilight_dependency` 控制依赖类型，默认 `required`
 
@@ -28,7 +26,9 @@ NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 
 运行时必须装 GeckoLib 4.9.3 以上，对应 1.21.1
 
-构建期不需要把 jar 放进 `libs/`，从 GeckoLib 官方 maven 拉 `compileOnly`，版本写在 `gradle.properties` 的 `geckolib_version`
+从 GeckoLib 官方 maven 拉 `compileOnly` 与 `runtimeOnly`，版本写在 `gradle.properties` 的 `geckolib_version`
+
+`compileOnly` 供编译，`runtimeOnly` 让开发运行（`runClient` 等）也加载它，少了后者开发运行会报 `requires geckolib 4.9.3 or above`
 
 `neoforge.mods.toml` 里声明为 `required`，所以它和暮色森林一样是硬依赖
 

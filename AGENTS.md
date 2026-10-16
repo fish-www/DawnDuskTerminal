@@ -56,7 +56,9 @@ NeoForge 21.1.252 与 ModDevGradle，版本写在 `gradle.properties`
 
 运行必须装暮色森林 1.21.1
 
-构建期把 `libs/twilightforest-1.21.1.jar` 放好
+构建期从 CurseMaven 拉 `curse.maven:the-twilight-forest-227639:7797302`，需要联网
+
+它自己的 modmaven 停更在 2024-07-06，1.21.1 用的 4.8.3345 在那个源上只有空目录
 
 代码里只用字符串 ID 引用暮色森林，没有 `import twilightforest.*`
 

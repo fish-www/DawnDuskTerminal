@@ -9,6 +9,4 @@ server-test.log
 .idea/
 *.iml
 .vscode/
-libs/*.jar
-!libs/.gitkeep
 __pycache__/
