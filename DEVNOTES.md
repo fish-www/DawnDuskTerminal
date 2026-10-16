@@ -320,7 +320,7 @@ if (level.getBrightness(LightLayer.BLOCK, pos) > 11) { dropResources(...); remov
 `SkyIslandFeature` `SkyIslandLocator` `HollowPocketFeature` `RootPillarFeature` `TurfFeature`
 `BedrockLayerFeature` `ChronoFeatureFilter` 及其注册、mixin 引用、gametest 与 biome_modifier
 
-`ModChronoOres` 的 29 种 `chrono_ore_*` 方块仍在注册表 但已无世界生成入口（待清理）
+`ModChronoOres` 的 29 种 `chrono_ore_*` 方块曾留在注册表但已无世界生成入口 后已删除（它们只是原版矿石的别名 模型与战利品表都指向 `minecraft:`）
 
 四层地形的密度函数 `mainland_*` `void_band` `underground_island` `sky_island_density` 已删除
 `/ddt void` 与 `/ddt sky` 子指令已删除 保留 `/ddt line` 与 `/ddt tp`
@@ -336,7 +336,7 @@ if (level.getBrightness(LightLayer.BLOCK, pos) > 11) { dropResources(...); remov
 - 落点只找露天地表（已完成 hasOpenSky）
 - 天光 night=11 center=13 day=15
 - 截图 12.29 显示天光 0 光照钳制可能没生效 待查
-- 清理 29 种不再生成的 `chrono_ore_*` 方块与贴图 或另找注入方式
+- 29 种 `chrono_ore_*` 已删除（它们只是原版矿石换命名空间 没有调色板替换）
 - 结构排除已合并为 `StructureExclusions` 单一白名单（17 条）EXCLUDED 黑名单表已删 村庄与废弃矿井确认不生成
 - 地形与群系都变了 旧存档必须删世界重建
 - 极昼/极夜进度已从 biome 判定改为 `line_param` 的 |param| >= 0.6

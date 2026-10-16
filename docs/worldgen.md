@@ -77,7 +77,7 @@
 
 移植脚本把群系里的放置特征引用、以及放置特征里的配置特征引用都改写到 `dawnduskterminal:` 命名空间
 
-`configured_feature` 内部嵌套的引用不在改写范围内，`random_selector` 的分支仍指向 `minecraft:`，见「已知问题」
+`configured_feature` 内部嵌套的引用不在改写范围内，所以 `random_selector` 的 `feature` 与 `default` 两个键指向原版的那些得手工补，见「已知问题」
 
 ## 调色板群系源
 
@@ -94,6 +94,10 @@
 换名按路径匹配，例如 `minecraft:plains` 变成 `dawnduskterminal:plains`
 
 副本携带本模组的方块特征表，所以维度在生成期就铺自己的方块，而不是事后打补丁
+
+这句话只对一部分特征成立：57 个 `configured_feature` 里 46 个引用了模组方块或模组方块标签（`ore_*` `glow_lichen` `ice_patch` `patch_berry_bush` `swamp_oak` 等），其余 11 个是树，只摆原版原木与树叶
+
+地形的方块替换不靠特征表，靠 `noise_settings` 里的地表规则
 
 `worldgen/biome/` 里除 `floatrees` 外都是与主世界群系同名的副本
 
@@ -205,7 +209,35 @@
 
 `data/dawnduskterminal/tags/worldgen/biome/` 下的旧标签只保留 `palette_biomes`
 
-`configured_feature` 里部分 `random_selector` 分支仍指向 `minecraft:`，对应的配置特征副本没有任何特征引用
+### 引用指向哪个注册表
+
+`random_selector` 的两个位置看着像，指向的注册表不同：
+
+| 形态 | 指向 |
+|---|---|
+| `{"feature": "X", "placement": [...]}` 里的 `X` | `configured_feature` |
+| 裸字符串 `"default": "X"` 或不在内联对象里的 `"feature": "X"` | `placed_feature` |
+
+移植脚本只改了「群系 → 放置特征」和「放置特征 → 配置特征」两层，`configured_feature` 内部的引用没动
+
+后果不是报错而是静默：模组副本把树下的土换成了 `dawnduskterminal:rosy_dirt`，原版那份不会，所以同一片林子里一半的树长在霞土上，另一半长在原版泥土上
+
+已经补完，两件事：
+
+- 内联对象里指向原版的配置特征引用改成模组副本
+- 裸字符串指向的那几个原版放置特征（`birch_bees_0002` `oak_bees_002` `jungle_tree` 等 11 个）在模组里补了对应的 `placed_feature` 副本，再把引用指过去
+
+模组现在每个 `configured_feature` 副本都有人引用
+
+`tools/check_worldgen_refs.py` 会重跑这条检查，改世界生成后跑一次
+
+### 没人引用的放置特征
+
+有 16 个放置特征副本没有任何群系引用：`ore_coal_lower` `ore_coal_upper` `ore_copper` `ore_copper_large` `ore_gold` `ore_gold_extra` `ore_gold_lower` `ore_iron_middle` `ore_iron_small` `ore_iron_upper` `bamboo_light` `dark_forest_vegetation` `flower_flower_forest` `flower_swamp` `red_mushroom_swamp` `trees_swamp`
+
+它们在原版主世界群系里，而本维度的群系特征表已经整份换成暮色森林内容（`tools/port_tf_biomes.py`），所以煤 铜 金 铁四种矿在本维度不生成，改由暮色森林的浆果矿与模组自己的矿替代
+
+这是设计选择不是 bug，但副本本身是移植残留，删不删待定
 
 ## 改地形注意
 

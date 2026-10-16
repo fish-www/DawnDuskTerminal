@@ -30,6 +30,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
@@ -62,6 +63,9 @@ public final class DawnDuskTerminal {
         ModCreativeTabs.register(modBus);
 
         modBus.addListener(ModNetwork::registerPayloads);
+        // 两件都要挂：Loading 是启动时配置刚生效那一刻，Reloading 是玩家改完配置重载
+        modBus.addListener((ModConfigEvent.Loading event) -> DdtConfig.refreshCache());
+        modBus.addListener((ModConfigEvent.Reloading event) -> DdtConfig.refreshCache());
         modBus.addListener((FMLCommonSetupEvent event) -> FluidReactions.register());
 
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onServerStarted);

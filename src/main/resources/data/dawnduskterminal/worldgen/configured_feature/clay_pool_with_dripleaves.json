@@ -14,7 +14,7 @@
     "surface": "floor",
     "vegetation_chance": 0.1,
     "vegetation_feature": {
-      "feature": "minecraft:dripleaf",
+      "feature": "dawnduskterminal:dripleaf",
       "placement": []
     },
     "vertical_range": 5,

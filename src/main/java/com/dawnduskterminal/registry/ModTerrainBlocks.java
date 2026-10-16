@@ -280,15 +280,6 @@ public final class ModTerrainBlocks {
             .pushReaction(PushReaction.DESTROY);
     }
 
-    // 原版 Blocks.SNOW_BLOCK 的属性，逐字照拄 1.21.1
-    private static BlockBehaviour.Properties snowBlock() {
-        return BlockBehaviour.Properties.of()
-            .mapColor(MapColor.SNOW)
-            .requiresCorrectToolForDrops()
-            .strength(0.2F)
-            .sound(SoundType.SNOW);
-    }
-
     public static void register(IEventBus bus) {
         BLOCKS.register(bus);
         ITEMS.register(bus);

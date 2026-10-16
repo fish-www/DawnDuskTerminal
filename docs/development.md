@@ -180,6 +180,9 @@ Xaero 两个依赖 `xaero.lib`，由它们的 pom 传递带上；JEI 要的 `mez
 
 `tools/check_tf_biomes.py` 校验移植群系，检查 JSON 合法 无残留 `minecraft:*` 特征 以及 `twilightforest:*` 特征能在 TF jar 内解析
 
+`tools/check_worldgen_refs.py` 校验配置特征引用，报「模组有同名副本却仍指向 `minecraft:`」的漏改与没人引用的副本
+漏改不会报错只会静默：副本把土换成了霞土，原版那份不会，同一片林子里两种土混着长
+
 `tools/ysm/ysm_to_geckolib.py` 把 Yes Steve Model 的 Bedrock 动画转换成 GeckoLib 能编译的形式，并输出逐子句的审计报告
 
 `tools/ysm/validate_geckolib.py` 按 GeckoLib 真实解析规则校验动画文件，列出会被静默跳过的片段 它同时是全仓库唯一的 GeckoLib 语法规则模块
