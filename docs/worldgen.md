@@ -97,9 +97,27 @@
 
 `worldgen/biome/` 里除 `floatrees` 外都是与主世界群系同名的副本
 
-`floatrees` 不走替换表，采样深度低于阈值时直接返回
+`floatrees` 不走替换表，采样深度低于 -1.6 时直接返回，早于 delegate
 
 替换表在第一次使用时构建，因为 biome source 在数据包解析期创建，那一刻标签 holder 还没有 key
+
+### 蓝沙沙漠在极夜侧
+
+`dawnduskterminal:desert`（地表是蓝色的 `road_sand`）不在热区，它只出现在极夜侧
+
+`getNoiseBiome` 里第二个特例：`ChronoLineState.serverLine().param(quartX * 4, quartZ * 4) <= -0.6` 时直接返回沙漠副本，早于 delegate
+
+读 `param` 而不读采样温度的理由见下节；`-0.6` 与 `polar_dusk` 进度、天光衰减是同一个数
+
+`floatrees` 仍然排在这条判定之前，所以极夜侧的空岛还是空岛
+
+原来那格热区沙漠改指 `dawnduskterminal:badlands` 副本。不改的话热区会退回原版 `minecraft:desert`，把原版沙子与原版特征带进维度
+
+副本本身的 `temperature` 是 `-0.7`、`has_precipitation` 是 `true`，与维度里最冷的 `frozen_peaks` 同值，所以极夜侧是会积雪的寒漠
+
+这两项必须改：它们决定 `Biome#coldEnoughToSnow` 与 `Biome#shouldSnow`，而 `ChronoFreezeFeature` 靠这两个判断铺 `canopy_frost` 与 `frozen_canopy`
+
+原版沙漠的 `2.0` 与 `false` 会让极夜侧一片霜都没有，蓝沙上直接冒出海冰与雪层的前提是先把它改成冷湿
 
 ## 群系温度与晨昏线偏移
 
