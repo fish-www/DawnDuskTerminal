@@ -34,6 +34,7 @@ public final class DdtClient {
         modBus.addListener(DdtClient::registerBlockColors);
         modBus.addListener(DdtClient::registerItemColors);
         modBus.addListener(DdtClient::onModifyBakingResult);
+        modBus.addListener(TowerGhastRenderer::onRegisterRenderers);
         NeoForge.EVENT_BUS.addListener(DdtClient::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(ShaderGuard::onClientLogin);
     }

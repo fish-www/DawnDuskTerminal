@@ -110,5 +110,6 @@
   "item.dawnduskterminal.hui_ingot": "䤧锭",
   "block.dawnduskterminal.mounted_towerwood": "镶边塔木",
   "block.dawnduskterminal.encased_towerbeam": "封装塔木梁",
-  "item.dawnduskterminal.dirac_ingot": "狄拉克锭"
+  "item.dawnduskterminal.dirac_ingot": "狄拉克锭",
+  "entity.dawnduskterminal.tower_ghast": "高塔恶魂"
 }

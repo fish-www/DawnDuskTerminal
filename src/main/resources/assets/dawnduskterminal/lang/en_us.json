@@ -110,5 +110,6 @@
   "item.dawnduskterminal.hui_ingot": "Hui Ingot",
   "block.dawnduskterminal.mounted_towerwood": "Mounted Towerwood",
   "block.dawnduskterminal.encased_towerbeam": "Encased Towerbeam",
-  "item.dawnduskterminal.dirac_ingot": "Dirac Ingot"
+  "item.dawnduskterminal.dirac_ingot": "Dirac Ingot",
+  "entity.dawnduskterminal.tower_ghast": "Tower Ghast"
 }
