@@ -46,7 +46,27 @@ neoForge {
 }
 
 repositories {
+    // GeckoLib 的坐标只存在于它自己的 maven，用 exclusiveContent 把这一组从其余源里摘出来：
+    // ModDevGradle 会把 maven.neoforged.net 加进仓库列表，而那个源在部分网络下连不上（连接超时），
+    // 只要 Gradle 去问过它一次，整个 compileClasspath 解析就会失败
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'GeckoLib'
+                url = 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+            }
+        }
+        filter { includeGroup 'software.bernie.geckolib' }
+    }
     mavenLocal()
+}
+
+// GeckoLib 用 compileOnly：它是普通模组，必须装在游戏端
+// 运行时动画引擎由 FML 按 neoforge.mods.toml 解析，jar 不会被打进本模组的产物
+// 4.9.3 是 1.21.1 线上当前的版本，它声明 neoforge >= 21.1.150，本项目满足
+// GeckoLib 另有一个 geckoanimfix 是 incompatible 依赖，两者不能同时装
+dependencies {
+    compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 }
 
 def twilightDependency = providers.gradleProperty('twilight_dependency').getOrElse('required')
