@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "bb",
+    "bc"
+  ],
+  "key": {
+    "b": {
+      "item": "dawnduskterminal:mixed_carminite"
+    },
+    "c": {
+      "item": "dawnduskterminal:carminite_ingot"
+    }
+  },
+  "result": {
+    "id": "dawnduskterminal:carminite_ball",
+    "count": 1
+  }
+}

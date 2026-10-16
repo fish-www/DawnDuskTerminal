@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " ab",
+    "cda",
+    "ec "
+  ],
+  "key": {
+    "a": {
+      "item": "dawnduskterminal:encased_towerbeam"
+    },
+    "b": {
+      "item": "dawnduskterminal:carminite_ball"
+    },
+    "c": {
+      "item": "dawnduskterminal:scarlet_molybdenum_ingot"
+    },
+    "d": {
+      "item": "dawnduskterminal:carminite_ingot"
+    },
+    "e": {
+      "item": "dawnduskterminal:mounted_towerwood"
+    }
+  },
+  "result": {
+    "id": "dawnduskterminal:carminite_molybdenum_reactor_staff",
+    "count": 1
+  }
+}

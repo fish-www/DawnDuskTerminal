@@ -72,6 +72,22 @@
 
 `client/TowerGhastRenderer` 把三条资源路径直接写出，不走 GeckoLib 的命名约定
 
+## 装备与武器
+
+`registry/ModArmorMaterials` 注册护甲材质，目前只有一份 T1 绯色钼，数值对标钻石
+
+`item/ScarletMolybdArmorItem` 四个部件共用，穿齐时每件自己在 `inventoryTick` 里续生命恢复
+
+`item/CarminiteStaffItem` 近战按单手武器算，右键发射一颗 `entity/CarminiteBallEntity`
+
+`entity/CarminiteBallEntity` 继承 `AbstractArrow`，命中时直接在那一帧结算范围伤害。源 mod 把反应场做成了一只无 AI 的飞行生物，这里不需要
+
+`registry/ModParticles` 注册三种粒子（`particle_carminite_ball` `_trace` `_effect`），客户端 provider 在 `client/CarminiteParticle`
+
+`registry/ModDamageTypes` 的 `carminite_field` 是反应场伤害，条目在 `data/dawnduskterminal/damage_type/`
+
+这些内容从 `twilightextra`（MCreator 生成）迁移而来，原代码里的过程式实现已换成上面这些
+
 ## 维度与晨昏线
 
 `registry/ModDimensions.CHRONO` 是维度的 `ResourceKey`

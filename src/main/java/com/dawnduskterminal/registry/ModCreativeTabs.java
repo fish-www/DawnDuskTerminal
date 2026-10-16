@@ -73,6 +73,16 @@ public final class ModCreativeTabs {
                 accept(output, ModItems.SCARLET_MOLYBDENUM_INGOT.get());
                 accept(output, ModItems.HUI_INGOT.get());
                 accept(output, ModItems.DIRAC_INGOT.get());
+                accept(output, ModItems.CARMINITE_GHAST_LEATHER.get());
+                accept(output, ModItems.CARMINITED_LEATHER.get());
+                accept(output, ModItems.CARMINITE_GHAST_MEAT.get());
+                accept(output, ModItems.COOKED_CARMIN_GHAST_MEAT.get());
+                accept(output, ModItems.CARMINITE_BALL.get());
+                accept(output, ModItems.CARMINITE_MOLYBDENUM_REACTOR_STAFF.get());
+                accept(output, ModItems.SCARLET_MOLYBD_HELMET.get());
+                accept(output, ModItems.SCARLET_MOLYBD_CHESTPLATE.get());
+                accept(output, ModItems.SCARLET_MOLYBD_LEGGINGS.get());
+                accept(output, ModItems.SCARLET_MOLYBD_BOOTS.get());
                 acceptForeign(output, "twilightforest:aurora_block");
             })
             .build());

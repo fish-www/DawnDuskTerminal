@@ -26,6 +26,14 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> PORTAL_HURT =
         register("portal_hurt");
 
+    /** 反应权杖发射 */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CARMINITE_STAFF_SHOOT =
+        register("carminite_staff_shoot");
+
+    /** 弹体命中后炸开的反应场，也用作弹体命中地面的声音 */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CARMINITE_FIELD =
+        register("carminite_field");
+
     private ModSounds() {}
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {

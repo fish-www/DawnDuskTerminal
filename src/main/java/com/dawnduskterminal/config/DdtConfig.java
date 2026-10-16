@@ -44,6 +44,19 @@ public final class DdtConfig {
     private static final ModConfigSpec.BooleanValue ENTITY_DEBUFF;
     private static final ModConfigSpec.BooleanValue TOLERATE_FEATURE_CYCLES;
 
+    /**
+     * 热路径用的缓存
+     *
+     * <p>{@code ChronoLine.param} 是逐方块被调的（温度密度函数、群系选择、天光），每次去读
+     * {@code ModConfigSpec} 都是白花。这几个值在配置加载与重载时刷一次，平时只读字段。初值就是默认值，
+     * 所以配置还没加载时读到的与 {@link #safe} 的兜底一致
+     */
+    private static volatile double maxDistanceCache = MAX_DISTANCE_DEFAULT;
+    private static volatile boolean skyLightByDistanceCache = SKY_LIGHT_BY_DISTANCE_DEFAULT;
+    private static volatile int skyLightDayCache = SKY_LIGHT_DAY_DEFAULT;
+    private static volatile int skyLightCenterCache = SKY_LIGHT_CENTER_DEFAULT;
+    private static volatile int skyLightNightCache = SKY_LIGHT_NIGHT_DEFAULT;
+
     static {
         ModConfigSpec.Builder b = new ModConfigSpec.Builder();
 
@@ -117,23 +130,37 @@ public final class DdtConfig {
     }
 
     public static boolean skyLightByDistance() {
-        return safe(SKY_LIGHT_BY_DISTANCE, SKY_LIGHT_BY_DISTANCE_DEFAULT);
+        return skyLightByDistanceCache;
     }
 
     public static int skyLightDay() {
-        return safe(SKY_LIGHT_DAY, SKY_LIGHT_DAY_DEFAULT);
+        return skyLightDayCache;
     }
 
     public static int skyLightCenter() {
-        return safe(SKY_LIGHT_CENTER, SKY_LIGHT_CENTER_DEFAULT);
+        return skyLightCenterCache;
     }
 
     public static int skyLightNight() {
-        return safe(SKY_LIGHT_NIGHT, SKY_LIGHT_NIGHT_DEFAULT);
+        return skyLightNightCache;
     }
 
     public static double maxDistance() {
-        return safe(MAX_DISTANCE, MAX_DISTANCE_DEFAULT);
+        return maxDistanceCache;
+    }
+
+    /**
+     * 配置加载或重载后刷新热路径缓存
+     *
+     * <p>挂的是 {@code ModConfigEvent.Loading} 与 {@code ModConfigEvent.Reloading}，两件都要：前者在进程
+     * 启动时调一次，后者在玩家改完配置重载时调
+     */
+    public static void refreshCache() {
+        skyLightByDistanceCache = safe(SKY_LIGHT_BY_DISTANCE, SKY_LIGHT_BY_DISTANCE_DEFAULT);
+        skyLightDayCache = safe(SKY_LIGHT_DAY, SKY_LIGHT_DAY_DEFAULT);
+        skyLightCenterCache = safe(SKY_LIGHT_CENTER, SKY_LIGHT_CENTER_DEFAULT);
+        skyLightNightCache = safe(SKY_LIGHT_NIGHT, SKY_LIGHT_NIGHT_DEFAULT);
+        maxDistanceCache = safe(MAX_DISTANCE, MAX_DISTANCE_DEFAULT);
     }
 
     public static String lineNormalOverride() {

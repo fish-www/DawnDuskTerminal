@@ -28,5 +28,17 @@
     "sounds": [
       "dawnduskterminal:portal_hurt"
     ]
+  },
+  "carminite_staff_shoot": {
+    "subtitle": "subtitles.dawnduskterminal.carminite_staff_shoot",
+    "sounds": [
+      "dawnduskterminal:carminite_staff_shoot"
+    ]
+  },
+  "carminite_field": {
+    "subtitle": "subtitles.dawnduskterminal.carminite_field",
+    "sounds": [
+      "dawnduskterminal:carminite_field"
+    ]
   }
 }

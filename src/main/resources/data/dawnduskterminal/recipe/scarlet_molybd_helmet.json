@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "aaa",
+    "a a"
+  ],
+  "key": {
+    "a": {
+      "item": "dawnduskterminal:scarlet_molybdenum_ingot"
+    }
+  },
+  "result": {
+    "id": "dawnduskterminal:scarlet_molybd_helmet",
+    "count": 1
+  }
+}

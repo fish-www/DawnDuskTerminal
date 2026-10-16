@@ -1,6 +1,7 @@
 package com.dawnduskterminal.registry;
 
 import com.dawnduskterminal.DawnDuskTerminal;
+import com.dawnduskterminal.entity.CarminiteBallEntity;
 import com.dawnduskterminal.entity.TowerGhastEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityDimensions;
@@ -27,6 +28,15 @@ public final class ModEntities {
             .clientTrackingRange(10)
             .updateInterval(3)
             .build("tower_ghast"));
+
+    /** 权杖的弹体。updateInterval 1，跟踪范围小：它是一个很快就消失的飞行物 */
+    public static final DeferredHolder<EntityType<?>, EntityType<CarminiteBallEntity>> CARMINITE_BALL =
+        ENTITIES.register("carminite_ball", () -> EntityType.Builder
+            .<CarminiteBallEntity>of(CarminiteBallEntity::new, MobCategory.MISC)
+            .sized(0.5F, 0.5F)
+            .clientTrackingRange(4)
+            .updateInterval(1)
+            .build("carminite_ball"));
 
     private ModEntities() {}
 

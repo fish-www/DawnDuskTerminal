@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "experience": 0.35,
+  "cookingtime": 200,
+  "ingredient": {
+    "item": "dawnduskterminal:carminite_ghast_meat"
+  },
+  "result": {
+    "id": "dawnduskterminal:cooked_carmin_ghast_meat"
+  }
+}

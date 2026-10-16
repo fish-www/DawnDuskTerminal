@@ -18,5 +18,9 @@ public final class ModDamageTypes {
     public static final ResourceKey<DamageType> STABILITY =
         ResourceKey.create(Registries.DAMAGE_TYPE, DawnDuskTerminal.id("stability"));
 
+    /** 反应权杖弹体的范围伤害，死在里面的玩家有专属死亡信息 */
+    public static final ResourceKey<DamageType> CARMINITE_FIELD =
+        ResourceKey.create(Registries.DAMAGE_TYPE, DawnDuskTerminal.id("carminite_field"));
+
     private ModDamageTypes() {}
 }

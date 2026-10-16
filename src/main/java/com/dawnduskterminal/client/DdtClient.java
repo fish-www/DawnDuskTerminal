@@ -4,7 +4,9 @@ import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.client.model.MountedTowerWoodModel;
 import com.dawnduskterminal.config.DdtConfig;
 import com.dawnduskterminal.registry.ModDimensions;
+import com.dawnduskterminal.registry.ModEntities;
 import com.dawnduskterminal.registry.ModFluids;
+import com.dawnduskterminal.registry.ModParticles;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
 import net.minecraft.client.Minecraft;
@@ -12,14 +14,17 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.world.level.GrassColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -35,6 +40,8 @@ public final class DdtClient {
         modBus.addListener(DdtClient::registerItemColors);
         modBus.addListener(DdtClient::onModifyBakingResult);
         modBus.addListener(TowerGhastRenderer::onRegisterRenderers);
+        modBus.addListener(DdtClient::onRegisterEntityRenderers);
+        modBus.addListener(DdtClient::onRegisterParticleProviders);
         NeoForge.EVENT_BUS.addListener(DdtClient::onRenderLevelStage);
         NeoForge.EVENT_BUS.addListener(ShaderGuard::onClientLogin);
     }
@@ -127,6 +134,21 @@ public final class DdtClient {
 
     private static void registerDimensionEffects(RegisterDimensionSpecialEffectsEvent event) {
         event.register(DawnDuskTerminal.id("chrono"), new ChronoDimensionEffects());
+    }
+
+    /**
+     * 权杖弹体用原版的投掷物渲染器：它会把物品（也就是那个球）摆成朝镜头的面片，正是需要的效果。
+     * 源 mod 为此写了模型类与实体渲染器，这里不需要
+     */
+    private static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntities.CARMINITE_BALL.get(), ThrownItemRenderer::new);
+    }
+
+    /** 三种粒子共用一支实现，只差参数，见 {@link CarminiteParticle} */
+    private static void onRegisterParticleProviders(RegisterParticleProvidersEvent event) {
+        event.registerSpriteSet(ModParticles.CARMINITE_BALL.get(), CarminiteParticle::ballProvider);
+        event.registerSpriteSet(ModParticles.CARMINITE_TRACE.get(), CarminiteParticle::traceProvider);
+        event.registerSpriteSet(ModParticles.CARMINITE_EFFECT.get(), CarminiteParticle::effectProvider);
     }
 
     private static void registerFluidExtensions(RegisterClientExtensionsEvent event) {

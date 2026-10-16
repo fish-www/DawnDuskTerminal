@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:smoking",
+  "category": "food",
+  "experience": 0.35,
+  "cookingtime": 100,
+  "ingredient": {
+    "item": "dawnduskterminal:carminite_ghast_meat"
+  },
+  "result": {
+    "id": "dawnduskterminal:cooked_carmin_ghast_meat"
+  }
+}
