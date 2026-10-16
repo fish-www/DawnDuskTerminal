@@ -69,7 +69,40 @@ repositories {
         }
         filter { includeGroup 'curse.maven' }
     }
+    // JEI 与 Xaero 同此，它们只在自己的源上
+    // net.mezzdev.config 是 JEI 自己的传递依赖（配置界面那一套），也在同一个源
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'BlameJared'
+                url = 'https://maven.blamejared.com'
+            }
+        }
+        filter {
+            includeGroup 'mezz.jei'
+            includeGroup 'net.mezzdev.config'
+        }
+    }
+    // Xaero 的组是 xaero.minimap xaero.map xaero.lib，用正则一把抓
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'ChocolateMinecraft'
+                url = 'https://chocolateminecraft.com/maven/'
+            }
+        }
+        filter { includeGroupByRegex 'xaero\\..*' }
+    }
     mavenLocal()
+}
+
+// 开发时给 runClient 单独挂的客户端模组：JEI 看配方，拼音搜索给它加中文检索，Xaero 两个是地图
+// 不能挂 run 的 additionalRuntimeClasspath：那只进 legacyClasspath.txt，FML 不当模组扫，游戏里看不见
+// 也不能挂工程 runtimeOnly：那样 runServer runData runGameTestServer 也会带上
+configurations {
+    clientDevMods {
+        canBeConsumed = false
+    }
 }
 
 // 两个前置模组都用 compileOnly 加 runtimeOnly：
@@ -84,6 +117,17 @@ dependencies {
     // 坐标是「项目 id 加 file id」，7797302 对应 CurseForge 上 1.21.1 的 4.8.3345
     compileOnly 'curse.maven:the-twilight-forest-227639:7797302'
     runtimeOnly 'curse.maven:the-twilight-forest-227639:7797302'
+
+    clientDevMods "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    clientDevMods "xaero.minimap:xaerominimap-neoforge-${minecraft_version}:${xaero_minimap_version}"
+    clientDevMods "xaero.map:xaeroworldmap-neoforge-${minecraft_version}:${xaero_worldmap_version}"
+    // 拼音搜索只有 CurseMaven，9163765 对应 1.21.1 的 4.5.30
+    clientDevMods 'curse.maven:just-enough-characters-250702:9163765'
+}
+
+// run 的 classpath 在任务执行时才从 classpathProvider 取，所以要加在 provider 上，加 classpath 会被覆盖
+tasks.named('runClient') { task ->
+    task.classpathProvider.from(configurations.clientDevMods)
 }
 
 def twilightDependency = providers.gradleProperty('twilight_dependency').getOrElse('required')

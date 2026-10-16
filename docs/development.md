@@ -38,6 +38,18 @@ NeoForge 与 ModDevGradle 版本在 `gradle.properties` 与 `settings.gradle`
 
 GeckoLib 声明 `geckoanimfix` 为不兼容依赖，两者不能同时装
 
+## 开发用的客户端模组
+
+`runClient` 会额外加载 JEI、拼音搜索（Just Enough Characters）、Xaero 小地图与 Xaero 世界地图，只供开发时看配方与看地图，不是本模组的依赖，不参与编译也不进产物
+
+JEI 与 Xaero 走各自官方 maven，拼音搜索走 CurseMaven（`curse.maven:just-enough-characters-250702:9163765`，对应 4.5.30），版本写在 `gradle.properties`
+
+它们在 `clientDevMods` 这个 configuration 里，由 `tasks.named('runClient') { classpathProvider.from(...) }` 挂到客户端运行的 classpath 上，`runServer` `runData` `runGameTestServer` 的 classpath 里没有它们
+
+踩过的三个坑：run 里写 `dependencies { runtimeOnly ... }` 会落到工程级 `runtimeOnly`，所有 run 都带上；run 的 `additionalRuntimeClasspathConfiguration` 只写进 `legacyClasspath.txt`，FML 不当模组扫，游戏里根本看不见；run 的 `classpath` 在任务执行时才从 `classpathProvider` 取，直接往 `classpath` 上加会被覆盖
+
+Xaero 两个依赖 `xaero.lib`，由它们的 pom 传递带上；JEI 要的 `mezz_config` 是 jar-in-jar 自带在 JEI 的 jar 里的，`net.mezzdev.config` 那个坐标是它的库不是模组
+
 ## 构建与运行
 
 `./gradlew build`，产物在 `build/libs/`
