@@ -101,6 +101,44 @@
 
 替换表在第一次使用时构建，因为 biome source 在数据包解析期创建，那一刻标签 holder 还没有 key
 
+## 群系温度与晨昏线偏移
+
+`NoiseChunkTemperatureMixin` 把维度的温度密度函数包进 `ChronoTemperature`
+
+温度噪声是 `shifted_noise`，噪声 `dawnduskterminal:temperature`，`amplitudes` 为 `[1.5, 0, 1, 0, 0, 0]`，`firstOctave` 为 -10
+
+它的声明值域是 `NormalNoise.maxValue`：`PerlinNoise.edgeValue(2.0)` 在这个振幅表上得到 1.7778，乘 2 再乘 `valueFactor` 1.25 得 `±4.4444`
+
+`ChronoTemperature.offset` 是 `line.param(x, z) * 1.5`，而 `param` 已经钳在 `[-1, 1]`，所以偏移量恒在 `[-1.5, 1.5]`
+
+包装器的 `minValue` / `maxValue` 取 `delegate ± 1.5`，声明值域因此变成 `±5.9444`。这一步是对的，扩宽确实发生了
+
+### 群系选择会饱和
+
+值域扩宽了，但群系选择看不到 `±5.9444`
+
+`Climate.quantizeCoord` 把温度乘 10000 取整
+
+原版 `OverworldBiomeBuilder` 的温度参数点只覆盖 `[-1.0, 1.0]`，分五段 `[-1, -0.45] [-0.45, -0.15] [-0.15, 0.2] [0.2, 0.55] [0.55, 1]`
+
+`Climate.Parameter.distance` 在区间内返回 0，在区间外返回到最近边界的距离。所以超出 `±1.0` 的温度不是被钳到某一个固定群系，而是让那几个极端温度参数点以固定距离胜出
+
+结果是昼侧深处与夜侧深处各有一大片区域落在极端参数点上，偏移再大也不再改变选择。想知道「极昼侧」到底有多宽，看 `line.param` 就行，不用看温度
+
+### 想加群系得绕过气候表
+
+`PaletteBiomeSource` 的 `delegate` 是原版 `multi_noise` 预设，参数表由 `OverworldBiomeBuilder` 在代码里构建，数据包改不了
+
+所以在 `[-1, 1]` 之外的温度区间上没法用气候表加群系，改了 `PaletteBiomeSource` 的替换表也没用，那张表只做同名替换
+
+要往扩宽过的值域里加群系，只能在 `PaletteBiomeSource.getNoiseBiome` 里自己判定，直接返回目标群系
+
+判定的输入可以有两种：`sampler.sample(...)` 的采样值，或 `ChronoLineState.serverLine().param(x, z)`
+
+本模组用的是后者。`param` 是纯坐标函数，不受噪声影响，边界是一条直的晨昏线而不是一条噪声曲线，而且与极夜进度、天光衰减共用同一个 `-0.6`
+
+目前用了这条路的两个群系：`floatrees`（按 `depth`）与 `dawnduskterminal:desert`（按 `param`）
+
 ## 标签
 
 `tags/worldgen/biome/palette_biomes.json` 列出全部群系副本
