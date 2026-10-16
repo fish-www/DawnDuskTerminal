@@ -40,5 +40,27 @@
     "sounds": [
       "dawnduskterminal:carminite_field"
     ]
+  },
+  "tower_ghast_ambient": {
+    "subtitle": "subtitles.dawnduskterminal.tower_ghast_ambient",
+    "sounds": [
+      "dawnduskterminal:tower_ghast_ambient_1",
+      "dawnduskterminal:tower_ghast_ambient_2",
+      "dawnduskterminal:tower_ghast_ambient_3",
+      "dawnduskterminal:tower_ghast_ambient_4",
+      "dawnduskterminal:tower_ghast_ambient_5",
+      "dawnduskterminal:tower_ghast_ambient_6",
+      "dawnduskterminal:tower_ghast_ambient_7"
+    ]
+  },
+  "tower_ghast_hurt": {
+    "subtitle": "subtitles.dawnduskterminal.tower_ghast_hurt",
+    "sounds": [
+      "dawnduskterminal:tower_ghast_hurt_1",
+      "dawnduskterminal:tower_ghast_hurt_2",
+      "dawnduskterminal:tower_ghast_hurt_3",
+      "dawnduskterminal:tower_ghast_hurt_4",
+      "dawnduskterminal:tower_ghast_hurt_5"
+    ]
   }
 }

@@ -7,8 +7,8 @@ YSM（2.3.0+）实现了几乎全部 Bedrock Molang，外加它自己的一套�
 
 * GeckoLib 的解析器只接受 `^[\\w\\s_+-/*%^&|<>=!?:;.,(){}]+$`，所以任何单引号字符串参数
   （如 `ysm.second_order('x', ...)`）都是硬性解析失败
-* GeckoLib 没有 `ysm.*` 函数库，也不实现 `q.yaw_speed`、`q.position_delta`、
-  `q.eye_target_y_rotation`
+* GeckoLib 没有 `ysm.*` 函数库，也不实现 `q.position_delta`、`q.eye_target_y_rotation`
+  （`q.yaw_speed` 是有的，早先误判成没有；速度类 query 还差 20 倍的换算，见别名表）
 * YSM 的 `??` 空值合并运算符和 `loop` / `break` / `continue` / `return` 都不是 GeckoLib
   认得的 Molang
 * GeckoLib 逐个烘焙动画片段，失败时记一条日志并<em>跳过</em>该片段 被跳过的片段玩家根本看不到，
@@ -87,13 +87,20 @@ ALIASES = {
     "ysm.swinging": "query.is_using_item",
     # YSM 也接受 query 的短名，GeckoLib 两个都认，这里统一成完整写法，好让报告读起来一致
     "q.anim_time": "query.anim_time",
-    "q.ground_speed": "query.ground_speed",
-    "q.vertical_speed": "query.vertical_speed",
+    # 速度类 query 的单位是<strong>每秒</strong>，GeckoLib 给的是<strong>每 tick</strong>，差 20 倍。
+    # 证据是 OpenYSM（YSM 的开放重实现）里 QueryBinding 的三个实现：
+    #     yaw_speed      = 20.0f * (getYRot() - yRotO)
+    #     ground_speed   = 20.0f * sqrt(dx*dx + dz*dz)
+    #     vertical_speed = 20.0f * dy / deltaTime
+    # 差 20 倍的症状是「看着不动」：源动画把 ground_speed 夹在 0..20、把 -3*vertical_speed 夹在
+    # -10..120、把 -0.02*yaw_speed 夹在 -60..60，这些夹位只有在秒的量级上才够得着
+    "q.ground_speed": "20*query.ground_speed",
+    "q.vertical_speed": "20*query.vertical_speed",
+    "q.yaw_speed": "20*query.yaw_speed",
 }
 
 # GeckoLib 完全没有实现的 YSM query，对照 GeckoLib 4.9.3 里 MolangQueries 的字段表确认过
 UNIMPLEMENTED_QUERIES = {
-    "query.yaw_speed": "GeckoLib 没有 yaw 角速度这个 query",
     "query.position_delta": "GeckoLib 没有位移增量这个 query",
     "query.position": "GeckoLib 没有绝对坐标这个 query",
     "query.eye_target_y_rotation": "GeckoLib 没有视线目标朝向这个 query",
@@ -380,7 +387,7 @@ class Translator:
                 # 防止匹配到更长的点串名字（ysm.head_yaw 与 ysm.head_yaw_x）
                 pattern = re.compile(re.escape(old) + r"(?![\w.])")
                 if pattern.search(expr):
-                    self.note(1, "alias", f"{old} -> {new}（同值，YSM 文档写明两者相同）", old, new)
+                    self.note(1, "alias", f"{old} -> {new}（等价改写）", old, new)
                     expr = pattern.sub(new, expr)
 
         for old, why in UNIMPLEMENTED_QUERIES.items():

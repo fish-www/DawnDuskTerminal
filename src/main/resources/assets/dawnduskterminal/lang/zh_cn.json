@@ -142,6 +142,8 @@
   "entity.dawnduskterminal.carminite_ball": "砷铅铁球",
   "subtitles.dawnduskterminal.carminite_staff_shoot": "权杖发射",
   "subtitles.dawnduskterminal.carminite_field": "砷铅铁反应场",
+  "subtitles.dawnduskterminal.tower_ghast_ambient": "高塔恶魂低语",
+  "subtitles.dawnduskterminal.tower_ghast_hurt": "高塔恶魂受击",
   "death.attack.dawnduskterminal.carminite_field": "%1$s 被砷铅铁反应场溶解",
   "entity.dawnduskterminal.tower_ghast": "高塔恶魂"
 }

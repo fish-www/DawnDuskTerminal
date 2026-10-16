@@ -108,7 +108,8 @@ YSM 文档写明未初始化的变量是 `null`，而 YSM 在数值上下文里�
 | `ysm.perlin_noise(seed,x,y,z)` | GeckoLib 没有噪声函数 |
 | `ysm.particle` / `ysm.abs_particle` / `play_sound` / `stop_sound` | 副作用，不是值 |
 | `ysm.keyboard` / `ysm.mouse` / `time_delta` / `fps` | 客户端输入与计时没有暴露给 GeckoLib |
-| `q.yaw_speed`、`q.position_delta`、`q.eye_target_y_rotation`、`q.position` | YSM 新增的 query，GeckoLib 没有实现 |
+| `q.position_delta`、`q.eye_target_y_rotation`、`q.position` | YSM 新增的 query，GeckoLib 没有实现 |
+| `q.yaw_speed` | GeckoLib <em>有</em> `query.yaw_speed`，早先误判成没有；补上时还要乘 20 换成每秒 |
 | `??` 空值合并 | GeckoLib 没有 null，直接使用本来就默认取 0 的变量 |
 | `#` 开头的关键帧指令 | 音效 / 粒子 / 指令关键帧 |
 
@@ -209,7 +210,9 @@ cmp /tmp/regen.json src/main/resources/assets/dawnduskterminal/animations/tower_
 - `models/arm.json` + `animations/arm.animation.json`：第一人称手臂模型与 52 个 `hold_mainhand:*` 手持动画
 - `models/arrow.json` + `animations/arrow.animation.json` + `textures/arrow.png`：箭矢形态
 - `animations/` 下另外 8 个文件是给别的模组用的兼容层：`tac`（TACZ 枪械）`tlm`（车万女仆）`parcool`（跑酷）`swem`（骑马）`carryon`（搬运）`slashblade`（拔刀剑）`extra`（玩家手动触发的 idle1-7 与 bad1-5）
-- `sounds/*.ogg`：上面那套 `extra` 动画的配音，本模组目前用原版恶魂音效
+- `sounds/*.ogg`：`bad1-5` 是受击语音、`id1-7` 是那套 `extra` 动画的配音（这里当待机语音用）、
+  `attack` 是攻击音，而这只生物没有攻击行为，所以留空。前两组已接进 `ModSounds`，
+  变体由 `sounds.json` 里同一个事件的多个文件交给原版随机挑
 - `controller/parallel_controllers.json`：YSM 的并行动画控制器，分层已在 `TowerGhastEntity` 里用 GeckoLib 控制器重写，这份是分层关系的原始依据
 
 `ysm.json` 是包元数据，`avatar/` 是作者头像，`sounds/desktop.ini` 是 Windows 垃圾文件
@@ -299,6 +302,9 @@ STBPerlin.stb_perlin_noise3_seed(x, y, z, 0, 0, 0, seed)
   `ElytraLocator`）、胸口（`Breast` `Carminite` `LeftGuard` `Bung`）、眼睛（`RightEyesBase` `LeftEyesBase`）、
   布条转身滞后（`FragFlag` 一系），共 19 根骨骼、12 支滤波器
 - 已完成：发丝的 38 根通道（`perlin` 加 `头发角速度`），以及上面三处量纲与语义修正
+- 已完成：主状态机的死亡与受击两档。YSM 的宿主状态机是 `isDeadOrDying()` 播 `death`（Priority.HIGHEST）、
+  `hurtTime > 0` 播 `attacked`（Priority 2），条件与优先级都照抄进 `TowerGhastEntity.mainAnimation`。
+  同时把渲染器的 `getDeathMaxRotation` 覆写成 0，否则 GeckoLib 那套通用倒地会与模型自带的死亡演出重叠
 - 未做：`ysm.bone_rot` 的递次滞后（`FragFlag2-4`、`LeftHeadFrag2-3` 等，读上一帧快照即可）；
   以及只存在于 YSM 补充模型里的那 5 根骨骼（做不了，除非自己补几何体）
 

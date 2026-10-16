@@ -34,6 +34,18 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> CARMINITE_FIELD =
         register("carminite_field");
 
+    /**
+     * 高塔恶魂的待机语音，7 条随机取一条
+     *
+     * <p>变体放在 {@code sounds.json} 的同一个事件里由原版随机挑，所以这里只要注册一个事件
+     */
+    public static final DeferredHolder<SoundEvent, SoundEvent> TOWER_GHAST_AMBIENT =
+        register("tower_ghast_ambient");
+
+    /** 高塔恶魂的受击语音，5 条随机取一条 */
+    public static final DeferredHolder<SoundEvent, SoundEvent> TOWER_GHAST_HURT =
+        register("tower_ghast_hurt");
+
     private ModSounds() {}
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {

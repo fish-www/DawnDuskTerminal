@@ -142,6 +142,8 @@
   "entity.dawnduskterminal.carminite_ball": "Carminite Ball",
   "subtitles.dawnduskterminal.carminite_staff_shoot": "Staff fires",
   "subtitles.dawnduskterminal.carminite_field": "Carminite field",
+  "subtitles.dawnduskterminal.tower_ghast_ambient": "Tower ghast mutters",
+  "subtitles.dawnduskterminal.tower_ghast_hurt": "Tower ghast hurts",
   "death.attack.dawnduskterminal.carminite_field": "%1$s dissolved in a carminite field",
   "entity.dawnduskterminal.tower_ghast": "Tower Ghast"
 }

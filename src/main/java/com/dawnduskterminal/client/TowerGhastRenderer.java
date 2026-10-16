@@ -4,6 +4,7 @@ import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.entity.TowerGhastEntity;
 import com.dawnduskterminal.registry.ModEntities;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
@@ -30,9 +31,26 @@ public final class TowerGhastRenderer {
     private TowerGhastRenderer() {}
 
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntities.TOWER_GHAST.get(),
-            context -> new GeoEntityRenderer<>(context, new TowerGhastModel())
-                .withScale(MODEL_SCALE));
+        event.registerEntityRenderer(ModEntities.TOWER_GHAST.get(), TowerGhastEntityRenderer::new);
+    }
+
+    /**
+     * 多出来的唯一一件事是把 GeckoLib 自带的倒地关掉
+     *
+     * <p>{@code GeoEntityRenderer.applyRotations} 在 {@code deathTime > 0} 时会把整个姿势绕 Z 转到
+     * {@link #getDeathMaxRotation} 度，默认 90。这套模型包自带 {@code death} 片段（1 秒，停在最后一帧），
+     * 两者同时生效就是「先被扳倒、再按自己的演出躺下」，看着像抽搐
+     */
+    private static final class TowerGhastEntityRenderer extends GeoEntityRenderer<TowerGhastEntity> {
+        private TowerGhastEntityRenderer(EntityRendererProvider.Context context) {
+            super(context, new TowerGhastModel());
+            withScale(MODEL_SCALE);
+        }
+
+        @Override
+        protected float getDeathMaxRotation(TowerGhastEntity animatable) {
+            return 0.0F;
+        }
     }
 
     /**

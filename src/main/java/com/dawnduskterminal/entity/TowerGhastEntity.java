@@ -1,5 +1,6 @@
 package com.dawnduskterminal.entity;
 
+import com.dawnduskterminal.registry.ModSounds;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -64,6 +65,21 @@ public class TowerGhastEntity extends PathfinderMob implements GeoEntity {
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop("walk");
     /** 快于散步时的主动画 */
     private static final RawAnimation RUN = RawAnimation.begin().thenLoop("run");
+    /**
+     * 受击的主动画，模型包自带，0.458 秒一次
+     *
+     * <p>YSM 的宿主状态机是 {@code hurtTime > 0} 时播它（OpenYSM 的 {@code AnimationRegister}），
+     * 我们照抄这个条件：不接的话被打时模型一点反应都没有
+     */
+    private static final RawAnimation ATTACKED = RawAnimation.begin().thenPlay("attacked");
+    /**
+     * 死亡的主动画，模型包自带，1 秒并停在最后一帧
+     *
+     * <p>同样照抄 YSM 的条件 {@code isDeadOrDying()}。不接的话 GeckoLib 会用它自己那套
+     * 「绕 Z 转 90 度」的通用倒地（{@code GeoEntityRenderer.applyRotations}），
+     * 既不是这套模型想要的演出，也会和渲染器上被覆写成 0 的 {@code getDeathMaxRotation} 打架
+     */
+    private static final RawAnimation DEATH = RawAnimation.begin().thenPlayAndHold("death");
 
     /** 控制器名 GeckoLib 按名字区分控制器，所以每一层都要有自己的名字 */
     private static final String LYR_MAIN = "main";
@@ -103,14 +119,8 @@ public class TowerGhastEntity extends PathfinderMob implements GeoEntity {
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         // 主层：一次一个片段，由实体状态决定 5 tick 过渡，与 YSM 主动画之间的淡入淡出一致
-        controllers.add(new AnimationController<>(this, LYR_MAIN, 5, state -> {
-            if (!state.isMoving()) {
-                return state.setAndContinue(IDLE);
-            }
-            // YSM 普通移动用 walk，冲刺用 run，这里能拿到的信号只有实体自身水平速度，
-            // 就用它来代替那个判断
-            return state.setAndContinue(this.getDeltaMovement().horizontalDistance() > 0.12D ? RUN : WALK);
-        }));
+        controllers.add(new AnimationController<>(this, LYR_MAIN, 5,
+            state -> state.setAndContinue(mainAnimation(this, state.isMoving()))));
 
         // YSM 的平行层与主动画一同无条件循环 这些片段转换后基本是常量，所以按文件里的层名注册，
         // 让它们保持原始固定姿势，而不是悄悄丢掉
@@ -118,6 +128,27 @@ public class TowerGhastEntity extends PathfinderMob implements GeoEntity {
         controllers.add(loopLayer(LYR_LOCAL, "pre_parallel0"));
         controllers.add(loopLayer(LYR_OFFSET, "pre_parallel1"));
         controllers.add(loopLayer(LYR_CONFIG, "pre_parallel2"));
+    }
+
+    /**
+     * 主动画的选择，抽成静态方法是为了能直接测：<strong>顺序就是优先级</strong>
+     *
+     * <p>死亡与受击都要压过移动，与 YSM 的状态机一致（它把死亡放在 {@code Priority.HIGHEST}、
+     * 受击放在 2，都高于基础移动）
+     */
+    public static RawAnimation mainAnimation(TowerGhastEntity entity, boolean moving) {
+        if (entity.isDeadOrDying()) {
+            return DEATH;
+        }
+        if (entity.hurtTime > 0) {
+            return ATTACKED;
+        }
+        if (!moving) {
+            return IDLE;
+        }
+        // YSM 普通移动用 walk，冲刺用 run，这里能拿到的信号只有实体自身水平速度，
+        // 就用它来代替那个判断
+        return entity.getDeltaMovement().horizontalDistance() > 0.12D ? RUN : WALK;
     }
 
     /** 平行层控制器：只要实体活着就一直循环它的片段 */
@@ -131,25 +162,31 @@ public class TowerGhastEntity extends PathfinderMob implements GeoEntity {
         return this.animatableCache;
     }
 
-    /** 源模型是恶魂主题的角色，所以复用恶魂音效，只是音调低一些 */
+    /**
+     * 待机与受击用模型包自带的配音
+     *
+     * <p>模型包的 {@code sounds/} 里有 7 条待机（{@code id1-7}）与 5 条受击（{@code bad1-5}），
+     * 变体交给 {@code sounds.json} 的同一个事件随机挑，所以这里只报事件名
+     *
+     * <p>死亡没有对应配音（包里那个 {@code attack.ogg} 是攻击用的，而这只生物没有攻击行为），
+     * 所以死亡仍用原版恶魂的
+     *
+     * <p>不再覆写 {@code getVoicePitch}：那是为了让原版恶魂音效听起来低一点，换成真正的语音之后
+     * 半速播放只会把台词拉长
+     */
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.GHAST_AMBIENT;
+        return ModSounds.TOWER_GHAST_AMBIENT.get();
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        return SoundEvents.GHAST_HURT;
+        return ModSounds.TOWER_GHAST_HURT.get();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
         return SoundEvents.GHAST_DEATH;
-    }
-
-    @Override
-    public float getVoicePitch() {
-        return 0.5F;
     }
 
     /** 像命名过的生物一样留在世界里，免得用来测试的对象悄悄消失 */
