@@ -118,7 +118,7 @@ feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则�
 
 `./gradlew runGameTestServer`
 
-共 34 个测试，覆盖世界生成 传送门形状 流体反应 霜层 半透明面剔除
+覆盖世界生成 传送门形状 流体反应 霜层 半透明面剔除
 
 见 `docs/development.md`
 

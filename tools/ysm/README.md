@@ -161,7 +161,7 @@ pre_parallel0       41         24     17
 | --- | --- |
 | `ysm_to_geckolib.py` | 转换器；`--report` 写出逐子句的审计 |
 | `validate_geckolib.py` | <strong>要跑的就是它</strong>：按 GeckoLib 真实的解析规则检查文件，列出会被静默跳过的片段 它同时是全仓库唯一的 GeckoLib 语法规则模块，另外两个脚本从这里导入 |
-| `ysm_selftest.py` | 27 条断言，钉住每一条转换规则 |
+| `ysm_selftest.py` | 自测，钉住每一条转换规则 |
 | `ysm_analyze.py` | 清点文件用到了哪些 YSM 构造，以及哪些片段会被 GeckoLib 跳过 |
 | `ysm_dump.py` | 导出指定片段的原始表达式 |
 | `physics_reference.py` | 滤波器公式，用来量度二级替换的误差 |

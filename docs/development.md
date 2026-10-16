@@ -60,11 +60,9 @@ GeckoLib 声明 `geckoanimfix` 为不兼容依赖，两者不能同时装
 
 命名空间 `dawnduskterminal`，模板 `ddt_empty`
 
-共 34 个测试
-
 ### 已知的失败与卡死
 
-34 个应当全绿，退出码是失败数，全绿时为 0
+整轮应当全绿，退出码是失败数，全绿时为 0
 
 **结构所在区块等不到实体刻会把整轮测试挂死**（已由 `mixin/GameTestChunkWaitMixin` 兜底）
 
@@ -174,7 +172,7 @@ GeckoLib 声明 `geckoanimfix` 为不兼容依赖，两者不能同时装
 
 `tools/ysm/validate_geckolib.py` 按 GeckoLib 真实解析规则校验动画文件，列出会被静默跳过的片段 它同时是全仓库唯一的 GeckoLib 语法规则模块
 
-`tools/ysm/ysm_selftest.py` 转换表的自测，27 条断言
+`tools/ysm/ysm_selftest.py` 转换表的自测，覆盖每一条转换规则
 
 `tools/ysm/` 的说明 转换表与实测数据都在它目录下的 `README.md`
 

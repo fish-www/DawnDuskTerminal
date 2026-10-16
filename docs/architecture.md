@@ -30,7 +30,7 @@
 
 `item/` 自定义物品
 
-`mixin/` 十二个 Mixin
+`mixin/` 针对原版的补丁
 
 `network/` 网络包
 
@@ -198,7 +198,7 @@
 
 ## Mixin
 
-配置 `dawnduskterminal.mixins.json`，公共 11 个，客户端 1 个
+配置 `dawnduskterminal.mixins.json`，分公共与客户端两份
 
 `FluidStatusAccessor` 暴露 `Aquifer.FluidStatus` 的流体类型给其他 mixin
 

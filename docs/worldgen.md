@@ -65,15 +65,15 @@
 `tools/port_overworld_worldgen.py` 从 Gradle 缓存里的反编译客户端 jar 抽取原版
 `density_function` `noise` `noise_settings`，改写命名空间后写入本模组
 
-`density_function/` 共 21 个文件，含 `overworld/` 子目录
+`density_function/` 含 `overworld/` 子目录
 
-`noise/` 共 42 个噪声参数
+`noise/` 是移植过来的噪声参数
 
 `multi_noise_biome_source_parameter_list/` 是原版主世界与下界的多噪声参数表副本
 
-`configured_carver/` 3 个，洞穴与峡谷
+`configured_carver/` 是洞穴与峡谷
 
-`configured_feature/` 57 个，`placed_feature/` 155 个
+`configured_feature/` 与 `placed_feature/` 是移植过来的特征
 
 移植脚本把群系里的放置特征引用、以及放置特征里的配置特征引用都改写到 `dawnduskterminal:` 命名空间
 
@@ -95,7 +95,7 @@
 
 副本携带本模组的方块特征表，所以维度在生成期就铺自己的方块，而不是事后打补丁
 
-`worldgen/biome/` 共 54 份，其中 53 份与主世界群系同名，另一份是 `floatrees`
+`worldgen/biome/` 里除 `floatrees` 外都是与主世界群系同名的副本
 
 `floatrees` 不走替换表，采样深度低于阈值时直接返回
 
@@ -103,11 +103,11 @@
 
 ## 标签
 
-`tags/worldgen/biome/palette_biomes.json` 列出全部 54 份群系副本
+`tags/worldgen/biome/palette_biomes.json` 列出全部群系副本
 
-`tags/block/` 共 15 个本模组方块标签，供移植过的特征引用
+`tags/block/` 是本模组方块标签，供移植过的特征引用
 
-`data/minecraft/tags/worldgen/biome/` 共 50 个群系标签，把副本挂进结构生成与刷怪规则
+`data/minecraft/tags/worldgen/biome/` 把副本挂进结构生成与刷怪规则
 
 `data/minecraft/tags/block/` 把模组方块加进原版石类 土类 沙类 树叶等标签
 
@@ -149,7 +149,7 @@
 
 `data/dawnduskterminal/tags/worldgen/biome/` 下的旧标签只保留 `palette_biomes`
 
-`configured_feature` 里 15 处 `random_selector` 分支仍指向 `minecraft:`，对应的 11 份配置特征副本没有任何特征引用
+`configured_feature` 里部分 `random_selector` 分支仍指向 `minecraft:`，对应的配置特征副本没有任何特征引用
 
 ## 改地形注意
 

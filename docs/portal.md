@@ -6,7 +6,7 @@
 
 两种模组流体是门与危险源，反应在 `world/FluidReactions`
 
-## 三个标签
+## 标签
 
 `tags/block/portal/fluid` 定义可用作水池的方块，当前只有 `minecraft:water`
 
