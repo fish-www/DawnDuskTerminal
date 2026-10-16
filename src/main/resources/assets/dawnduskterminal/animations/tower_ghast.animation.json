@@ -603,7 +603,7 @@
      "rotation": [
       0,
       0,
-      "0.3*query.head_y_rotation"
+      "0.3*math.min_angle(query.head_y_rotation-query.body_y_rotation)"
      ],
      "position": {
       "0.0": [
@@ -2608,8 +2608,8 @@
       "0.2917": {
        "post": [
         0,
-        "-0.2*(-query.head_y_rotation)",
-        "0.1*(-query.head_y_rotation)"
+        "-0.2*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))",
+        "0.1*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))"
        ],
        "lerp_mode": "catmullrom"
       }
@@ -6832,8 +6832,8 @@
     "AllBody": {
      "rotation": [
       0,
-      "-1.5*(-query.head_y_rotation)",
-      "0.6*(-query.head_y_rotation)"
+      "-1.5*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))",
+      "0.6*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))"
      ]
     },
     "AllHead": {
@@ -6968,7 +6968,7 @@
     "Head": {
      "rotation": [
       "query.head_x_rotation",
-      "query.head_y_rotation",
+      "math.min_angle(query.head_y_rotation-query.body_y_rotation)",
       0
      ]
     },
@@ -7118,7 +7118,7 @@
     "MHead": {
      "rotation": [
       "query.head_x_rotation",
-      "math.clamp(query.head_y_rotation,-60,60)",
+      "math.clamp(math.min_angle(query.head_y_rotation-query.body_y_rotation),-60,60)",
       0
      ]
     },
@@ -10651,8 +10651,8 @@
     "AllBody": {
      "rotation": [
       0,
-      "-0.5*(-query.head_y_rotation)",
-      "0.2*(-query.head_y_rotation)"
+      "-0.5*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))",
+      "0.2*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))"
      ],
      "position": [
       0,
@@ -10919,8 +10919,8 @@
     "AllBody": {
      "rotation": [
       0,
-      "-1.5*(-query.head_y_rotation)",
-      "0.6*(-query.head_y_rotation)"
+      "-1.5*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))",
+      "0.6*(-math.min_angle(query.head_y_rotation-query.body_y_rotation))"
      ]
     },
     "AllHead": {
@@ -10933,7 +10933,7 @@
     "Head": {
      "rotation": [
       "-20+query.head_x_rotation",
-      "query.head_y_rotation",
+      "math.min_angle(query.head_y_rotation-query.body_y_rotation)",
       0
      ]
     },
@@ -16528,14 +16528,14 @@
     "MAllBody": {
      "rotation": [
       "-query.head_x_rotation",
-      "-query.head_y_rotation",
+      "-math.min_angle(query.head_y_rotation-query.body_y_rotation)",
       0
      ]
     },
     "MHead": {
      "rotation": [
       "query.head_x_rotation",
-      "math.clamp(query.head_y_rotation,-60,60)",
+      "math.clamp(math.min_angle(query.head_y_rotation-query.body_y_rotation),-60,60)",
       0
      ]
     },
@@ -25559,14 +25559,14 @@
    "bones": {
     "RightEyesBase": {
      "position": [
-      "(query.head_y_rotation/180)",
+      "(math.min_angle(query.head_y_rotation-query.body_y_rotation)/180)",
       "(query.head_x_rotation/360);(v_roaming.expe==3?0.25:0)",
       0
      ]
     },
     "LeftEyesBase": {
      "position": [
-      "(query.head_y_rotation/180)",
+      "(math.min_angle(query.head_y_rotation-query.body_y_rotation)/180)",
       "(query.head_x_rotation/360);(v_roaming.expe==3?0.25:0)",
       0
      ]

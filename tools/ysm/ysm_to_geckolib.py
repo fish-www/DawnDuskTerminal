@@ -69,10 +69,14 @@ def _variable_is_geckolib_valid(name: str) -> bool:
 # --------------------------------------------------------------------------------------
 
 ALIASES = {
-    # 维基写明 ysm.head_yaw / ysm.head_pitch 与这两个 query 是同一个值
-    # （"与 query.head_x_rotation 相同" / "..._y_rotation 相同"）
-    "ysm.head_yaw": "query.head_y_rotation",
+    # ysm.head_pitch 与 query.head_x_rotation 确实是同一个值（都是俯仰角，身体不俯仰）
     "ysm.head_pitch": "query.head_x_rotation",
+    # ysm.head_yaw 不是 query.head_y_rotation：前者是<strong>相对身体</strong>的头部转角，
+    # 后者是 getViewYRot()，世界坐标。直接用会把「转头 45 度」从 0.25 格放大到 2 格，
+    # 而且整只模型会随朝向滚转 —— 例如 run 片段里 Root.rotation[2]=0.3*head_yaw
+    # 在绝对坐标下能到 54 度，看上去就是模型自己倒下
+    # query.body_y_rotation 是 yBodyRot，math.min_angle 是 Mth.wrapDegrees
+    "ysm.head_yaw": "math.min_angle(query.head_y_rotation-query.body_y_rotation)",
     "ysm.is_passenger": "query.is_riding",
     "ysm.is_sleep": "query.is_sleeping",
     "ysm.is_sneak": "query.is_sneaking",

@@ -5,6 +5,7 @@ import com.dawnduskterminal.entity.TowerGhastEntity;
 import com.dawnduskterminal.registry.ModEntities;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
@@ -43,6 +44,20 @@ public final class TowerGhastRenderer {
      * 三条路径各自只有一处定义，双参数调用最终也会走到它们
      */
     private static final class TowerGhastModel extends GeoModel<TowerGhastEntity> {
+        /**
+         * 有状态的那两层（parallel0 与 pre_parallel0）在这里写回
+         *
+         * <p>必须挂在这里而不是渲染层：{@code setCustomAnimations} 是 {@code handleAnimations} 的最后
+         * 一步，夹在「动画写入骨骼」与「骨骼矩阵被读走」之间，见 {@link TowerGhastBonePose} 的类注释
+         */
+        @Override
+        public void setCustomAnimations(TowerGhastEntity entity, long instanceId,
+                                        AnimationState<TowerGhastEntity> animationState) {
+            this.bonePose.apply(entity, this, animationState.getPartialTick());
+        }
+
+        private final TowerGhastBonePose bonePose = new TowerGhastBonePose();
+
         private static final ResourceLocation MODEL =
             DawnDuskTerminal.id("geo/tower_ghast.geo.json");
         private static final ResourceLocation TEXTURE =
