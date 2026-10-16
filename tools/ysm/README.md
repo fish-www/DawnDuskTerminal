@@ -81,16 +81,22 @@ response   gain   90% at      （first_order）
 真正丢掉的是<em>次级运动</em> —— `walk` / `jump` / `swim` / `fly` 里的布料 旗帜 头发链，
 是把每根骨骼自己的上一帧旋转喂给下一根驱动的，那条级联没有无状态等价物
 
-**结构性修补** 有两条 GeckoLib 文法规则只有在真实客户端跑过之后才暴露出来，
+**结构性修补** 有三条 GeckoLib 文法规则只有在真实客户端跑过之后才暴露出来，
 因为检查器的第一版只建模了字符集，没有建模解析器对嵌套表达式的处理：
 
 | 规则 | 日志里的失败 | 修法 |
 | --- | --- | --- |
 | `VARIABLE_FORMAT = ^[a-z_]+\.[\w+_]+$` 只允许<strong>一个点</strong> | `Unable to parse compiled symbols from expression: [Left[v.roaming.expe]]` | YSM 三级的 `v.roaming.*` 变成 `v.roaming_*`（`v.roaming.expe` → `v.roaming_expe`） |
-| 函数<strong>实参列表</strong>里的三元运算符编译不过 | `Failed to parse expression '5.63304+(query.ground_speed>0?math.sin(query.anim_time*720)*2)'` | 三元先求值进前一条语句的 `t.hoistN`，调用改读那个变量 |
+| 条件式必须在同一层有配对的 `:`（`MathParser.compileTernary` 找不到冒号就返回 null），即 GeckoLib 不认 YSM 的<strong>无冒号条件式</strong> `cond?value` | `Failed to parse expression '5.63304+(query.ground_speed>0?math.sin(query.anim_time*720)*2)'` | 补成 `cond?(value):0`：YSM 条件为假时求值是 `null`，数值上下文按 0，所以补 0 是精确的 |
+| 函数<strong>实参列表</strong>里的三元运算符编译不过（经验规则，不是 jar 里的常量） | 同上那条日志曾被归到这条上 | 三元先求值进前一条语句的 `t.hoistN`，调用改读那个变量 |
 
 提升必须冒到<strong>顶层</strong>：把三元从嵌套调用里拉出来会产生一条赋值，
 而这条赋值仍待在上一层调用的实参列表里，带 `?` 的赋值和三元一样编译不过
+
+上面第二条才是 `ride` 丢失的真实原因。原先它被归到第三条上，于是转换器改成提升三元（提升本身是精确的），
+而 `ride` 依旧失败：`t.hoist0=(cond?X)` 里那个 `?` 还是没冒号。
+日志里有现成证据：含冒号的三元即使待在括号里也能加载（`parallel0` 被提升出的 `t.hoist0=(…(0<0?(0<0?-180:180):0))` 就是），
+缺冒号的 `ride` 不能 —— 致命的是缺冒号，不是括号。
 
 `v.sleevefix`、`v.forward`、`v.hg`、`v.hv`、`v.bg`、`v.bv` 是被文件读取、
 但<strong>文件从未赋值</strong>的变量 —— 它们原本由外部自定义函数脚本喂值，而这套模型包并不带那些脚本
@@ -150,8 +156,8 @@ textures/<path>/<subtype>.png
 
 ```
 片段数              50
-改动的表达式        712 条，分布在 27 个片段
-按级别              94 / 378 / 240  （一级 / 二级 / 三级）
+改动的表达式        715 条，分布在 27 个片段
+按级别              163 / 381 / 171  （一级 / 二级 / 三级）
 GeckoLib 校验       50 个片段全部通过 GeckoLib 的解析规则
 ```
 

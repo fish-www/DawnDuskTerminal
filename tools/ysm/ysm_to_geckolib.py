@@ -11,6 +11,8 @@ YSM（2.3.0+）实现了几乎全部 Bedrock Molang，外加它自己的一套�
   （`q.yaw_speed` 是有的，早先误判成没有；速度类 query 还差 20 倍的换算，见别名表）
 * YSM 的 `??` 空值合并运算符和 `loop` / `break` / `continue` / `return` 都不是 GeckoLib
   认得的 Molang
+* YSM 允许省掉条件式的假分支（`cond?value`），GeckoLib 只认 `cond?value:other`，
+  缺冒号会让整条表达式编译失败并让整个片段被跳过（模型上的 `ride` 就是这样没的）
 * GeckoLib 逐个烘焙动画片段，失败时记一条日志并<em>跳过</em>该片段 被跳过的片段玩家根本看不到，
   骨骼只是僵在原地 这个脚本存在的意义就是消掉这种失败方式
 
@@ -443,6 +445,107 @@ class Translator:
                       name, flattened)
             expr = expr[:match.start(1)] + flattened + expr[match.end(1):]
 
+    # YSM 允许省掉条件式的假分支（`cond?value`，条件为假时求值是 null，数值上下文按 0 处理），
+    # GeckoLib 的 compileTernary 只在同一层找到配对 `:` 时才认这个三元，缺冒号会让整条表达式
+    # 编译失败（"Unable to parse compiled symbols"）并让整个片段被跳过。
+    # 真值分支的范围按 YSM 的优先级算：吃到本层的 `,` `;` 或优先级低于三元的运算符为止。
+    # 优先级取自 OpenYSM 的 BinaryExpression.Op（CONDITIONAL=1400），比它低的只有
+    # NULL_COALESCE(1200) 与 ASSIGN(1)，所以 `&&` `||` `==` 这些会被吃进真值分支
+    _BARE_CONDITIONAL_ORDER_SEPARATORS = (",", ";")
+
+    @staticmethod
+    def _level_parts(expr: str, start: int, end: int) -> tuple[list[tuple[str, int]], list[tuple[int, int]]]:
+        """把 `expr[start:end]` 拆成（本层字符及其下标, 每个括号组的内容区间）
+
+        括号自身的字符不算本层，组的内容由递归处理
+        """
+        chars: list[tuple[str, int]] = []
+        children: list[tuple[int, int]] = []
+        depth = 0
+        child_start = start
+        for i in range(start, end):
+            ch = expr[i]
+            if ch == "(":
+                depth += 1
+                if depth == 1:
+                    child_start = i + 1
+                else:
+                    chars.append((ch, i))
+            elif ch == ")":
+                depth -= 1
+                if depth <= 0:
+                    depth = 0
+                    children.append((child_start, i))
+                else:
+                    chars.append((ch, i))
+            elif depth == 0:
+                chars.append((ch, i))
+        if depth > 0:
+            # 括号不配对，剩下的当子层，让 GeckoLib 自己去报这个错
+            children.append((child_start, end))
+        return chars, children
+
+    @staticmethod
+    def _is_bare_question(expr: str, index: int) -> bool:
+        """`??` 是空值合并，不是条件式"""
+        return expr[index:index + 2] != "??" and expr[index - 1:index + 1] != "??"
+
+    @staticmethod
+    def _is_branch_end(expr: str, index: int) -> bool:
+        """真值分支是否在这里结束：`=` 是赋值，`==`/`!=`/`<=`/`>=` 不是"""
+        return expr[index] == "=" and expr[index:index + 2] != "==" and expr[index - 1] not in "=!<>"
+
+    def _find_bare_conditional(self, expr: str, start: int, end: int) -> tuple[int, int, int] | None:
+        """找最内层最右边那个没有配对 `:` 的 `?`
+
+        返回（`?` 下标, 真值分支起点, 真值分支终点）
+        """
+        chars, children = self._level_parts(expr, start, end)
+        for child_start, child_end in reversed(children):
+            found = self._find_bare_conditional(expr, child_start, child_end)
+            if found:
+                return found
+
+        pending: list[int] = []
+        for ch, index in chars:
+            if ch == "?" and self._is_bare_question(expr, index):
+                pending.append(index)
+            elif ch == ":" and pending:
+                pending.pop()
+
+        for question in reversed(pending):
+            branch_end = end
+            for ch, index in chars:
+                if index <= question:
+                    continue
+                if ch in self._BARE_CONDITIONAL_ORDER_SEPARATORS or self._is_branch_end(expr, index):
+                    branch_end = index
+                    break
+            if branch_end > question + 1:
+                return question, question + 1, branch_end
+        return None
+
+    def _close_bare_conditionals(self, expr: str) -> str:
+        """把 YSM 的无冒号条件式 `cond?value` 补成 `cond?(value):0`
+
+        补 0 是精确的：YSM 在条件为假时给 null，而 null 在数值上下文里被当作 0，
+        与本模型里那些「未赋值变量读作 0」是同一条依据
+        """
+        original = expr
+        # 每次至少给一个 `?` 补上冒号，所以一定会结束
+        for _ in range(256):
+            found = self._find_bare_conditional(expr, 0, len(expr))
+            if found is None:
+                break
+            question, branch_start, branch_end = found
+            expr = f"{expr[:question]}?({expr[branch_start:branch_end]}):0{expr[branch_end:]}"
+        if expr != original:
+            self.note(2, "bare conditional closed",
+                      "GeckoLib 只认 `?:`，YSM 的 `cond?value` 条件为假时是 null（数值上下文按 0），"
+                      "所以补成 `cond?(value):0`",
+                      original, expr)
+        return expr
+
     def _hoist_ternaries_out_of_arguments(self, statement: str, counter: list) -> list[str]:
         """把每处 `?:` 从每个函数实参列表里挪到语句最前面
 
@@ -559,6 +662,7 @@ class Translator:
             text = self._drop_unknown_ysm(text)
             text = self._flatten_multidot_variables(text)
             text = re.sub(r"\s+", " ", text).strip()
+            text = self._close_bare_conditionals(text)
             # 结构性修补可以把一条语句变成好几条（提升出去的三元）
             for piece in self._hoist_ternaries_out_of_arguments(text, hoist_counter):
                 piece = re.sub(r"\s+", " ", piece).strip()

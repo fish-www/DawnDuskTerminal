@@ -11391,7 +11391,7 @@
     },
     "UpBody": {
      "rotation": [
-      "5.63304+(20*query.ground_speed>0?math.sin(query.anim_time*720)*2)",
+      "5.63304+(20*query.ground_speed>0?(math.sin(query.anim_time*720)*2):0)",
       27.38656,
       2.59775
      ]
@@ -11464,14 +11464,14 @@
     },
     "Head": {
      "rotation": [
-      "-10-(20*query.ground_speed>0?math.sin(30+query.anim_time*720)*2)",
+      "-10-(20*query.ground_speed>0?(math.sin(30+query.anim_time*720)*2):0)",
       0,
       0
      ]
     },
     "molang": {
      "rotation": [
-      "v.bv=20*query.ground_speed>0?math.cos(2*query.anim_time*360/(24/24))*5",
+      "v.bv=20*query.ground_speed>0?(math.cos(2*query.anim_time*360/(24/24))*5):0",
       0,
       0
      ]
