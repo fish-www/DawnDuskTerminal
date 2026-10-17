@@ -78,6 +78,8 @@ public final class TowerGhastBoneFilters {
     private final Map<String, SecondOrderState> chainOrder = new HashMap<>();
     /** 链条结果的两刻缓存，交给渲染帧插值 */
     private final Map<String, double[]> chainValues = new HashMap<>();
+    /** 上一步写到某根骨骼某个轴上的链条量（度），按骨骼名记忆 */
+    private final Map<String, double[]> chainPose = new HashMap<>();
 
     private final double[] current = new double[COUNT];
     private final double[] previous = new double[COUNT];
@@ -167,15 +169,37 @@ public final class TowerGhastBoneFilters {
      * （64 条通道里只有一条的两个轴不同）
      *
      * <p>每 tick 只调用一次：filter 的状态按名字记忆，重复调用会多积分一步
+     *
+     * @return 这一步写出去的量（度），调用方要把它连同骨骼名记进 {@link #setChainPose}
      */
-    public void stepChain(String name, double filterInput, double subtractInput, double frequency,
-                          double coefficient, double sign, double parentGain) {
+    public double stepChain(String name, double filterInput, double subtractInput, double frequency,
+                            double coefficient, double sign, double parentGain) {
         SecondOrderState state = TowerGhastPhysics.secondOrderStep(filterInput, frequency, coefficient, 0.0,
             this.chainOrder.getOrDefault(name, SecondOrderState.ZERO));
         this.chainOrder.put(name, state);
+        double value = sign * state.value() + parentGain * subtractInput;
         double[] values = this.chainValues.computeIfAbsent(name, unused -> new double[2]);
         values[0] = values[1];
-        values[1] = sign * state.value() + parentGain * subtractInput;
+        values[1] = value;
+        return value;
+    }
+
+    /**
+     * 记下链条这一步写到某根骨骼某个轴上的量
+     *
+     * <p>链条的下一级读父骨骼的<em>合成</em>角度，而 GeckoLib 每帧 {@code tickAnimation} 都会把
+     * 那些骨骼重置回「关键帧的值 + 初始姿势」，上一帧 {@code addRotation} 加的量活不过一帧，
+     * 所以只能由这里替它记着（{@code TowerGhastBonePose.advanceChains}）
+     */
+    public void setChainPose(String bone, int axis, double degrees) {
+        this.chainPose.computeIfAbsent(bone, unused -> new double[3])[axis] = degrees;
+    }
+
+    /** 上一步链条写在这根骨骼这个轴上的量，没写过就是 0 */
+    public double chainPose(String bone, int axis) {
+        double[] pose = this.chainPose.get(bone);
+
+        return pose == null ? 0.0 : pose[axis];
     }
 
     /** 链条结果在两刻之间插值，没走过就直接是 0 */

@@ -240,6 +240,19 @@ public final class TowerGhastPhysicsTests {
         // 没走过的名字读出来是 0，而不是 NaN
         helper.assertTrue(filters.interpolateChain("没走过", 1.0F) == 0.0,
             "没走过的链条要读作 0");
+
+        // 链条的下一级靠 chainPose 读父骨上一 tick 带出去的量（GeckoLib 每帧把骨骼重置回关键帧）
+        helper.assertTrue(filters.chainPose("FragFlag2", 0) == 0.0, "没写过的骨骼姿态要读作 0");
+        filters.setChainPose("FragFlag2", 0, 12.5);
+        helper.assertTrue(filters.chainPose("FragFlag2", 0) == 12.5, "写进去的链条量要能读回来");
+        helper.assertTrue(filters.chainPose("FragFlag2", 1) == 0.0, "同一个骨骼的其它轴不受影响");
+
+        // stepChain 的返回值就是它写出去的那个量，调用方直接拿它记 chainPose
+        double returned = 0.0;
+        for (int i = 0; i < SETTLE_TICKS; i++) {
+            returned = filters.stepChain("测试返回值", 30.0, 30.0, 2.0, 0.4, 1.0, 0.0);
+        }
+        helper.assertTrue(Math.abs(returned - 30.0) < 1.0E-2, "stepChain 要返回它写出去的量（稳态 30），got " + returned);
         helper.succeed();
     }
 

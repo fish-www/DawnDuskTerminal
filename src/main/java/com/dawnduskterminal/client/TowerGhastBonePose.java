@@ -241,9 +241,7 @@ public final class TowerGhastBonePose {
         // 发丝的 perlin 要按<strong>帧</strong>取：噪声乘 10 度加在发丝上，而 GeckoLib 每帧都求值动画，
         // 按 20 Hz 的 tickCount 取值在 60 fps 下就是一跳一跳的（YSM 那边 query.life_time 也是连续的）
         double perlin = TowerGhastPhysics.perlinNoise(PERLIN_SEED, (entity.tickCount + partialTick) / 20.0);
-        if (filters.advanceIfNewTick(entity, perlin)) {
-            advanceChains(model, filters);
-        }
+        boolean newTick = filters.advanceIfNewTick(entity, perlin);
         applyHeadTracking(entity, model, partialTick);
 
         List<String> missing = null;
@@ -260,6 +258,10 @@ public final class TowerGhastBonePose {
             }
             applyBone(bone, entity, partialTick, filters, perlin);
         }
+        // 链条要读的是「基础姿势已经写完」的骨骼，所以排在 BONES 循环之后，见 advanceChains
+        if (newTick) {
+            advanceChains(model, filters);
+        }
         // 链条的骨骼不在 NAMED_BONES 里，单独写回
         for (Lag lag : LAGS) {
             GeoBone bone = model.getBone(lag.bone()).orElse(null);
@@ -268,8 +270,8 @@ public final class TowerGhastBonePose {
             }
             addRotation(bone, lag.axis(), filters.interpolateChain(lag.name(), partialTick));
         }
-        // 临时诊断：只在第 20 刻各实体打一次，用来确认「基础姿势有没有被抹平」与链条输出到底是多少
-        if (entity.tickCount == 20) {
+        // 临时诊断：每 20 刻各实体打一次，用来确认「基础姿势有没有被抹平」与链条输出到底是多少
+        if (entity.tickCount % 20 == 0) {
             for (String name : List.of("FrontFragFlag", "FragFlag2", "FragFlag3", "FragFlag4")) {
                 GeoBone bone = model.getBone(name).orElse(null);
                 if (bone == null) {
@@ -302,12 +304,19 @@ public final class TowerGhastBonePose {
     }
 
     /**
-     * 逐 tick 走一遍链条：每根子骨骼的二阶滤波输入取父骨骼的<strong>上一帧</strong>旋转
+     * 逐 tick 走一遍链条：每根子骨骼的二阶滤波输入取父骨骼的<strong>合成</strong>角度
      *
      * <p>写回不在这一步，而是在 {@link #apply} 里按 partialTick 插值写
      *
-     * <p>读回自己上一帧写出去的值是故意的，也是源动画的做法（{@code ysm.bone_rot} 就是上一帧的骨骼旋转）：
-     * 链条是一棵严格的父→子树，没有自引用，{@code F(x)-x} 这种形状反而会自己把自己拉回 0
+     * <p><strong>必须在 {@link #applyBone} 循环之后调用</strong>：布条根部那点运动（{@code 0.5*turnLag}、
+     * 头部跟踪、发丝滤波器）都是本层每帧写上去的，而转换后的动画文件里那些通道是 0。
+     * 排在前面的读到的就是 0，链条整条安静，表现是布条作为一块硬片跟着根骨转
+     *
+     * <p>父骨骼上一 tick 的链条量要靠 {@link TowerGhastBoneFilters#chainPose} 补回来：
+     * GeckoLib 每帧 {@code tickAnimation} 把骨骼重置回关键帧，本层的 {@code addRotation} 活不过一帧，
+     * 直接读骨骼只能读到动画叠加的那部分
+     *
+     * <p>链条是一棵严格的父→子树，没有自引用，{@code F(x)-x} 这种形状反而会自己把自己拉回 0
      */
     private void advanceChains(GeoModel<TowerGhastEntity> model, TowerGhastBoneFilters filters) {
         for (Lag lag : LAGS) {
@@ -315,14 +324,29 @@ public final class TowerGhastBonePose {
             if (parent == null) {
                 continue;
             }
-            double input = composedDegrees(parent, lag.parentAxis());
+            double input = posedDegrees(parent, lag.parentAxis(), filters);
             // 源式子的第二项读的是父骨骼另一个轴上的值（64 条里只有 FragFlag16.rotation[0] 与第一项不同轴）
             double subtracted = lag.parentAxis() == lag.subtractAxis()
                 ? input
-                : composedDegrees(parent, lag.subtractAxis());
-            filters.stepChain(lag.name(), input, subtracted, lag.frequency(), lag.coefficient(),
+                : posedDegrees(parent, lag.subtractAxis(), filters);
+            double value = filters.stepChain(lag.name(), input, subtracted, lag.frequency(), lag.coefficient(),
                 lag.sign(), lag.parentGain());
+            filters.setChainPose(lag.bone(), lag.axis(), value);
         }
+    }
+
+    /**
+     * 骨骼在某个轴上<strong>实际摆出来的</strong>角度：动画与本层基础姿势的合成，再加各级链条自己带出去的量
+     *
+     * <p>后者不在骨骼上（{@link #advanceChains} 的注释里写了原因），由滤波器替它记着
+     */
+    private static double posedDegrees(GeoBone bone, int axis, TowerGhastBoneFilters filters) {
+        double total = composedDegrees(bone, axis);
+        for (GeoBone current = bone; current != null; current = current.getParent()) {
+            total += filters.chainPose(current.getName(), axis);
+        }
+
+        return total;
     }
 
     /**
