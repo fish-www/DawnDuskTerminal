@@ -2,6 +2,7 @@ package com.dawnduskterminal.registry;
 
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.entity.CarminiteBallEntity;
+import com.dawnduskterminal.entity.CarminiteFieldEntity;
 import com.dawnduskterminal.entity.TowerGhastEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityDimensions;
@@ -36,6 +37,16 @@ public final class ModEntities {
             .clientTrackingRange(4)
             .updateInterval(1)
             .build("carminite_ball"));
+
+    /** 命中后留在原地的反应场。不可见 不参与碰撞，客户端靠它每 tick 生成边缘粒子 */
+    public static final DeferredHolder<EntityType<?>, EntityType<CarminiteFieldEntity>> CARMINITE_FIELD =
+        ENTITIES.register("carminite_field", () -> EntityType.Builder
+            .<CarminiteFieldEntity>of(CarminiteFieldEntity::new, MobCategory.MISC)
+            .sized(0.1F, 0.1F)
+            .fireImmune()
+            .clientTrackingRange(4)
+            .updateInterval(1)
+            .build("carminite_field"));
 
     private ModEntities() {}
 

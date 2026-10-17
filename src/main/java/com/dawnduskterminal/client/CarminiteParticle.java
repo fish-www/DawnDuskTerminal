@@ -6,70 +6,86 @@ import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.util.Mth;
 
 /**
  * 砷铅铁三种粒子共用的实现
  *
- * <p>它们只差速度 阻力 重力 寿命 尺寸，所以共用一支而不是照抄三支。帧序由数据包里的
- * {@code particles/particle_carminite_*.json} 决定，这里只负责按寿命取帧
+ * <p>数值逐项照抄源 mod 的三个 provider：它们只差尺寸 寿命 重力 换帧节奏 自转，所以共用一支。
+ * 帧序由 {@code particles/particle_carminite_*.json} 的贴图顺序决定，换帧节奏写在下面每个
+ * provider 里
  *
- * <p>渲染层用 {@link ParticleRenderType#PARTICLE_SHEET_TRANSLUCENT}：贴图带 alpha，
- * 落到不透明层会把边缘画成黑框
+ * <p>满亮坐标加 {@link ParticleRenderType#PARTICLE_SHEET_LIT}，和源 mod 一致。原版粒子着色器
+ * 会丢弃全透明像素，所以贴图边缘不会画成黑框
+ *
+ * <p>尺寸照抄源 mod 的写法：{@code setSize(1,1)} 设的是碰撞箱（这里 hasPhysics 为 false，用不上），
+ * 真正的 quadSize 是默认随机值 0.1..0.2 再乘倍率，所以弹体实际是 0.9..1.8 格，不是 9 格
  */
 public final class CarminiteParticle extends TextureSheetParticle {
     private final SpriteSet sprites;
+    private final int frames;
+    private final int ticksPerFrame;
+    private final float spinSpeed;
 
     private CarminiteParticle(ClientLevel level, double x, double y, double z,
                               double vx, double vy, double vz, SpriteSet sprites,
-                              float scale, int lifetime, float friction, float gravity, boolean spin) {
-        super(level, x, y, z, vx, vy, vz);
+                              float sizeMultiplier, int lifetime, float gravity,
+                              int frames, int ticksPerFrame, float spinSpeed) {
+        super(level, x, y, z);
         this.sprites = sprites;
+        // 父类的字段初始化已经给了 0.1..0.2 的随机值，源 mod 就是在这个值上乘倍率
+        this.quadSize *= sizeMultiplier;
         this.lifetime = lifetime;
-        this.friction = friction;
         this.gravity = gravity;
-        this.quadSize = scale * (0.8F + this.random.nextFloat() * 0.4F);
-        this.roll = spin ? this.random.nextFloat() * Mth.TWO_PI : 0.0F;
-        this.setSprite(this.sprites.get(0, this.lifetime));
+        this.hasPhysics = false;
+        this.frames = frames;
+        this.ticksPerFrame = ticksPerFrame;
+        this.spinSpeed = spinSpeed;
         this.xd = vx;
         this.yd = vy;
         this.zd = vz;
+        this.setSprite(this.sprites.get(this.random));
     }
 
-    /** 飞行中的弹体，慢速下坠 */
+    /** 飞行中的弹体，本身不动，只在原地转 */
     public static ParticleProvider<SimpleParticleType> ballProvider(SpriteSet sprites) {
         return (type, level, x, y, z, vx, vy, vz) ->
-            new CarminiteParticle(level, x, y, z, vx, vy, vz, sprites, 0.35F, 8, 0.92F, 0.0F, false);
+            new CarminiteParticle(level, x, y, z, 0.0D, 0.0D, 0.0D, sprites,
+                9.0F, 16, 0.0F, 8, 2, 0.3F);
     }
 
-    /** 拖尾，几乎不动，靠重力落下一点 */
+    /** 拖尾，负重力让它慢慢上飘，4 帧循环 79 tick */
     public static ParticleProvider<SimpleParticleType> traceProvider(SpriteSet sprites) {
         return (type, level, x, y, z, vx, vy, vz) ->
-            new CarminiteParticle(level, x, y, z, vx * 0.1, vy * 0.1, vz * 0.1, sprites, 0.2F, 6, 0.85F, 0.02F, false);
+            new CarminiteParticle(level, x, y, z, vx, vy, vz, sprites,
+                3.0F, 79, -0.005F, 4, 20, 0.0F);
     }
 
-    /** 反应场，贴在原地铺开，每片的初始角度随机 */
+    /** 反应场，继承传入的向外速度，15 tick 的 8 帧淡出 */
     public static ParticleProvider<SimpleParticleType> effectProvider(SpriteSet sprites) {
         return (type, level, x, y, z, vx, vy, vz) ->
-            new CarminiteParticle(level, x, y, z, vx * 0.3, vy * 0.3, vz * 0.3, sprites, 0.6F, 14, 0.9F, 0.0F, true);
+            new CarminiteParticle(level, x, y, z, vx, vy, vz, sprites,
+                6.0F, 15, -0.05F, 8, 2, 0.3F);
     }
 
     @Override
     public void tick() {
         super.tick();
-        // 按寿命在贴图表上走帧，帧数就是 json 里 textures 的个数
-        this.setSprite(this.sprites.get(this.age, this.lifetime));
+        this.oRoll = this.roll;
+        this.roll += this.spinSpeed;
+        if (!this.removed) {
+            // +1 是照抄源 mod：SpriteSet.get(index, max) 会把 index 按比例映射到贴图表上
+            this.setSprite(this.sprites.get(this.age / this.ticksPerFrame % this.frames + 1, this.frames));
+        }
     }
 
+    /** 恒满亮，暗处也看得见 */
     @Override
-    public float getQuadSize(float scaleFactor) {
-        // 出场放大，退场收缩
-        float t = ((float) this.age + scaleFactor) / (float) this.lifetime;
-        return this.quadSize * Mth.clamp(t * 4.0F, 0.0F, 1.0F) * Mth.clamp((1.0F - t) * 4.0F, 0.0F, 1.0F);
+    protected int getLightColor(float partialTick) {
+        return 0xF000F0;
     }
 
     @Override
     public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+        return ParticleRenderType.PARTICLE_SHEET_LIT;
     }
 }

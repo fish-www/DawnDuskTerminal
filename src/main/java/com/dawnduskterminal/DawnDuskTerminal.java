@@ -68,6 +68,7 @@ public final class DawnDuskTerminal {
         modBus.addListener((ModConfigEvent.Reloading event) -> DdtConfig.refreshCache());
         modBus.addListener((FMLCommonSetupEvent event) -> FluidReactions.register());
 
+        NeoForge.EVENT_BUS.addListener(DdtServerEvents::onAnvilUpdate);
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onServerStarted);
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onPlayerLoggedIn);
         NeoForge.EVENT_BUS.addListener(DdtServerEvents::onPlayerTick);

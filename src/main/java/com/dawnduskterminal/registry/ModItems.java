@@ -121,9 +121,7 @@ public final class ModItems {
     public static final DeferredItem<CarminiteStaffItem> CARMINITE_MOLYBDENUM_REACTOR_STAFF = ITEMS.register(
         "carminite_molybdenum_reactor_staff",
         () -> new CarminiteStaffItem(new Item.Properties()
-            .rarity(Rarity.RARE)
-            .fireResistant()
-            .durability(1500)
+            .durability(128)
             .attributes(CarminiteStaffItem.createAttributes())));
 
     // T1 护甲，数值在 ModArmorMaterials 里，四件穿齐时每件自己续生命恢复

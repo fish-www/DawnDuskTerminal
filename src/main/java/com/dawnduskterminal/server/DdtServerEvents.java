@@ -3,6 +3,7 @@ package com.dawnduskterminal.server;
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.network.ChronoLinePayload;
 import com.dawnduskterminal.registry.ModFluids;
+import com.dawnduskterminal.registry.ModItems;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.portal.PortalBlock;
 import com.dawnduskterminal.portal.PortalTrigger;
@@ -10,6 +11,7 @@ import com.dawnduskterminal.progression.BossProgressTracker;
 import com.dawnduskterminal.structure.StructureExclusions;
 import com.dawnduskterminal.world.ChronoLineState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
@@ -25,12 +27,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.neoforged.neoforge.event.AnvilUpdateEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.MobSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -45,6 +51,22 @@ public final class DdtServerEvents {
     private static final double ITEM_SCAN_RADIUS = 12.0D;
 
     private DdtServerEvents() {}
+
+    /**
+     * 铁砧：创造模式玩家本来可以无视 {@code supportsEnchantment} 直接合上任意附魔，
+     * 权杖每发都要消耗弹药，无限对它没有意义，所以在结果算出来之前就拦掉
+     */
+    public static void onAnvilUpdate(AnvilUpdateEvent event) {
+        if (!event.getLeft().is(ModItems.CARMINITE_MOLYBDENUM_REACTOR_STAFF.get())) {
+            return;
+        }
+        for (Holder<Enchantment> enchantment : EnchantmentHelper.getEnchantmentsForCrafting(event.getRight()).keySet()) {
+            if (enchantment.is(Enchantments.INFINITY)) {
+                event.setCanceled(true);
+                return;
+            }
+        }
+    }
 
     public static void onServerStarted(ServerStartedEvent event) {
         ServerLevel overworld = event.getServer().overworld();

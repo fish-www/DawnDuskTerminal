@@ -82,9 +82,11 @@
 
 `item/ScarletMolybdArmorItem` 只有绯色钼一套用，四件穿齐时每件自己在 `inventoryTick` 里续生命恢复
 
-`item/CarminiteStaffItem` 近战按单手武器算，右键发射一颗 `entity/CarminiteBallEntity`
+`item/CarminiteStaffItem` 近战按单手武器算，右键消耗一颗砷铅铁球发射一颗 `entity/CarminiteBallEntity`。六种附魔加成照搬源 mod 的换算（力量 火矢 冲击 多重 穿透 快速装填），物品挂在 `data/minecraft/tags/item/enchantable/` 的 `bow` 与 `crossbow` 两个原版标签上，否则附不上去
 
-`entity/CarminiteBallEntity` 继承 `AbstractArrow`，命中时直接在那一帧结算范围伤害。源 mod 把反应场做成了一只无 AI 的飞行生物，这里不需要
+`entity/CarminiteBallEntity` 继承 `AbstractArrow`，命中后在上方一格留下 `entity/CarminiteFieldEntity`
+
+`entity/CarminiteFieldEntity` 是普通的 `Entity`（不是生物），存活 75 tick，每 20 tick 对半径 4、高 ±1.5 的圆柱内生物结算一次伤害，每 tick 在边缘画一圈 12 个粒子。源 mod 把它做成了一只无 AI 的飞行生物，范围只能用方盒子，这里都不需要
 
 `registry/ModParticles` 注册三种粒子（`particle_carminite_ball` `_trace` `_effect`），客户端 provider 在 `client/CarminiteParticle`
 
