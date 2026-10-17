@@ -268,6 +268,31 @@ public final class TowerGhastBonePose {
             }
             addRotation(bone, lag.axis(), filters.interpolateChain(lag.name(), partialTick));
         }
+        // 临时诊断：只在第 20 刻各实体打一次，用来确认「基础姿势有没有被抹平」与链条输出到底是多少
+        if (entity.tickCount == 20) {
+            for (String name : List.of("FrontFragFlag", "FragFlag2", "FragFlag3", "FragFlag4")) {
+                GeoBone bone = model.getBone(name).orElse(null);
+                if (bone == null) {
+                    continue;
+                }
+                StringBuilder lag = new StringBuilder();
+                for (Lag entry : LAGS) {
+                    if (entry.bone().equals(name)) {
+                        lag.append(entry.axis()).append('=')
+                            .append(String.format("%.2f", filters.interpolateChain(entry.name(), partialTick)))
+                            .append(' ');
+                    }
+                }
+                DawnDuskTerminal.LOGGER.info(
+                    "[布条诊断] {} rotX={}（初始 {}） rotZ={}（初始 {}） 链条: {}",
+                    name,
+                    String.format("%.2f", Math.toDegrees(bone.getRotX())),
+                    String.format("%.2f", Math.toDegrees(bone.getInitialSnapshot().getRotX())),
+                    String.format("%.2f", Math.toDegrees(bone.getRotZ())),
+                    String.format("%.2f", Math.toDegrees(bone.getInitialSnapshot().getRotZ())),
+                    lag.toString().trim());
+            }
+        }
         if (missing != null) {
             this.reportedMissing.addAll(missing);
             DawnDuskTerminal.LOGGER.warn(

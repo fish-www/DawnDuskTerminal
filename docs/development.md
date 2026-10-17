@@ -40,9 +40,9 @@ GeckoLib 声明 `geckoanimfix` 为不兼容依赖，两者不能同时装
 
 ## 开发用的客户端模组
 
-`runClient` 会额外加载 JEI、拼音搜索（Just Enough Characters）、Xaero 小地图与 Xaero 世界地图、Jade、Chunky、Zume、Tweakerge（带前置 MaFgLib），只供开发时看配方 看地图 看方块信息 预生成区块 缩放与调 tweak，不是本模组的依赖，不参与编译也不进产物
+`runClient` 会额外加载 JEI、拼音搜索（Just Enough Characters）、Xaero 小地图与 Xaero 世界地图、Jade、Chunky、Zume、Tweakerge（带前置 MaFgLib）、AppleSkin、BoccHUD、OpenYSM，只供开发时看配方 看地图 看方块信息 预生成区块 缩放 调 tweak 看饱食度 看状态条 与对拍塔恶魂的原始 Bedrock 动画，不是本模组的依赖，不参与编译也不进产物
 
-JEI 与 Xaero 走各自官方 maven，拼音搜索走 CurseMaven（`curse.maven:just-enough-characters-250702:9163765`，对应 4.5.30），Jade Chunky Zume Tweakerge MaFgLib 走 Modrinth maven（坐标是 `maven.modrinth:<项目 slug>:<版本号>`），版本写在 `gradle.properties`
+JEI 与 Xaero 走各自官方 maven，拼音搜索与 OpenYSM 走 CurseMaven（`curse.maven:just-enough-characters-250702:9163765`，对应 4.5.30；`curse.maven:openysm-unofficial-neoforge-port-1587175:8384243`，对应 2.6.6），Jade Chunky Zume Tweakerge MaFgLib AppleSkin BoccHUD 走 Modrinth maven（坐标是 `maven.modrinth:<项目 slug>:<版本号>`），版本写在 `gradle.properties`
 
 Chunky 在 Modrinth 上给 1.4.23 发了 fabric forge neoforge 三条同版本号的文件，按版本号取会拿到 forge 那个，FML 打一行 `Skipping jar ... is for Minecraft Forge ...` 就静默跳过，所以 `chunky_version` 写的是 neoforge 那条的版本 id `LuFhm4eU`
 
@@ -50,9 +50,13 @@ Chunky 在 Modrinth 上给 1.4.23 发了 fabric forge neoforge 三条同版本�
 
 踩过的三个坑：run 里写 `dependencies { runtimeOnly ... }` 会落到工程级 `runtimeOnly`，所有 run 都带上；run 的 `additionalRuntimeClasspathConfiguration` 只写进 `legacyClasspath.txt`，FML 不当模组扫，游戏里根本看不见；run 的 `classpath` 在任务执行时才从 `classpathProvider` 取，直接往 `classpath` 上加会被覆盖
 
-Xaero 两个依赖 `xaero.lib`，由它们的 pom 传递带上；JEI 要的 `mezz_config` 是 jar-in-jar 自带在 JEI 的 jar 里的，`net.mezzdev.config` 那个坐标是它的库不是模组；Modrinth 的 pom 只有元信息不带依赖，所以 Tweakerge 的前置 `mafglib` 在 `clientDevMods` 里显式写了一条
+Xaero 两个依赖 `xaero.lib`，由它们的 pom 传递带上；JEI 要的 `mezz_config` 是 jar-in-jar 自带在 JEI 的 jar 里的，`net.mezzdev.config` 那个坐标是它的库不是模组；Modrinth 的 pom 只有元信息不带依赖，所以 Tweakerge 的前置 `mafglib` 在 `clientDevMods` 里显式写了一条，BoccHUD 0.4.1 的前置也是 MaFgLib，同一条就够
 
 Voxy 与 MiniHUD Tweakeroo 在 1.21.1 上都没有 NeoForge 构建（Voxy 官方只发 fabric，最早 1.20.4，之后直接跳到 1.21.6），要自己把 jar 放进 `run/client/mods`
+
+OpenYSM 在 1.21.1 NeoForge 上没有官方构建：官方 Modrinth 项目只发 1.20.1 forge 与 fabric，旧的那个非官方 Modrinth 页面已经下架，只剩 CurseForge 上的第三方移植 1587175，也就是这里用的那条坐标
+
+它自带的 GeckoLib 是分叉，包名在 `org.openysm.geckolib3` 与 `com/elfmcys/yesstevemodel/geckolib3` 下，jar 里没有 `software/bernie` 的引用，与本模组依赖的 GeckoLib 4.9.3 不撞；它的 mixin 只碰原版与 parcool create slashblade 那几个可选模组
 
 ## 构建与运行
 
