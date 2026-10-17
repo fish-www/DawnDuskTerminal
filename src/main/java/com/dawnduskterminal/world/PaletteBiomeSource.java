@@ -28,8 +28,8 @@ import java.util.stream.Stream;
  * 事后打补丁
  *
  * <p>副本的位置也可以在这里改写：{@link #nightDesert()} 把蓝沙沙漠副本挪到极夜侧的极低温区，
- * {@link #dayBand(double)} 把极昼侧切成白地与红色沙漠两段，热区原版沙漠那格改指红色沙漠，白桦森林那格
- * 改指红草树林。改位置只能走这条路，原版气候表的温度参数点只覆盖 {@code [-1, 1]}，越过边界的温度在
+ * {@link #dayBand(double)} 把极昼侧切成白地与红色沙漠两段，热区原版沙漠那格改指红色沙漠。
+ * 除此之外温度格子一律走同名副本，占位群系不改注册名，显示名在 lang 里换。改位置只能走这条路，原版气候表的温度参数点只覆盖 {@code [-1, 1]}，越过边界的温度在
  * {@code Climate.Parameter.distance} 那里只是离边界远了一点，并不会选中新格子，见
  * {@code docs/worldgen.md} 的「群系温度与晨昏线偏移」
  */
@@ -169,16 +169,12 @@ public final class PaletteBiomeSource extends BiomeSource {
                     "DawnDuskTerminal palette biome source resolved no biome copies ({} entries in the tag); "
                         + "the chrono dimension would generate with vanilla biomes", this.palette.size());
             }
-            // 蓝沙沙漠已经由 nightDesert() 挪去极夜侧，热区那格再指回它就会让同一个群系在冷热两端都出现
+            // 同名的格子自己就对上了，只有热区沙漠需要改指：蓝沙沙漠已经由 nightDesert() 挪去极夜侧，
+            // 热区那格再指回它就会让同一个群系在冷热两端都出现
             // 改指红色沙漠副本。不这么做的话热区会退回原版 minecraft:desert，把原版沙子与原版特征带进维度
             Holder<Biome> hotDesert = dayDesert();
             if (hotDesert != null) {
                 built.put(ResourceLocation.withDefaultNamespace("desert"), hotDesert);
-            }
-            // 红草树林取代原来那份白桦森林占位：气候表里白桦那格直接换成它，占位副本已经不在了
-            Holder<Biome> redGrassForest = copyOf("red_grass_forest");
-            if (redGrassForest != null) {
-                built.put(ResourceLocation.withDefaultNamespace("birch_forest"), redGrassForest);
             }
             this.replacements = map = Map.copyOf(built);
         }

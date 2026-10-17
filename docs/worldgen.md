@@ -153,13 +153,17 @@
 
 `temperature` 是 `2.0`、`has_precipitation` 是 `false`，所以不积雪也不长霜
 
+### 萤火虫森林
+
+`dawnduskterminal:birch_forest` 装的是暮色森林 `firefly_forest` 的移植结果（树 结构 灌木 浆果 萤火虫粒子都原样），`temperature` 0.5、`has_precipitation` `true`
+
+ID 仍是 `birch_forest`，因为占位不改注册名，看 ID 就知道它顶的是哪格。显示名在 lang 里改成「萤火虫森林」
+
 ### 红草树林
 
-`dawnduskterminal:red_grass_forest` 取代原来那份白桦森林占位副本，气候表里 `minecraft:birch_forest` 那格直接换成它
+`dawnduskterminal:old_growth_birch_forest` 装的是上面那份萤火虫森林内容，只把草地与树叶染红：`grass_color` 与 `foliage_color` 给的是红色，`temperature` 提到 `0.8`
 
-内容沿用暮色森林 `firefly_forest` 的移植结果（树 结构 灌木 浆果都还在），只把草地与树叶染红：`grass_color` 与 `foliage_color` 给的是红色，`temperature` 提到 `0.8`
-
-原来那份 `dawnduskterminal:birch_forest` 已经删掉，`palette_biomes` 与原版群系标签里的引用一并换成了 `red_grass_forest`
+同样不改 ID，显示名在 lang 里改成「红草树林」。这样 `birch_tall` 这个特征就没有人引用了，见下文「特征移植」
 
 ### 黑森林腹地
 
@@ -273,13 +277,17 @@
 - 内联对象里指向原版的配置特征引用改成模组副本
 - 裸字符串指向的那几个原版放置特征（`birch_bees_0002` `oak_bees_002` `jungle_tree` 等 11 个）在模组里补了对应的 `placed_feature` 副本，再把引用指过去
 
-模组现在每个 `configured_feature` 副本都有人引用
+模组现在剩 `swamp_oak` 一个 `configured_feature` 副本没人引用
 
-`tools/check_worldgen_refs.py` 会重跑这条检查，改世界生成后跑一次
+`birch_tall` 也要算上，但它有个自己那份 `placed_feature` 引用着，而那份 `placed_feature` 已经没群系要了，工具的字符串匹配看不出这种间接孤儿
+
+`tools/check_worldgen_refs.py --list-dead` 会打印它的判定结果
+
+`tools/check_worldgen_refs.py --list-dead` 会打印这两个名字
 
 ### 没人引用的放置特征
 
-有 16 个放置特征副本没有任何群系引用：`ore_coal_lower` `ore_coal_upper` `ore_copper` `ore_copper_large` `ore_gold` `ore_gold_extra` `ore_gold_lower` `ore_iron_middle` `ore_iron_small` `ore_iron_upper` `bamboo_light` `dark_forest_vegetation` `flower_flower_forest` `flower_swamp` `red_mushroom_swamp` `trees_swamp`
+有 18 个放置特征副本没有任何群系引用：`ore_coal_lower` `ore_coal_upper` `ore_copper` `ore_copper_large` `ore_gold` `ore_gold_extra` `ore_gold_lower` `ore_iron_middle` `ore_iron_small` `ore_iron_upper` `bamboo_light` `dark_forest_vegetation` `flower_flower_forest` `flower_swamp` `red_mushroom_swamp` `trees_swamp` `forest_flowers` `patch_grass_forest`
 
 它们在原版主世界群系里，而本维度的群系特征表已经整份换成暮色森林内容（`tools/port_tf_biomes.py`），所以煤 铜 金 铁四种矿在本维度不生成，改由暮色森林的浆果矿与模组自己的矿替代
 

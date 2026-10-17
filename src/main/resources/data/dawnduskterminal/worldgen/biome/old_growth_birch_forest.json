@@ -6,9 +6,10 @@
       "dawnduskterminal:canyon"
     ]
   },
-  "downfall": 0.6,
+  "creature_spawn_probability": 0.15,
+  "downfall": 1.0,
   "effects": {
-    "fog_color": 12638463,
+    "fog_color": 13213834,
     "mood_sound": {
       "block_search_extent": 8,
       "offset": 2.0,
@@ -16,71 +17,83 @@
       "tick_delay": 6000
     },
     "music": {
-      "max_delay": 24000,
-      "min_delay": 12000,
-      "replace_current_music": false,
-      "sound": "minecraft:music.overworld.forest"
+      "max_delay": 12000,
+      "min_delay": 1200,
+      "replace_current_music": true,
+      "sound": "twilightforest:music.twilightforest.twilight_forest"
     },
-    "sky_color": 8037887,
+    "particle": {
+      "options": {
+        "type": "twilightforest:wandering_firefly"
+      },
+      "probability": 0.001
+    },
+    "sky_color": 15251868,
     "water_color": 4159204,
-    "water_fog_color": 329011
+    "water_fog_color": 329011,
+    "grass_color": 12732970,
+    "foliage_color": 13785135
   },
   "features": [
     [],
     [
-      "dawnduskterminal:lake_lava_underground",
-      "dawnduskterminal:lake_lava_surface"
-    ],
-    [
-      "dawnduskterminal:amethyst_geode"
-    ],
-    [
-      "dawnduskterminal:monster_room",
-      "dawnduskterminal:monster_room_deep"
+      "twilightforest:water_lake"
     ],
     [],
     [],
     [
-      "dawnduskterminal:ore_dirt",
-      "dawnduskterminal:ore_gravel",
-      "dawnduskterminal:ore_granite_upper",
-      "dawnduskterminal:ore_granite_lower",
-      "dawnduskterminal:ore_diorite_upper",
-      "dawnduskterminal:ore_diorite_lower",
-      "dawnduskterminal:ore_andesite_upper",
-      "dawnduskterminal:ore_andesite_lower",
-      "dawnduskterminal:ore_tuff",
+      "twilightforest:druid_hut",
+      "twilightforest:well_placer",
+      "twilightforest:foundation"
+    ],
+    [],
+    [
+      "dawnduskterminal:disk_sand",
+      "dawnduskterminal:disk_clay",
+      "dawnduskterminal:disk_gravel",
+      "twilightforest:wood_roots",
+      "twilightforest:legacy_redstone_ore",
+      "twilightforest:legacy_diamond_ore",
+      "twilightforest:legacy_lapis_ore",
       "dawnduskterminal:ore_scarlet_molybdenum",
       "dawnduskterminal:ore_carid",
       "dawnduskterminal:ore_dirac",
-      "dawnduskterminal:ore_redstone",
-      "dawnduskterminal:ore_redstone_lower",
-      "dawnduskterminal:ore_diamond",
-      "dawnduskterminal:ore_diamond_medium",
-      "dawnduskterminal:ore_diamond_large",
-      "dawnduskterminal:ore_diamond_buried",
-      "dawnduskterminal:ore_lapis",
-      "dawnduskterminal:ore_lapis_buried",
-      "dawnduskterminal:underwater_magma",
-      "dawnduskterminal:disk_sand",
-      "dawnduskterminal:disk_clay",
-      "dawnduskterminal:disk_gravel"
+      "twilightforest:small_andesite",
+      "twilightforest:small_diorite",
+      "twilightforest:small_granite"
+    ],
+    [
+      "twilightforest:plant_roots",
+      "twilightforest:torch_berries",
+      "twilightforest:iron_oreberries",
+      "twilightforest:gold_oreberries",
+      "twilightforest:copper_oreberries"
     ],
     [],
     [
-      "dawnduskterminal:spring_water",
-      "dawnduskterminal:spring_lava"
-    ],
-    [
-      "dawnduskterminal:glow_lichen",
-      "dawnduskterminal:forest_flowers",
-      "dawnduskterminal:birch_tall",
-      "dawnduskterminal:flower_default",
-      "dawnduskterminal:patch_grass_forest",
-      "dawnduskterminal:brown_mushroom_normal",
-      "dawnduskterminal:red_mushroom_normal",
+      "dawnduskterminal:patch_tall_grass",
+      "twilightforest:patch_grass_badlands",
+      "twilightforest:patch_grass_savanna",
       "dawnduskterminal:patch_sugar_cane",
-      "dawnduskterminal:patch_pumpkin"
+      "twilightforest:blackberry_bushes",
+      "twilightforest:patch_grass_jungle",
+      "twilightforest:mayapple",
+      "twilightforest:flower_placer_alt",
+      "twilightforest:grove_ruins",
+      "twilightforest:stone_circle",
+      "twilightforest:outside_stalagmite",
+      "twilightforest:monolith",
+      "twilightforest:hollow_stump",
+      "twilightforest:hollow_log",
+      "twilightforest:tree/selector/firefly_forest_trees",
+      "twilightforest:tree/selector/vanilla_trees",
+      "twilightforest:tree/twilight_oak_tree",
+      "twilightforest:tree/large_twilight_oak_tree",
+      "twilightforest:lamppost_placer",
+      "twilightforest:mushgloom_cluster",
+      "dawnduskterminal:patch_pumpkin",
+      "dawnduskterminal:flower_forest_flowers",
+      "twilightforest:default_fallen_logs"
     ],
     [
       "dawnduskterminal:freeze_top_layer"
@@ -89,24 +102,17 @@
   "has_precipitation": true,
   "spawn_costs": {},
   "spawners": {
-    "ambient": [
-      {
-        "type": "minecraft:bat",
-        "maxCount": 8,
-        "minCount": 8,
-        "weight": 10
-      }
-    ],
+    "ambient": [],
     "axolotls": [],
     "creature": [
       {
-        "type": "minecraft:sheep",
+        "type": "twilightforest:bighorn_sheep",
         "maxCount": 4,
         "minCount": 4,
         "weight": 12
       },
       {
-        "type": "minecraft:pig",
+        "type": "twilightforest:boar",
         "maxCount": 4,
         "minCount": 4,
         "weight": 10
@@ -118,73 +124,47 @@
         "weight": 10
       },
       {
-        "type": "minecraft:cow",
+        "type": "twilightforest:deer",
+        "maxCount": 5,
+        "minCount": 4,
+        "weight": 15
+      },
+      {
+        "type": "minecraft:wolf",
         "maxCount": 4,
         "minCount": 4,
-        "weight": 8
+        "weight": 5
+      },
+      {
+        "type": "twilightforest:tiny_bird",
+        "maxCount": 8,
+        "minCount": 4,
+        "weight": 15
+      },
+      {
+        "type": "twilightforest:squirrel",
+        "maxCount": 4,
+        "minCount": 2,
+        "weight": 10
+      },
+      {
+        "type": "twilightforest:dwarf_rabbit",
+        "maxCount": 5,
+        "minCount": 4,
+        "weight": 10
+      },
+      {
+        "type": "twilightforest:raven",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 10
       }
     ],
     "misc": [],
-    "monster": [
-      {
-        "type": "minecraft:spider",
-        "maxCount": 4,
-        "minCount": 4,
-        "weight": 100
-      },
-      {
-        "type": "minecraft:zombie",
-        "maxCount": 4,
-        "minCount": 4,
-        "weight": 95
-      },
-      {
-        "type": "minecraft:zombie_villager",
-        "maxCount": 1,
-        "minCount": 1,
-        "weight": 5
-      },
-      {
-        "type": "minecraft:skeleton",
-        "maxCount": 4,
-        "minCount": 4,
-        "weight": 100
-      },
-      {
-        "type": "minecraft:creeper",
-        "maxCount": 4,
-        "minCount": 4,
-        "weight": 100
-      },
-      {
-        "type": "minecraft:slime",
-        "maxCount": 4,
-        "minCount": 4,
-        "weight": 100
-      },
-      {
-        "type": "minecraft:enderman",
-        "maxCount": 4,
-        "minCount": 1,
-        "weight": 10
-      },
-      {
-        "type": "minecraft:witch",
-        "maxCount": 1,
-        "minCount": 1,
-        "weight": 5
-      }
-    ],
-    "underground_water_creature": [
-      {
-        "type": "minecraft:glow_squid",
-        "maxCount": 6,
-        "minCount": 4,
-        "weight": 10
-      }
-    ],
+    "monster": [],
+    "underground_water_creature": [],
     "water_ambient": [],
     "water_creature": []
   },
-  "temperature": 0.6
+  "temperature": 0.8
 }
