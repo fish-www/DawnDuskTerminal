@@ -79,10 +79,6 @@ public final class ModCreativeTabs {
                 accept(output, ModItems.COOKED_CARMIN_GHAST_MEAT.get());
                 accept(output, ModItems.CARMINITE_BALL.get());
                 accept(output, ModItems.CARMINITE_MOLYBDENUM_REACTOR_STAFF.get());
-                accept(output, ModItems.SCARLET_MOLYBD_HELMET.get());
-                accept(output, ModItems.SCARLET_MOLYBD_CHESTPLATE.get());
-                accept(output, ModItems.SCARLET_MOLYBD_LEGGINGS.get());
-                accept(output, ModItems.SCARLET_MOLYBD_BOOTS.get());
                 ModEquipment.sets().values().forEach(set -> set.items().forEach(item -> accept(output, item.get())));
                 acceptForeign(output, "twilightforest:aurora_block");
             })

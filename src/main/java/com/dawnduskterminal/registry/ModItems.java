@@ -124,7 +124,7 @@ public final class ModItems {
             .durability(128)
             .attributes(CarminiteStaffItem.createAttributes())));
 
-    // T1 护甲，数值在 ModArmorMaterials 里，四件穿齐时每件自己续生命恢复
+    // T2 护甲，数值在 ModArmorMaterials 里，四件穿齐时每件自己续生命恢复
     public static final DeferredItem<ScarletMolybdArmorItem> SCARLET_MOLYBD_HELMET = armor(
         "scarlet_molybd_helmet", ArmorItem.Type.HELMET);
     public static final DeferredItem<ScarletMolybdArmorItem> SCARLET_MOLYBD_CHESTPLATE = armor(
@@ -140,7 +140,7 @@ public final class ModItems {
         return ITEMS.register(name, () -> new ScarletMolybdArmorItem(
             ModArmorMaterials.SCARLET_MOLYBDENUM,
             type,
-            new Item.Properties().durability(type.getDurability(33))));
+            new Item.Properties().durability(type.getDurability(37))));
     }
 
     private ModItems() {}

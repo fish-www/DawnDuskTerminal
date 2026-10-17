@@ -53,27 +53,37 @@ public final class EquipmentTests {
     private static final float DIAMOND_TOUGHNESS = 2.0F;
     /** 钻石护甲的耐久倍率 */
     private static final int DIAMOND_DURABILITY_FACTOR = 33;
+    /** T2 四件合计的护甲点数 */
+    private static final int T2_DEFENSE = 25;
+    /** T2 每件的韧性，四件合计 14 */
+    private static final float T2_TOUGHNESS = 3.5F;
+    /** T2 的耐久倍率 */
+    private static final int T2_DURABILITY_FACTOR = 37;
+    /** T3 四件合计的护甲点数 */
+    private static final int T3_DEFENSE = 30;
+    /** T3 每件的韧性，四件合计 20 */
+    private static final float T3_TOUGHNESS = 5.0F;
 
     private static final ArmorItem.Type[] SLOTS = {
         ArmorItem.Type.HELMET, ArmorItem.Type.CHESTPLATE, ArmorItem.Type.LEGGINGS, ArmorItem.Type.BOOTS,
     };
 
     @GameTest(template = "ddt_empty")
-    public static void scarletMolybdArmorMatchesDiamond(GameTestHelper helper) {
+    public static void scarletMolybdArmorMatchesT2(GameTestHelper helper) {
         ArmorMaterial material = ModArmorMaterials.SCARLET_MOLYBDENUM.value();
         int defense = 0;
         for (ArmorItem.Type type : SLOTS) {
             defense += material.getDefense(type);
         }
-        helper.assertTrue(defense == DIAMOND_DEFENSE,
-            "T1 armor must total " + DIAMOND_DEFENSE + " defense, got " + defense);
-        helper.assertTrue(material.toughness() == DIAMOND_TOUGHNESS,
-            "T1 armor toughness must be " + DIAMOND_TOUGHNESS + ", got " + material.toughness());
-        helper.assertTrue(material.enchantmentValue() == 10,
-            "T1 armor enchantment value must be 10, got " + material.enchantmentValue());
+        helper.assertTrue(defense == T2_DEFENSE,
+            "T2 armor must total " + T2_DEFENSE + " defense, got " + defense);
+        helper.assertTrue(material.toughness() == T2_TOUGHNESS,
+            "T2 armor toughness must be " + T2_TOUGHNESS + ", got " + material.toughness());
+        helper.assertTrue(material.enchantmentValue() == 15,
+            "T2 armor enchantment value must be 15, got " + material.enchantmentValue());
 
         ArmorItem helmet = ModItems.SCARLET_MOLYBD_HELMET.get();
-        int expected = ArmorItem.Type.HELMET.getDurability(DIAMOND_DURABILITY_FACTOR);
+        int expected = ArmorItem.Type.HELMET.getDurability(T2_DURABILITY_FACTOR);
         int actual = new ItemStack(helmet).getMaxDamage();
         helper.assertTrue(actual == expected,
             "helmet durability must be " + expected + ", got " + actual);
@@ -248,12 +258,16 @@ public final class EquipmentTests {
         return new ItemStack(item).get(DataComponents.FOOD) != null;
     }
 
-    /** 三套材料对标原版：天门松是铁，舋穹与砷铅铁是钻石 */
+    /** 六套材料对标设定：天门松是铁，苍穹与砷铅铁是钻石，绯色钼与狄拉克是 T2，䤧是 T3 */
     @GameTest(template = "ddt_empty")
     public static void equipmentSetsMatchTheirVanillaTier(GameTestHelper helper) {
         assertArmor(helper, ModArmorMaterials.SKYGATE_PINE.value(), 15, 0.0F, 9, "skygate_pine");
         assertArmor(helper, ModArmorMaterials.CANOPY.value(), DIAMOND_DEFENSE, DIAMOND_TOUGHNESS, 10, "canopy");
         assertArmor(helper, ModArmorMaterials.CARMINITE.value(), DIAMOND_DEFENSE, DIAMOND_TOUGHNESS, 10, "carminite");
+        assertArmor(helper, ModArmorMaterials.SCARLET_MOLYBDENUM.value(), T2_DEFENSE, T2_TOUGHNESS, 15,
+            "scarlet molybdenum");
+        assertArmor(helper, ModArmorMaterials.DIRAC.value(), T2_DEFENSE, T2_TOUGHNESS, 15, "dirac");
+        assertArmor(helper, ModArmorMaterials.HUI.value(), T3_DEFENSE, T3_TOUGHNESS, 18, "hui");
 
         helper.assertTrue(ModTiers.SKYGATE_PINE.getUses() == 250 && ModTiers.SKYGATE_PINE.getSpeed() == 6.0F,
             "skygate pine tools must be iron tier");
@@ -261,10 +275,16 @@ public final class EquipmentTests {
             "canopy tools must be diamond tier");
         helper.assertTrue(ModTiers.CARMINITE.getUses() == 1561 && ModTiers.CARMINITE.getSpeed() == 8.0F,
             "carminite tools must be diamond tier");
+        helper.assertTrue(ModTiers.SCARLET_MOLYBDENUM.getUses() == 2031
+                && ModTiers.SCARLET_MOLYBDENUM.getSpeed() == 9.0F
+                && ModTiers.DIRAC.getUses() == 2031,
+            "T2 tools must beat diamond in both durability and speed");
+        helper.assertTrue(ModTiers.HUI.getUses() == 2600 && ModTiers.HUI.getSpeed() == 10.0F,
+            "T3 tools must beat T2");
 
-        // 三套各五件工具加四件护甲
+        // 六套各五件工具加四件护甲
         int registered = ModEquipment.sets().values().stream().mapToInt(set -> set.items().size()).sum();
-        helper.assertTrue(registered == 27, "expected 27 equipment items, got " + registered);
+        helper.assertTrue(registered == 54, "expected 54 equipment items, got " + registered);
         helper.succeed();
     }
 

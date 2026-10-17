@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 /**
- * 绯色钼护甲（T1）
+ * 绯色钼护甲（T2）
  *
  * <p>四件穿齐时持续给生命恢复 I。实现方式是每个部件在自己的 {@link #inventoryTick} 里检查整套，
  * 而不是挂一个全局的实体刻事件：检查本身就是四次槽位读取，放在这里最省事也最好读

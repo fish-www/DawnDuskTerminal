@@ -78,7 +78,7 @@
 
 `registry/ModTiers` 注册工具分级，同样四份（绯色钼只有护甲，没有工具）
 
-`registry/ModEquipment` 按套注册工具与护甲，三套共 27 件，按套存在 `Map<String, Set>` 里而不是逐件写字段
+`registry/ModEquipment` 按套注册工具与护甲，六套共 54 件，按套存在 `Map<String, Set>` 里而不是逐件写字段。绯色钼的护甲带套装效果、物品在 `ModItems` 里，那一套只把已有 holder 拼进来
 
 `item/ScarletMolybdArmorItem` 只有绯色钼一套用，四件穿齐时每件自己在 `inventoryTick` 里续生命恢复
 
