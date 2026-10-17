@@ -299,7 +299,8 @@ public final class WorldgenTests {
         helper.assertTrue(palette.size() > 40,
             "the palette tag must resolve to the biome copies, got " + palette.size());
 
-        PaletteBiomeSource source = new PaletteBiomeSource(MultiNoiseBiomeSource.createFromPreset(overworld), palette);
+        BiomeSource delegate = MultiNoiseBiomeSource.createFromPreset(overworld);
+        PaletteBiomeSource source = new PaletteBiomeSource(delegate, palette);
         Set<ResourceLocation> leaked = new LinkedHashSet<>();
         int sampled = 0;
         for (double temperature : new double[] {-1.0D, -0.5D, 0.0D, 0.5D, 1.0D}) {
@@ -328,6 +329,54 @@ public final class WorldgenTests {
         }
         helper.assertTrue(leaked.isEmpty(),
             "these biomes were not substituted out of " + sampled + " samples: " + leaked);
+
+        // 原版气候表报沙漠的那几格，本群系源必须换成红色沙漠：蓝沙沙漠已经挪去极夜侧，
+        // 这格要是还指回它，冷热两端就共用一个群系
+        ResourceKey<Biome> vanillaDesert = ResourceKey.create(Registries.BIOME,
+            ResourceLocation.withDefaultNamespace("desert"));
+        ResourceKey<Biome> redDesert = ResourceKey.create(Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath(MOD_ID, "red_desert"));
+        int desertSamples = 0;
+        for (double temperature : new double[] {0.55D, 1.0D}) {
+            for (double humidity : new double[] {-1.0D, -0.5D}) {
+                for (double continentalness : new double[] {0.3D, 1.0D}) {
+                    for (double erosion : new double[] {-1.0D, 0.0D, 1.0D}) {
+                        for (double weirdness : new double[] {-1.0D, -0.5D, 0.5D, 1.0D}) {
+                            Climate.Sampler sampler = new Climate.Sampler(
+                                DensityFunctions.constant(temperature),
+                                DensityFunctions.constant(humidity),
+                                DensityFunctions.constant(continentalness),
+                                DensityFunctions.constant(erosion),
+                                DensityFunctions.constant(0.0D),
+                                DensityFunctions.constant(weirdness),
+                                List.of());
+                            if (!delegate.getNoiseBiome(0, 16, 0, sampler).is(vanillaDesert)) {
+                                continue;
+                            }
+                            desertSamples++;
+                            Holder<Biome> got = source.getNoiseBiome(0, 16, 0, sampler);
+                            helper.assertTrue(got.is(redDesert),
+                                "vanilla desert must become the red desert copy, got "
+                                    + got.unwrapKey().map(ResourceKey::location).orElse(null));
+                        }
+                    }
+                }
+            }
+        }
+        helper.assertTrue(desertSamples > 0, "no sampler produced a vanilla desert to swap");
+
+        // 极昼侧的两段：0.6 到 0.8 是白地，0.8 往外是红色沙漠，中间偏内仍是温和带
+        helper.assertTrue(PaletteBiomeSource.dayBand(0.59D) == null,
+            "the day side must stay on the climate table inside 0.6");
+        helper.assertTrue(PaletteBiomeSource.dayBand(0.6D) == PaletteBiomeSource.DayBand.WHITE_LAND,
+            "0.6 must start the white land");
+        helper.assertTrue(PaletteBiomeSource.dayBand(0.79D) == PaletteBiomeSource.DayBand.WHITE_LAND,
+            "the white land must run up to 0.8");
+        helper.assertTrue(PaletteBiomeSource.dayBand(0.8D) == PaletteBiomeSource.DayBand.RED_DESERT,
+            "0.8 must start the red desert");
+        helper.assertTrue(PaletteBiomeSource.dayBand(1.0D) == PaletteBiomeSource.DayBand.RED_DESERT,
+            "the red desert must reach the edge of the line");
         helper.succeed();
     }
+
 }

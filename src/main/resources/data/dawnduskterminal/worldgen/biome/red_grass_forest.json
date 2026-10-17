@@ -9,7 +9,7 @@
   "creature_spawn_probability": 0.15,
   "downfall": 1.0,
   "effects": {
-    "fog_color": 12648408,
+    "fog_color": 13213834,
     "mood_sound": {
       "block_search_extent": 8,
       "offset": 2.0,
@@ -28,9 +28,11 @@
       },
       "probability": 0.001
     },
-    "sky_color": 2105930,
+    "sky_color": 15251868,
     "water_color": 4159204,
-    "water_fog_color": 329011
+    "water_fog_color": 329011,
+    "grass_color": 12732970,
+    "foliage_color": 13785135
   },
   "features": [
     [],
@@ -164,5 +166,5 @@
     "water_ambient": [],
     "water_creature": []
   },
-  "temperature": 0.5
+  "temperature": 0.8
 }

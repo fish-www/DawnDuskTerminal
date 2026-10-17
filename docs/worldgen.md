@@ -99,7 +99,7 @@
 
 地形的方块替换不靠特征表，靠 `noise_settings` 里的地表规则
 
-`worldgen/biome/` 里除 `floatrees` 外都是与主世界群系同名的副本
+`worldgen/biome/` 里除 `floatrees` `red_desert` `red_grass_forest` `white_land` 外都是与主世界群系同名的副本
 
 `floatrees` 不走替换表，采样深度低于 -1.6 时直接返回，早于 delegate
 
@@ -115,13 +115,55 @@
 
 `floatrees` 仍然排在这条判定之前，所以极夜侧的空岛还是空岛
 
-原来那格热区沙漠改指 `dawnduskterminal:badlands` 副本。不改的话热区会退回原版 `minecraft:desert`，把原版沙子与原版特征带进维度
+原来那格热区沙漠改指红色沙漠副本 `dawnduskterminal:red_desert`。不改的话热区会退回原版 `minecraft:desert`，把原版沙子与原版特征带进维度
 
 副本本身的 `temperature` 是 `-0.7`、`has_precipitation` 是 `true`，与维度里最冷的 `frozen_peaks` 同值，所以极夜侧是会积雪的寒漠
 
 这两项必须改：它们决定 `Biome#coldEnoughToSnow` 与 `Biome#shouldSnow`，而 `ChronoFreezeFeature` 靠这两个判断铺 `canopy_frost` 与 `frozen_canopy`
 
 原版沙漠的 `2.0` 与 `false` 会让极夜侧一片霜都没有，蓝沙上直接冒出海冰与雪层的前提是先把它改成冷湿
+
+### 红色沙漠在极昼侧
+
+`dawnduskterminal:red_desert` 是昼侧的对应物，地表是 `unconscious_sand`（原版红沙的副本）
+
+`getNoiseBiome` 里第三个特例：`param(quartX * 4, quartZ * 4) >= 0.8` 时直接返回它
+
+门槛比极夜侧的 `-0.6` 深，`0.6` 到 `0.8` 那一段有意留空，给后面的白地占位
+
+`temperature` 是 `2.0`、`has_precipitation` 是 `false`，所以不会积雪，`ChronoFreezeFeature` 在这一侧什么也不铺
+
+地表规则和蓝沙沙漠那三条一一对应，只把 `road_sand` 换成 `unconscious_sand`
+
+它按原版沙漠的镜像进了 `minecraft` 那几条群系标签（`is_overworld` 与沙漠村庄、沙漠神庙那几条结构），否则结构白名单和刷怪规则认不出它
+
+### 恶地照旧
+
+`dawnduskterminal:badlands` 一族不再兼任热区沙漠，只走原版气候表里恶地那几格
+
+### 白地在极昼侧 0.6 到 0.8
+
+`dawnduskterminal:white_land` 占极昼侧的红沙漠与温和带之间那一段，是恶魂支线 T2 群系的位置
+
+分档抽在 `PaletteBiomeSource#dayBand(double)` 里，纯函数，边界由 `WorldgenTests` 直接断言：0.6 起白地，0.8 起红沙漠
+
+白地是裸地，地表规则铺 `siltstone`，特征是恶地副本削掉地表装饰之后的样子，矿石与洞穴照旧
+
+`temperature` 是 `2.0`、`has_precipitation` 是 `false`，所以不积雪也不长霜
+
+### 红草树林
+
+`dawnduskterminal:red_grass_forest` 取代原来那份白桦森林占位副本，气候表里 `minecraft:birch_forest` 那格直接换成它
+
+内容沿用暮色森林 `firefly_forest` 的移植结果（树 结构 灌木 浆果都还在），只把草地与树叶染红：`grass_color` 与 `foliage_color` 给的是红色，`temperature` 提到 `0.8`
+
+原来那份 `dawnduskterminal:birch_forest` 已经删掉，`palette_biomes` 与原版群系标签里的引用一并换成了 `red_grass_forest`
+
+### 黑森林腹地
+
+`dawnduskterminal:dark_forest` 就是暮色森林的 `dark_forest_center`，见 `tools/port_tf_biomes.py` 的对照表
+
+树叶按 `ChronoFoliageColors` 固定染成 `0xE94E14`，草方块走暮色森林的 `dark_forest_center` 调色器
 
 ## 群系温度与晨昏线偏移
 
@@ -197,13 +239,15 @@
 
 同一文件里的 `UNMAPPED` 与 `LANDMARKS` 记录未放行的暮色森林结构与地标，只服务日志，不影响行为
 
-## 高度与空置域
+## 高度
 
 地形高度范围 -64 到 320
 
 原版主世界的密度函数被整份移植，所以地形形态与原版一致
 
-空置域与空岛属于旧设计，已在移植中移除
+空岛与地下浮岛还在：`sloped_cheese` 里叠加的 `sky_island_density` 与 `subterranean` 分别管 y 高处与 y<0
+
+早期的四带设计（大陆 空置域 空岛 地下岛）在接管地形噪声那一次被整份替换，`VoidRegionFeature` 一并删除
 
 ## 已知问题
 

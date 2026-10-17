@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "dawnduskterminal:desert"
+    "dawnduskterminal:desert",
+    "dawnduskterminal:red_desert"
   ]
 }
