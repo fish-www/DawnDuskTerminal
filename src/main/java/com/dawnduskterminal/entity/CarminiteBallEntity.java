@@ -76,7 +76,10 @@ public class CarminiteBallEntity extends AbstractArrow implements ItemSupplier {
     }
 
     public CarminiteBallEntity(Level level, LivingEntity owner, @Nullable ItemStack firedFromWeapon) {
-        super(ModEntities.CARMINITE_BALL.get(), owner, level, ItemStack.EMPTY, firedFromWeapon);
+        // 第四个参数是父类要写进 NBT 的「拾取物」栈，不能传空栈：AbstractArrow#addAdditionalSaveData 用
+        // ItemStack.CODEC 写它，空栈会直接抛 Cannot encode empty ItemStack，存档时整只弹体丢掉
+        super(ModEntities.CARMINITE_BALL.get(), owner, level,
+            new ItemStack(ModItems.CARMINITE_BALL.get()), firedFromWeapon);
         this.pickup = Pickup.DISALLOWED;
         this.setBaseDamage(BASE_DAMAGE);
         this.setSoundEvent(ModSounds.CARMINITE_FIELD.get());

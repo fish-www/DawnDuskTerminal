@@ -8,6 +8,7 @@ import com.dawnduskterminal.registry.ModEntities;
 import com.dawnduskterminal.registry.ModEquipment;
 import com.dawnduskterminal.registry.ModItems;
 import com.dawnduskterminal.registry.ModTiers;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
@@ -130,6 +131,23 @@ public final class EquipmentTests {
             helper.assertTrue(corner.getHealth() == corner.getMaxHealth(),
                 "a sheep in the corner of the old 4x4 box must stay outside the cylinder");
         });
+    }
+
+    /**
+     * 弹体必须能写进 NBT：父类用 ItemStack.CODEC 写「拾取物」栈，传空栈会在存档时抛
+     * Cannot encode empty ItemStack，症状是整个区块关服存档报错
+     */
+    @GameTest(template = "ddt_empty")
+    public static void ballSurvivesSaveToNbt(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Sheep shooter = helper.spawnWithNoFreeWill(EntityType.SHEEP, new BlockPos(1, 1, 1));
+        ItemStack staff = new ItemStack(ModItems.CARMINITE_MOLYBDENUM_REACTOR_STAFF.get());
+        CarminiteBallEntity ball = new CarminiteBallEntity(level, shooter, staff);
+
+        CompoundTag tag = new CompoundTag();
+        ball.saveWithoutId(tag);
+        helper.assertTrue(tag.get("item") != null, "the arrow must write its pickup stack to NBT");
+        helper.succeed();
     }
 
     /**
