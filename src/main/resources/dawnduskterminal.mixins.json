@@ -18,7 +18,10 @@
     "GameTestChunkWaitMixin"
   ],
   "client": [
-    "BiomeColorsFoliageMixin"
+    "BiomeColorsFoliageMixin",
+    "ClientLevelSkyColorMixin",
+    "ClientLevelTimeOfDayMixin",
+    "LevelRendererSkyAlignMixin"
   ],
   "injectors": {
     "defaultRequire": 1

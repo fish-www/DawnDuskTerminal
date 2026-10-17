@@ -2,15 +2,11 @@ package com.dawnduskterminal.client;
 
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.client.model.MountedTowerWoodModel;
-import com.dawnduskterminal.config.DdtConfig;
-import com.dawnduskterminal.registry.ModDimensions;
 import com.dawnduskterminal.registry.ModEntities;
 import com.dawnduskterminal.registry.ModFluids;
 import com.dawnduskterminal.registry.ModParticles;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
@@ -24,18 +20,14 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
-import net.neoforged.neoforge.common.NeoForge;
 
 public final class DdtClient {
     private DdtClient() {}
 
     public static void init(IEventBus modBus) {
         modBus.addListener(DdtClient::onClientSetup);
-        modBus.addListener(DdtClient::registerDimensionEffects);
         modBus.addListener(DdtClient::registerFluidExtensions);
         modBus.addListener(DdtClient::registerBlockColors);
         modBus.addListener(DdtClient::registerItemColors);
@@ -43,8 +35,6 @@ public final class DdtClient {
         modBus.addListener(TowerGhastRenderer::onRegisterRenderers);
         modBus.addListener(DdtClient::onRegisterEntityRenderers);
         modBus.addListener(DdtClient::onRegisterParticleProviders);
-        NeoForge.EVENT_BUS.addListener(DdtClient::onRenderLevelStage);
-        NeoForge.EVENT_BUS.addListener(ShaderGuard::onClientLogin);
     }
 
     private static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
@@ -95,24 +85,6 @@ public final class DdtClient {
             ModTerrainBlocks.SKYGATE_PINE_LEAVES_ITEM.get());
     }
 
-    private static void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_SKY) {
-            return;
-        }
-        if (!DdtConfig.customSky()) {
-            return;
-        }
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null || !level.dimension().equals(ModDimensions.CHRONO)) {
-            return;
-        }
-        if (!ShaderGuard.shaderModLoaded()) {
-            return;
-        }
-        ChronoSkyRenderer.render(level, event.getPartialTick().getGameTimeDeltaPartialTick(false),
-            event.getModelViewMatrix(), event.getCamera(), event.getProjectionMatrix(), null);
-    }
-
     /**
      * 传送门流体的流动参数已经照抄了原版水（见 {@link ModFluids}），
      * 这里是同一套照抄的渲染侧
@@ -131,10 +103,6 @@ public final class DdtClient {
     private static void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(ModFluids.PORTAL_FLUID.get(), RenderType.translucent());
         ItemBlockRenderTypes.setRenderLayer(ModFluids.PORTAL_FLOWING.get(), RenderType.translucent());
-    }
-
-    private static void registerDimensionEffects(RegisterDimensionSpecialEffectsEvent event) {
-        event.register(DawnDuskTerminal.id("chrono"), new ChronoDimensionEffects());
     }
 
     /**

@@ -2,13 +2,11 @@ package com.dawnduskterminal.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.List;
-
 /**
  * 配置项与代码里的取值入口
  *
  * <p>每个取值方法都给一份兜底值：mixin 与世界生成会在配置加载之前调用它们（{@code ChronoLine} 建线、
- * {@code ChronoSkyLight} 算天光、天空渲染取色），那一刻 {@code ModConfigSpec} 抛
+ * {@code ChronoSkyLight} 算天光、天空按 {@code sun_angle_max} 换算），那一刻 {@code ModConfigSpec} 抛
  * {@link IllegalStateException}。兜底值即配置的默认值，两者共用同一个常量，改默认值时不会只改一处
  */
 public final class DdtConfig {
@@ -24,9 +22,6 @@ public final class DdtConfig {
     private static final int PORTAL_COOLDOWN_TICKS_DEFAULT = 100;
     private static final boolean ENTITY_DEBUFF_DEFAULT = true;
     private static final boolean TOLERATE_FEATURE_CYCLES_DEFAULT = true;
-    private static final boolean CUSTOM_SKY_DEFAULT = true;
-    private static final boolean SHADER_WARNING_DEFAULT = true;
-    private static final int SUN_TEXTURE_SIZE_DEFAULT = 64;
 
     private static final ModConfigSpec.DoubleValue SUN_ANGLE_MAX;
     private static final ModConfigSpec.BooleanValue SKY_LIGHT_BY_DISTANCE;
@@ -36,11 +31,6 @@ public final class DdtConfig {
     private static final ModConfigSpec.DoubleValue MAX_DISTANCE;
     private static final ModConfigSpec.ConfigValue<String> NORMAL_OVERRIDE;
     private static final ModConfigSpec.IntValue PORTAL_COOLDOWN_TICKS;
-    private static final ModConfigSpec.BooleanValue CUSTOM_SKY;
-    private static final ModConfigSpec.BooleanValue SHADER_WARNING;
-    private static final ModConfigSpec.IntValue SUN_TEXTURE_SIZE;
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> SKY_TOP_COLORS;
-    private static final ModConfigSpec.ConfigValue<List<? extends String>> SKY_HORIZON_COLORS;
     private static final ModConfigSpec.BooleanValue ENTITY_DEBUFF;
     private static final ModConfigSpec.BooleanValue TOLERATE_FEATURE_CYCLES;
 
@@ -90,25 +80,6 @@ public final class DdtConfig {
         b.push("compat");
         TOLERATE_FEATURE_CYCLES = b.comment("replace the vanilla feature sorter with a cycle tolerant one, required when both vanilla and modded biomes are used in one dimension")
             .define("tolerate_feature_cycles", TOLERATE_FEATURE_CYCLES_DEFAULT);
-        b.pop();
-
-        b.push("client");
-        CUSTOM_SKY = b.comment("render the chrono sky and the fake sun instead of the vanilla one")
-            .define("custom_sky", CUSTOM_SKY_DEFAULT);
-        SHADER_WARNING = b.comment("warn the player when a shader mod is detected")
-            .define("shader_warning", SHADER_WARNING_DEFAULT);
-        SUN_TEXTURE_SIZE = b.comment("sun and moon size percent, 64 equals the vanilla size")
-            .defineInRange("sun_texture_size", SUN_TEXTURE_SIZE_DEFAULT, 8, 512);
-        SKY_TOP_COLORS = b.comment("sky zenith gradient stops from polar night to polar day, 6 digit hex without the hash")
-            .defineListAllowEmpty("sky_top_colors",
-                () -> List.of("06070F", "0C1430", "2A1E4A", "2F6FC8", "4FA0E8"),
-                () -> "FFFFFF",
-                entry -> entry instanceof String text && text.matches("[0-9A-Fa-f]{6}"));
-        SKY_HORIZON_COLORS = b.comment("sky horizon gradient stops from polar night to polar day, 6 digit hex without the hash")
-            .defineListAllowEmpty("sky_horizon_colors",
-                () -> List.of("0A0E20", "1A2248", "C8703C", "9CC4EE", "FFE6BC"),
-                () -> "FFFFFF",
-                entry -> entry instanceof String text && text.matches("[0-9A-Fa-f]{6}"));
         b.pop();
 
         SPEC = b.build();
@@ -177,68 +148,5 @@ public final class DdtConfig {
 
     public static boolean tolerateFeatureCycles() {
         return safe(TOLERATE_FEATURE_CYCLES, TOLERATE_FEATURE_CYCLES_DEFAULT);
-    }
-
-    public static boolean customSky() {
-        return safe(CUSTOM_SKY, CUSTOM_SKY_DEFAULT);
-    }
-
-    public static boolean shaderWarning() {
-        return safe(SHADER_WARNING, SHADER_WARNING_DEFAULT);
-    }
-
-    public static int sunTextureSize() {
-        return safe(SUN_TEXTURE_SIZE, SUN_TEXTURE_SIZE_DEFAULT);
-    }
-
-    private static final int[] DEFAULT_TOP = {0x06070F, 0x0C1430, 0x2A1E4A, 0x2F6FC8, 0x4FA0E8};
-    private static final int[] DEFAULT_HORIZON = {0x0A0E20, 0x1A2248, 0xC8703C, 0x9CC4EE, 0xFFE6BC};
-
-    private static List<? extends String> cachedTopRaw;
-    private static int[] cachedTop = DEFAULT_TOP;
-    private static List<? extends String> cachedHorizonRaw;
-    private static int[] cachedHorizon = DEFAULT_HORIZON;
-
-    public static int[] skyTopColors() {
-        return resolve(SKY_TOP_COLORS, true);
-    }
-
-    public static int[] skyHorizonColors() {
-        return resolve(SKY_HORIZON_COLORS, false);
-    }
-
-    /** 只在列表内容变化时重新解析，天空渲染每帧都要取色 */
-    private static int[] resolve(ModConfigSpec.ConfigValue<List<? extends String>> value, boolean top) {
-        List<? extends String> raw = safe(value, null);
-        if (raw == null) {
-            return top ? DEFAULT_TOP : DEFAULT_HORIZON;
-        }
-        List<? extends String> cachedRaw = top ? cachedTopRaw : cachedHorizonRaw;
-        if (raw != cachedRaw) {
-            int[] parsed = parseColors(raw, top ? DEFAULT_TOP : DEFAULT_HORIZON);
-            if (top) {
-                cachedTopRaw = raw;
-                cachedTop = parsed;
-            } else {
-                cachedHorizonRaw = raw;
-                cachedHorizon = parsed;
-            }
-        }
-        return top ? cachedTop : cachedHorizon;
-    }
-
-    private static int[] parseColors(List<? extends String> raw, int[] fallback) {
-        if (raw == null || raw.size() < 2) {
-            return fallback;
-        }
-        int[] result = new int[raw.size()];
-        for (int i = 0; i < raw.size(); i++) {
-            try {
-                result[i] = Integer.parseInt(raw.get(i).trim().replace("#", ""), 16) & 0xFFFFFF;
-            } catch (NumberFormatException e) {
-                return fallback;
-            }
-        }
-        return result;
     }
 }

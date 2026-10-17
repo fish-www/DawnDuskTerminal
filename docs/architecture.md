@@ -204,21 +204,15 @@
 
 `client/DdtClient` 是客户端入口，注册模型 颜色 渲染层 事件
 
-`client/ChronoDimensionEffects` 是维度特效，处理雾色 云 天空
-
-`client/ChronoSkyRenderer` 自绘天空与假太阳假月亮
-
 `client/ChronoFoliageColors` 复刻暮色森林的树叶染色算法
 
 `client/model/MountedTowerWoodModel` 做镶边塔木与封装塔木梁的连接模型
-
-`client/ShaderGuard` 检测光影模组并在登录时提示
 
 `client/PortalFluidExtensions` 与 `ScorchingTwilightFluidExtensions` 是流体的客户端扩展
 
 `DdtClient` 注册方块与物品颜色，草与树叶随群系染色
 
-天空贴图在 `assets/dawnduskterminal/textures/environment/`
+天空全部交给原版渲染器，维度特效直接复用 `minecraft:overworld`，见「天空」
 
 ## Mixin
 
@@ -239,6 +233,24 @@
 `StructureExclusionMixin` 在晨昏线维度只放行结构白名单里的结构
 
 `BiomeColorsFoliageMixin` 是客户端 mixin，把树叶染色接进 `ChronoFoliageColors`
+
+`ClientLevelTimeOfDayMixin` 与 `LevelRendererSkyAlignMixin` 是客户端 mixin，见「天空」
+
+`ClientLevelSkyColorMixin` 是客户端 mixin，见「天空」
+
+## 天空
+
+自绘天空已移除，天空全部走原版 `LevelRenderer.renderSky`
+
+维度特效直接复用 `minecraft:overworld`，雾色 日月 星空 日落光晕 云都是原版的，`dimension_type/chrono.json` 的 `effects` 就不再是模组自己的键
+
+`ClientLevelTimeOfDayMixin` 在晨昏线维度把 `getTimeOfDay` 换成 `0.25 - param * sun_angle_max / 360`，原版那一整套渲染因此跟着玩家到晨昏线的距离走，太阳仰角仍是 `param * sun_angle_max`
+
+原版日月轨道永远落在 X 轴上，`LevelRendererSkyAlignMixin` 在 `renderSky` 的两处 `pushPose` 之后垫一层绕世界 Y 轴的旋转，把轨道与日落光晕转到晨昏线法向上
+
+`fixed_time` 仍留在维度类型里，它只影响服务端的 `getTimeOfDay`，客户端渲染不再读它
+
+`ClientLevelSkyColorMixin` 把晨昏线维度的 `getSkyColor` 乘 0.75。原版日月是加色混合，而极昼侧自定义群系的 `sky_color` 是近白色（`white_land` 为 `FFF9F0`），加到纯白上还是纯白，太阳就和天空糊成一片。天穹色同时决定雾色，所以这一下也把过曝的雾降了下来。常数在 mixin 里，调小更暗
 
 ## 事件
 

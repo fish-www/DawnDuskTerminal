@@ -16,9 +16,11 @@
 
 太阳最大高度角，单位度
 
-getter 兜底值是 30.0
+getter 兜底值是 20.0
 
 同时影响服务端的 `ChronoLine` 与客户端天空
+
+客户端天空按 `0.25 - param * sun_angle_max / 360` 换算成原版的 `timeOfDay`，见 `mixin/ClientLevelTimeOfDayMixin`
 
 `sky_light_by_distance` 默认 true
 
@@ -63,35 +65,3 @@ false 时维度内天光恒为 15
 同一维度混用原版与模组群系时需要开启
 
 调色板维度正属于这种情况
-
-## client
-
-`custom_sky` 默认 true
-
-是否自绘晨昏线天空与假太阳假月亮
-
-`shader_warning` 默认 true
-
-检测到光影模组时是否在登录提示
-
-`sun_texture_size` 默认 64，范围 8 到 512
-
-太阳与月亮贴图大小百分比，64 等于原版大小
-
-`sky_top_colors` 默认五个色值
-
-格式是六位十六进制不带井号
-
-顺序是从极夜到极昼的天顶渐变色标
-
-默认 `06070F` `0C1430` `2A1E4A` `2F6FC8` `4FA0E8`
-
-少于两个色值会回退到默认
-
-`sky_horizon_colors` 默认五个色值
-
-顺序是从极夜到极昼的地平线渐变色标
-
-默认 `0A0E20` `1A2248` `C8703C` `9CC4EE` `FFE6BC`
-
-少于两个色值会回退到默认

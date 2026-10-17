@@ -32,7 +32,7 @@
 
 `min_y` 为 -64
 
-`effects` 指向 `dawnduskterminal:chrono`，客户端特效在 `client/ChronoDimensionEffects`
+`effects` 指向 `minecraft:overworld`，天空与雾色走原版特效
 
 `monster_spawn_light_level` 是 0 到 7 的 uniform
 
