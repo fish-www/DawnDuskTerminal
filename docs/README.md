@@ -12,6 +12,8 @@
 
 只改地形读 `worldgen.md`
 
+只换群系或调地表方块读 `biomes.md`
+
 只改传送门与流体读 `portal.md`
 
 要调数值读 `configuration.md`
@@ -21,6 +23,10 @@
 `architecture.md` 模块职责 关键类 注册流程 事件 网络 Mixin 已知遗留
 
 `worldgen.md` 维度类型 噪声设置 调色板群系源 地表规则 特征移植 结构白名单
+
+`biomes.md` 占位群系对照 每个原版格子由谁占 方块命名对照 还没落地的名字
+
+`todo.md` 待办，做完就删行
 
 `portal.md` 传送门判定 触发 即时传送 落点门 稳定效果 流体与桶
 

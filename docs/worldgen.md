@@ -99,7 +99,9 @@
 
 地形的方块替换不靠特征表，靠 `noise_settings` 里的地表规则
 
-`worldgen/biome/` 里除 `floatrees` `red_desert` `red_grass_forest` `white_land` 外都是与主世界群系同名的副本
+`worldgen/biome/` 里除 `floatrees` `red_desert` `white_land` 外都是与主世界群系同名的副本
+
+副本里的内容不等于同名的原版群系：暮色森林的群系直接写进对应的原版位置，ID 不改，显示名靠 lang。每个位置现在装的是什么，账本在 `docs/biomes.md`
 
 `floatrees` 不走替换表，采样深度低于 -1.6 时直接返回，早于 delegate
 
