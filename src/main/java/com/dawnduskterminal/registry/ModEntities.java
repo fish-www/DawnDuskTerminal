@@ -17,14 +17,13 @@ public final class ModEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
         DeferredRegister.create(Registries.ENTITY_TYPE, DawnDuskTerminal.MOD_ID);
 
-    // 碰撞箱按发布的几何体量出来，不是估的：712 个立方体纵向跨 88.0 单位、横向 62.3 单位，
-    // GeckoLib 按每方块 16 单位换算 Bedrock 单位 渲染器另外还套了源 ysm.json 里声明的 0.7 缩放，
-    // 所以屏幕上的怪物约 3.85 方块高，碰撞箱对齐的是这个数，而不是未缩放的 5.5
+    // 碰撞箱与玩家同尺寸（0.6 x 1.8，眼高 1.62）：模型本体比这大得多（头发 袖子伸出去，
+    // 量出来约 3.6 x 3.8），拿模型外廓做碰撞箱会让它庞大得不好打，所以按感觉对齐玩家
     public static final DeferredHolder<EntityType<?>, EntityType<TowerGhastEntity>> TOWER_GHAST =
         ENTITIES.register("tower_ghast", () -> EntityType.Builder
             .of(TowerGhastEntity::new, MobCategory.CREATURE)
-            .sized(1.6F, 3.5F)
-            .eyeHeight(2.9F)
+            .sized(0.6F, 1.8F)
+            .eyeHeight(1.62F)
             .clientTrackingRange(10)
             .updateInterval(3)
             .build("tower_ghast"));

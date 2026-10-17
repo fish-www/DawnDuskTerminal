@@ -38,7 +38,7 @@ GeckoLib <em>逐个</em>烘焙动画片段，遇到解析失败就记一条日�
 `query.body_y_rotation` 是 `Mth.lerp(partialTick, yBodyRotO, yBodyRot)`，`math.min_angle` 是
 `Mth.wrapDegrees`，所以上面那一格就是 YSM 语义的原样翻译
 
-### 一级 —— 精确（本模型 94 处）
+### 一级 —— 精确（本模型 173 处）
 
 维基写明与某个 query 是<em>同一个值</em>的 YSM 名字，逐个改名，无语义漂移
 
@@ -46,13 +46,25 @@ GeckoLib <em>逐个</em>烘焙动画片段，遇到解析失败就记一条日�
 | --- | --- | --- |
 | `ysm.head_pitch` | `query.head_x_rotation` | 俯仰角，身体不俯仰，两者同值 |
 | `ysm.head_yaw` | `math.min_angle(query.head_y_rotation-query.body_y_rotation)` | 见下方「两个 head 不是同一个东西」 |
+| YSM `query.head_y_rotation` | `query.head_x_rotation` | 维基：`ysm.head_pitch` 与它相同 —— 也就是<strong>俯仰</strong> |
+| YSM `query.head_x_rotation` | `math.min_angle(query.head_y_rotation-query.body_y_rotation)` | 维基：`ysm.head_yaw` 与它相同 —— 也就是<strong>偏航</strong>，且要相对身体 |
 | `ysm.is_sneak` | `query.is_sneaking` | 同值 |
 | `ysm.is_sleep` | `query.is_sleeping` | 同值 |
 | `ysm.is_passenger` | `query.is_riding` | 同值 |
 | `ysm.has_helmet` | `query.has_head_gear` | 同值 |
 | `q.*` | `query.*` | 文档写明的别名 |
 
-### 二级 —— 有状态滤波与结构性修补（378 处）
+后两行不是错别字：<strong>YSM 自己的 head query 命名与 GeckoLib 是反的</strong>
+维基写的是「`ysm.head_yaw` 与 `query.head_x_rotation` 相同」「`ysm.head_pitch` 与 `query.head_y_rotation` 相同」，
+而 GeckoLib 的 `query.head_x_rotation` 是 `getViewXRot`（俯仰）、`query.head_y_rotation` 是 `getViewYRot`（世界偏航）
+
+源动画里裸写的 `query.head_*rotation` 原先只当名字搬，于是 `pre_parallel2` 的脖子变成了
+X 轴转 `-0.5*世界偏航`（最大 ±90°）；源文件想要的其实是 `[-0.5*俯仰, -0.5*相对偏航, 0]`，
+脖子上翻出领口，就是「脖子穿模」那条
+
+这两条必须一起做，所以转换器先落成占位符再展开：偏航那条的输出里也有 `query.head_y_rotation`
+
+### 二级 —— 有状态滤波与结构性修补（401 处）
 
 **有状态滤波器** `ysm.first_order(name, input, response)` 与
 `ysm.second_order(name, input, frequency, coefficient, response)` 是<strong>按 `name` 记忆的递归滤波器</strong>，
@@ -83,7 +95,6 @@ response   gain   90% at      （first_order）
 
 **结构性修补** 有三条 GeckoLib 文法规则只有在真实客户端跑过之后才暴露出来，
 因为检查器的第一版只建模了字符集，没有建模解析器对嵌套表达式的处理：
-
 | 规则 | 日志里的失败 | 修法 |
 | --- | --- | --- |
 | `VARIABLE_FORMAT = ^[a-z_]+\.[\w+_]+$` 只允许<strong>一个点</strong> | `Unable to parse compiled symbols from expression: [Left[v.roaming.expe]]` | YSM 三级的 `v.roaming.*` 变成 `v.roaming_*`（`v.roaming.expe` → `v.roaming_expe`） |
@@ -98,13 +109,57 @@ response   gain   90% at      （first_order）
 日志里有现成证据：含冒号的三元即使待在括号里也能加载（`parallel0` 被提升出的 `t.hoist0=(…(0<0?(0<0?-180:180):0))` 就是），
 缺冒号的 `ride` 不能 —— 致命的是缺冒号，不是括号。
 
-`v.sleevefix`、`v.forward`、`v.hg`、`v.hv`、`v.bg`、`v.bv` 是被文件读取、
+还有一条不是文法问题，是<strong>语义</strong>问题：Bedrock 的 `timeline` 在 GeckoLib 里只是自定义指令关键帧
+`KeyFramesAdapter.buildCustomFrameData` 把 `timeline` 的字符串读成 `CustomInstructionKeyframeData`，
+`AnimationController` 只把它交给注册过的 handler —— <strong>它不求值这个字符串</strong>，
+而本模组没有注册 handler，所以整个 `timeline` 在客户端里不起作用
+
+这套模型包恰好把默认值写在 `timeline` 里，于是那些变量在 GeckoLib 侧永远是 0：
+`pre_parallel2` 的 `v.roaming.shoe=1` 不生效，鞋子的 `scale` 就是 0（靴子看不见）；
+`idle` `walk` `run` 等片段写的 `v.sleevefix` 不生效，`parallel0` 里四条 `v.sleevefix*(…)` 的袖口衬里通道就一直是 0
+
+修法是把<strong>幂等的常量赋值</strong>搬进片段自己的 `molang` 骨骼通道
+（`v.bv=…`、`v.roaming.size=…` 本来就写在那里，作者就是这么用的）：
+GeckoLib 每帧求值骨骼通道，常量赋值只做一次与每帧做一次等价
+非幂等的（`jump` 的 `v.jumpsteb=1-v.jumpsteb`）搬过去会每帧翻转，只能留在 `timeline` 里（仍然是死代码）
+
+`v.forward`、`v.hg`、`v.hv`、`v.bg`、`v.bv` 是被文件读取、
 但<strong>文件从未赋值</strong>的变量 —— 它们原本由外部自定义函数脚本喂值，而这套模型包并不带那些脚本
 YSM 文档写明未初始化的变量是 `null`，而 YSM 在数值上下文里把 `null` 当作 0
 （"参与数值类计算时被视为 0 或 false"），所以这些变量在 YSM 里同样读作 0
 转换器的输出与 YSM 自身的行为一致，没有凭空造值
+（`v.sleevefix` 与 `v.roaming.*` <em>不在</em>这一列：它们由片段自己的 `timeline` 赋值，见上）
 
-### 三级 —— 丢弃（240 处）
+### 并行层：YSM 是加法混合，GeckoLib 是覆盖
+
+这是分层最反直觉的一处。GeckoLib 的官方注释写着「多个控制器同时播的动画会互相覆盖同一根骨骼」，
+实现上也是逐个控制器 `bone.setRotX(动画值 + 初始姿势)`（`AnimationProcessor.tickAnimation`），
+控制器按注册顺序遍历，后面的覆盖前面的（`ControllerRegistrar.build()` 返回 `Object2ObjectArrayMap`，迭代顺序即插入顺序）
+
+于是「一个 YSM 层对应一个 GeckoLib 控制器」<strong>并不能</strong>复现 YSM 的加法混合：
+并行层在同一个通道上写的值会把主动画的关键帧整段顶掉。典型例子是待机时的袖口：
+
+```
+idle/RightSlave4      19.9614835381+3*math.sin(120*query.life_time-120)    ← 源文件的待机摆动
+parallel0/RightSlave4 0.5*(math.clamp(-0.02*20*query.yaw_speed,-60,60))   ← 站着不动时是 0
+```
+
+`parallel0` 后注册，它那个 0 把待机的摆动吃掉了 —— 看上去就是「衣物不动」「弯折处没效果」
+
+修法在 `TowerGhastEntity.registerControllers`：<strong>注册顺序就是优先级</strong>，
+物理层（`parallel0` `pre_parallel0` `pre_parallel1`）先注册、主动画中间、换形开关（`pre_parallel2`）最后。
+主动画因此在布条与袖口上赢过那些常量 0，而 `pre_parallel2` 的形态缩放能压过 `death` 之类关键帧
+（YSM 那边缩放是相乘语义，`v.roaming.type` 把没选中的形态缩到 0 要靠压过才成立）
+
+**并行层不能删**：对没有任何控制器写的骨骼，GeckoLib 只做一次很慢的回位插值
+（`getBoneResetTime`，默认 5 秒），于是 `TowerGhastBonePose` 那种叠加写入会一帧一帧积下去 ——
+实测症状是布条的每个关节都在疯狂旋转。物理层那句常量 0 就是「每帧把骨骼重置回初始姿势」的那个人，
+给叠加写入一个干净的底
+
+剩下一个已知差距：并行层里那些「速度驱动」的旋转项在主动画同通道上会被盖掉
+（袖口衬里在 `run` 中的那几度），GeckoLib 没有加法混合可用
+
+### 三级 —— 丢弃（171 处）
 
 没有等价物，于是该项变成 `0`，并记进报告：
 
@@ -156,8 +211,8 @@ textures/<path>/<subtype>.png
 
 ```
 片段数              50
-改动的表达式        715 条，分布在 27 个片段
-按级别              163 / 381 / 171  （一级 / 二级 / 三级）
+改动的表达式        745 条，分布在 27 个片段
+按级别              173 / 401 / 171  （一级 / 二级 / 三级）
 GeckoLib 校验       50 个片段全部通过 GeckoLib 的解析规则
 ```
 
@@ -175,6 +230,13 @@ pre_parallel0       41         24     17
 
 具体说，`parallel0` 的 93 根骨骼里有 <strong>87 根</strong>已经没有非平凡内容，
 `pre_parallel0` 是 32 根里 21 根 这两个片段<em>就是</em>模型的次级运动
+
+那 73 条丢失的通道里 <strong>64 条是 `ysm.bone_rot` 的父带子递次滞后</strong>
+（`parallel0` 56 条、`pre_parallel0` 8 条），它们不是在文件里丢的，而是在运行时由
+`client/TowerGhastBonePose` 的链条表（64 行，与这里的通道一一对应）补回；
+剩下的 9 条是 `pre_parallel0` 里 `GhastLeg*` 的 `ysm.perlin_noise`（各自的 seed，不是发丝的 1492），
+而 `Ghast` 那棵子树被 `pre_parallel2` 的 `v.roaming.type==1?…:0` 缩放到 0，
+默认外观下（形态切换=0）看不见，所以没接
 
 ## 文件
 
@@ -261,8 +323,8 @@ Yes Steve Model 本身是<strong>保留所有权利</strong>的；这里没有�
 | 文件 | 职责 |
 | --- | --- |
 | `entity/TowerGhastPhysics` | 两支滤波器的公式，与 `physics_reference.py` 逐字对应 |
-| `client/TowerGhastBoneFilters` | 每个实体一份的跨帧状态；输入取自实体，单位与 GeckoLib 的 `MolangQueries` 一致 |
-| `client/TowerGhastBoneLayer` | `FastBoneFilterGeoLayer`，动画求值之后逐骨骼写回 |
+| `client/TowerGhastBoneFilters` | 每个实体一份的跨帧状态（12 支实体滤波器加 64 条链条滤波器）；输入取自实体，单位与 GeckoLib 的 `MolangQueries` 一致 |
+| `client/TowerGhastBonePose` | `setCustomAnimations` 里动画求值之后逐骨骼写回 |
 
 `gametest/TowerGhastPhysicsTests` 把阶跃响应表钉住：表里写 `1.0/0.8/0.0` 在 11 tick 到 90%，
 Java 版就必须也是 11，所以这不是「差不多」，是同一个滤波器
@@ -270,7 +332,7 @@ Java 版就必须也是 11，所以这不是「差不多」，是同一个滤波
 单位与符号照 GeckoLib 对表达式的处理来：常数以外的旋转值先转弧度，再把 X 与 Y 取反，Z 不取反
 （`AnimationController.getAnimationPointAtTick`）。旋转是「初始姿势加偏移」，位置与缩放是绝对值
 
-### 三处必须和 GeckoLib 内置 query 区别对待的地方
+### 四处必须和 GeckoLib 内置 query 区别对待的地方
 
 实机跑出来两类症状（眼睛被推出脸外、头发看不到动）之后才查出来的，都写进
 `client/TowerGhastBoneFilters` 的类注释了：
@@ -280,8 +342,16 @@ Java 版就必须也是 11，所以这不是「差不多」，是同一个滤波
 | 头部偏航 | 相对身体（Bedrock） | `getViewYRot()`，世界坐标 | 取 `wrapDegrees(yHeadRot - yBodyRot)` |
 | `ground_speed` `vertical_speed` `yaw_speed` | 每秒 | 每 tick | 乘 20 |
 | `head_x_rotation` 取值时刻 | — | `getViewXRot(0)` 给的是上一刻 | 用当前值 |
+| `转体` 那条链的输入轴 | `query.head_x_rotation`，是<strong>偏航</strong>（见「一级」） | `query.head_y_rotation` 才是世界偏航 | 取「头的世界偏航」：累积的世界朝向加相对头部偏航 |
 
 第一条最要命：眼睛那条是 `head_yaw/180`，相对转角最大约 0.25 格，世界偏航能到 2 格，眼睛直接被推出脸外
+
+最后一条是「待机时衣物不摆动」的两个主因之一：恶魂站着时靠 `LookAtPlayer` 一直在改头部<strong>偏航</strong>，
+俯仰几乎不变，所以用俯仰当输入等于让整条转体链死掉。另一条是并行层的覆盖，见「并行层」那一节
+
+源式子的第一项 `query.eye_target_y_rotation`（视角朝向）GeckoLib 没有。用<strong>累积的世界朝向</strong>代替：
+每 tick 累加 `wrapDegrees(yRot - yRotO)`，得到连续的世界朝向（直接读 `yRot` 会在 ±180 处跳 360 度，
+滤波器的滞后会把那一跳放大成布条抽一下），再加上相对头部偏航就是源式子在源侧算出来的那个量
 
 ### `ysm.perlin_noise` 的真实实现
 
@@ -292,30 +362,54 @@ STBPerlin.stb_perlin_noise3_seed(x, y, z, 0, 0, 0, seed)
 ```
 
 所以照抄即可，波形与 YSM 一致。发丝的式子是 `±10*perlin(1492, life_time) ± 头发角速度`，
-38 根只有轴与符号不同，表在 `client/TowerGhastBoneLayer` 里
+38 根只有轴与符号不同，表在 `client/TowerGhastBonePose` 里
+
+噪声要按<strong>帧</strong>取（`(tickCount + partialTick) / 20`）而不是按 tick：
+GeckoLib 每帧都求值动画，按 20 Hz 取在 60 fps 下就是一跳一跳的
+（YSM 那边的 `query.life_time` 也是连续的）
+
+### 链条（`ysm.bone_rot` 的递次滞后）怎么写回
+
+链条就是 64 条 `F(父骨骼上一帧的旋转)` 通道，表在 `client/TowerGhastBonePose` 的 `LAGS` 里，
+一行对应源文件里的一条通道（顺序必须是父在前）
+
+- 每只实体每刻走一步：读父骨骼的<strong>合成</strong>角度（它自己的偏移加所有祖先的偏移，
+  也就是 `ysm.bone_rot` 说的「骨骼的旋转」），喂二阶滤波，结果按 `sign*F(x) + parentGain*x` 存下来
+- 读合成角度是「鞭子」那个味道的关键：纯滞后的那几级（`F(x)` 形状）稳态下等于输入的合成角度，
+  而合成角度里已经把上一级自己转出去的量算进去了，于是逐级累加（布条、发帘都是这个效果 ——
+  有点像水母游动）。只读局部角度的话每级都收敛到与父骨相同的角度，整条布条会被拉直，
+  实测症状就是「最下面那段不弯」
+- 欧拉角逐级相加不是严格的矩阵合成，但每根布条基本只在单轴上弯，误差远小于真去算四元数再回拆
+- 每渲染帧按 `partialTick` 在两刻之间插值写回，<strong>叠加</strong>而不是替换：
+  旋转的加法混合已经在文件里折好了（见「并行层」），这里叠的是转换时存不下的那些状态
+- 链条是一棵严格的父→子树，没有自引用：`F(x)-x` 这种形状会把自己拉回父骨骼的姿势，不会积累偏移
+  （`gametest/TowerGhastPhysicsTests` 把三种形状的稳态都钉住了）；纯滞后的那几级则一级一级
+  把上一级的量接过来，深度越大弯得越多
 
 ### 模型里没有的骨骼
 
 这套动画用到 5 个模型里不存在的名字：`Breast` `FLongHair` `MLongHair` `ElytraLocator` `LongHair`。
 它们由 YSM 自己往模型里补，GeckoLib 没有这一步，所以这些通道在移植后必然是空的
 
-`TowerGhastBoneLayer` 在第一次渲染时会把这些名字报一次警告 —— 缺骨骼时
-`FastBoneFilterGeoLayer` 是静默跳过的，不报就会白查一遍
+`TowerGhastBonePose` 在第一次渲染时会把这些名字报一次警告；链条表里的 33 根骨骼都在 geo 里，
+所以那份警告不会提到它们
 
 ### 做到哪一步
 
 - 已完成：输入不含 `ysm.bone_rot` 的那批 —— 头发（`MLongHair` `FLongHair` `LeftHeadFrag` `RightHeadFrag`
   `ElytraLocator`）、胸口（`Breast` `Carminite` `LeftGuard` `Bung`）、眼睛（`RightEyesBase` `LeftEyesBase`）、
   布条转身滞后（`FragFlag` 一系），共 19 根骨骼、12 支滤波器
-- 已完成：发丝的 38 根通道（`perlin` 加 `头发角速度`），以及上面三处量纲与语义修正
+- 已完成：发丝的 38 根通道（`perlin` 加 `头发角速度`），以及上面四处量纲与语义修正
+- 已完成：`ysm.bone_rot` 的递次滞后 —— 64 条通道、33 根骨骼，表在 `client/TowerGhastBonePose`
 - 已完成：主状态机的死亡与受击两档。YSM 的宿主状态机是 `isDeadOrDying()` 播 `death`（Priority.HIGHEST）、
   `hurtTime > 0` 播 `attacked`（Priority 2），条件与优先级都照抄进 `TowerGhastEntity.mainAnimation`。
   同时把渲染器的 `getDeathMaxRotation` 覆写成 0，否则 GeckoLib 那套通用倒地会与模型自带的死亡演出重叠
-- 未做：`ysm.bone_rot` 的递次滞后（`FragFlag2-4`、`LeftHeadFrag2-3` 等，读上一帧快照即可）；
-  以及只存在于 YSM 补充模型里的那 5 根骨骼（做不了，除非自己补几何体）
+- 未做：只存在于 YSM 补充模型里的那 5 根骨骼（做不了，除非自己补几何体）；
+  `GhastLeg*` 的 perlin（那棵子树默认 scale=0，看不见）
 
-源模型里 `v.bv` `v.bg` `v.hv` `v.hg` `v.sleevefix` 由外部脚本喂值，而脚本不在这套模型包里，
+源模型里 `v.bv` `v.bg` `v.hv` `v.hg` 由外部脚本喂值，而脚本不在这套模型包里，
 YSM 对未初始化变量取 0，所以这几项也按 0 处理。因此 `RightSlave*` `LeftSlave*` 一系整条通道恒为 0
+（`v.sleevefix` 例外：它由各片段自己的 `timeline` 赋值，已搬进 `molang` 通道，所以袖口衬里会动）
 
 资料：[YSM molang 参考](https://ysm.cfpa.team/wiki/molang/ref/)、
 [YSM molang 简介](https://ysm.cfpa.team/wiki/molang/index/)、

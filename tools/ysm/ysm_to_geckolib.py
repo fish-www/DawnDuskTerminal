@@ -70,6 +70,35 @@ def _variable_is_geckolib_valid(name: str) -> bool:
 # YSM 一侧见 https://ysm.cfpa.team/wiki/molang/ref/
 # --------------------------------------------------------------------------------------
 
+# ysm.head_yaw 的等价写法：相对身体的头部偏航。query.body_y_rotation 是 yBodyRot，
+# math.min_angle 是 Mth.wrapDegrees
+HEAD_YAW = "math.min_angle(query.head_y_rotation-query.body_y_rotation)"
+
+# YSM 的 head query 命名与 GeckoLib <strong>相反</strong>，维基
+# （https://ysm.cfpa.team/wiki/molang/ref/）写的是：
+#
+#     ysm.head_yaw   与 query.head_x_rotation 相同
+#     ysm.head_pitch 与 query.head_y_rotation 相同
+#
+# 也就是在 YSM 里 query.head_x_rotation 是<strong>偏航</strong>、query.head_y_rotation 是<strong>俯仰</strong>，
+# 而 GeckoLib 的 query.head_x_rotation 是 getViewXRot（俯仰）、query.head_y_rotation 是 getViewYRot（世界偏航）
+# 照名字直接搬的后果：pre_parallel2 的 Neck 写的是
+# `[-0.5*query.head_y_rotation, -0.5*query.head_x_rotation, 0]`（x 取俯仰 y 取偏航，这才是脖子），
+# 搬过来变成 X 轴转 -0.5*世界偏航（最大 ±90°），脖子翻出领口
+#
+# 两条规则必须一起做，所以落成占位符再展开：俯仰那条的输出里也有 query.head_x_rotation
+HEAD_ROTATION_MARKERS = (
+    (("query.head_x_rotation", "q.head_x_rotation"), "ddt_head_yaw", HEAD_YAW),
+    (("query.head_y_rotation", "q.head_y_rotation"), "ddt_head_pitch", "query.head_x_rotation"),
+)
+
+# timeline 里的幂等赋值：`v.sleevefix=1`、`v.roaming.shoe=1` 这种。
+# 值必须是数字字面量 —— `v.jumpsteb=1-v.jumpsteb` 这种会每帧翻转，搬走就坏了
+# （变量名那时已经过 `_flatten_multidot_variables`，所以 `v.roaming.shoe` 到这里是 `v_roaming.shoe`）
+CONSTANT_ASSIGNMENT = re.compile(
+    r"^\s*(?P<var>(?:v|variable)(?:_[\w]+)?\.[A-Za-z_][\w.]*)\s*=\s*(?P<value>-?\d+(?:\.\d+)?)\s*;?\s*$"
+)
+
 ALIASES = {
     # ysm.head_pitch 与 query.head_x_rotation 确实是同一个值（都是俯仰角，身体不俯仰）
     "ysm.head_pitch": "query.head_x_rotation",
@@ -78,7 +107,7 @@ ALIASES = {
     # 而且整只模型会随朝向滚转 —— 例如 run 片段里 Root.rotation[2]=0.3*head_yaw
     # 在绝对坐标下能到 54 度，看上去就是模型自己倒下
     # query.body_y_rotation 是 yBodyRot，math.min_angle 是 Mth.wrapDegrees
-    "ysm.head_yaw": "math.min_angle(query.head_y_rotation-query.body_y_rotation)",
+    "ysm.head_yaw": HEAD_YAW,
     "ysm.is_passenger": "query.is_riding",
     "ysm.is_sleep": "query.is_sleeping",
     "ysm.is_sneak": "query.is_sneaking",
@@ -383,6 +412,28 @@ class Translator:
         return expr
 
     # -- 一级 ---------------------------------------------------------------------
+    def _replace_head_rotations(self, expr: str) -> str:
+        """交叉 YSM 与 GeckoLib 的 head query 命名，对照表见 `HEAD_ROTATION_MARKERS`
+
+        必须先落成占位符再展开：YSM 的 `query.head_x_rotation`（偏航）要变成
+        `math.min_angle(query.head_y_rotation-query.body_y_rotation)`，而这条输出里的
+        `query.head_y_rotation` 正是另一条规则的输入
+        """
+        for names, marker, final in HEAD_ROTATION_MARKERS:
+            for name in names:
+                pattern = re.compile(re.escape(name) + r"(?![\w.])")
+                if not pattern.search(expr):
+                    continue
+                self.note(1, "head query crossing",
+                          f"{name} -> {final}：YSM 的 head query 与 GeckoLib 命名相反"
+                          + ("，且要取相对身体的偏航" if marker.endswith("yaw") else "（YSM 的 x 是偏航 y 是俯仰）"),
+                          name, final)
+                expr = pattern.sub(marker, expr)
+        # 占位符全部落完再展开：偏航那条的输出里也写着 query.head_y_rotation
+        for _, marker, final in HEAD_ROTATION_MARKERS:
+            expr = expr.replace(marker, final)
+        return expr
+
     def _replace_aliases(self, expr: str) -> str:
         for old, new in sorted(ALIASES.items(), key=lambda kv: -len(kv[0])):
             if old in expr:
@@ -657,6 +708,7 @@ class Translator:
             text = self._replace_bone_accessors(text)
             text = self._replace_side_effect_calls(text)
             text = self._replace_stateful_filters(text)
+            text = self._replace_head_rotations(text)
             text = self._replace_aliases(text)
             text = self._replace_variable_forms(text)
             text = self._drop_unknown_ysm(text)
@@ -682,6 +734,63 @@ class Translator:
         return merged
 
 
+def _relocate_timeline_constants(clip: dict, clip_name: str, report: Report) -> None:
+    """把 timeline 里的幂等常量赋值搬进 `molang` 骨骼通道
+
+    GeckoLib 4.9.3 把 Bedrock 的 `timeline` 读成<strong>自定义指令关键帧</strong>
+    （`KeyFramesAdapter.buildCustomFrameData`），只派发 `CustomInstructionKeyframeEvent` 并把字符串
+    原样交给注册的 handler —— 它<strong>不求值</strong>这个字符串，而这个模组没有注册 handler，
+    所以 timeline 在客户端里完全不起作用
+
+    这套模型包恰好把默认值写在 timeline 里，于是那些变量在 GeckoLib 侧永远是 0：
+    `v.roaming.shoe` 是 0（鞋子的 scale 为 0，看不见），`v.sleevefix` 是 0（袖口衬里不动）
+
+    `molang` 骨骼通道是作者自己的惯例（`v.bv=…`、`v.roaming.size=…` 都写在那里），
+    GeckoLib 每帧求值它，把<strong>幂等</strong>的常量赋值搬过去就恢复了原意
+    （模型可见就证明这条路走得通：`v.roaming.size` 一直是从那里赋的）
+
+    非幂等的（如 jump 的 `v.jumpsteb=1-v.jumpsteb`）搬过去会每帧翻转，只能留在 timeline 里
+    """
+    timeline = clip.get("timeline")
+    if not timeline:
+        return
+
+    moved: list[str] = []
+    kept: dict = {}
+    for timestamp, value in timeline.items():
+        entries = value if isinstance(value, list) else [value]
+        rest = []
+        for entry in entries:
+            if isinstance(entry, str) and CONSTANT_ASSIGNMENT.match(entry):
+                moved.append(entry.strip().rstrip(";").strip())
+                report.add(Note(clip_name, f"timeline.{timestamp}", 2, "timeline constant",
+                                "timeline 在 GeckoLib 里只是一个不求值的自定义指令串，"
+                                "常量赋值搬进 molang 通道后每帧求值，赋值幂等所以等价",
+                                entry, "molang 通道"))
+            else:
+                rest.append(entry)
+        if rest:
+            kept[timestamp] = rest if isinstance(value, list) else rest[0]
+
+    if not moved:
+        return
+    if kept:
+        clip["timeline"] = kept
+    else:
+        del clip["timeline"]
+
+    bones = clip.setdefault("bones", {})
+    molang = bones.get("molang", {}).get("rotation")
+    statements = ";".join(moved)
+    if molang is None:
+        # 这个片段本来没有 molang 通道，补一个；末尾补 0 让这副看不见的骨骼回到初始姿势
+        bones["molang"] = {"rotation": [statements + ";0", 0, 0]}
+    elif isinstance(molang, list) and molang and isinstance(molang[0], str):
+        molang[0] = statements + ";" + molang[0]
+    else:
+        raise ValueError(f"{clip_name} 的 molang 通道形状不认识：{molang!r}")
+
+
 def convert(doc: dict, report: Report, *, only_clips: set[str] | None = None) -> dict:
     """转换整个文件；`only_clips` 给定时只转换其中一部分片段"""
     translator = Translator(report)
@@ -694,6 +803,7 @@ def convert(doc: dict, report: Report, *, only_clips: set[str] | None = None) ->
         translator.clip = clip_name
         new_clip = json.loads(json.dumps(clip))  # 深拷贝
         _walk_and_translate(new_clip, [], translator)
+        _relocate_timeline_constants(new_clip, clip_name, report)
         animations[clip_name] = new_clip
     out["animations"] = animations
     return out

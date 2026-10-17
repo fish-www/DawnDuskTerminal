@@ -25,9 +25,6 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
  * 与本模组其它客户端监听器的接法一致 该监听器跑在 mod 事件总线上
  */
 public final class TowerGhastRenderer {
-    /** 源模型要求的缩放，加在渲染器上，而不是烘进几处共享的几何体里 */
-    private static final float MODEL_SCALE = 0.7F;
-
     private TowerGhastRenderer() {}
 
     public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -44,7 +41,8 @@ public final class TowerGhastRenderer {
     private static final class TowerGhastEntityRenderer extends GeoEntityRenderer<TowerGhastEntity> {
         private TowerGhastEntityRenderer(EntityRendererProvider.Context context) {
             super(context, new TowerGhastModel());
-            withScale(MODEL_SCALE);
+            // 缩放取自 TowerGhastEntity：碰撞箱用同一个常数，两者不能各写一份
+            withScale(TowerGhastEntity.MODEL_SCALE);
         }
 
         @Override

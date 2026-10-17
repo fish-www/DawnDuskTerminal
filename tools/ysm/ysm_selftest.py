@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 
 from validate_geckolib import validate
-from ysm_to_geckolib import Report, Translator, _walk_and_translate
+from ysm_to_geckolib import Report, Translator, _relocate_timeline_constants, _walk_and_translate
 
 PASS = 0
 FAIL = 0
@@ -40,6 +40,16 @@ print("一级 - 别名")
 check("head_yaw 别名走最小夹角", tr("ysm.head_yaw/180")[0],
       "math.min_angle(query.head_y_rotation-query.body_y_rotation)/180")
 check("head_pitch 别名", tr("ysm.head_pitch/360")[0], "query.head_x_rotation/360")
+# YSM 的 head query 命名与 GeckoLib 相反：YSM 的 x 是偏航、y 是俯仰
+check("YSM 的 head_y_rotation 是俯仰", tr("query.head_y_rotation")[0], "query.head_x_rotation")
+check("YSM 的 head_x_rotation 是偏航", tr("query.head_x_rotation")[0],
+      "math.min_angle(query.head_y_rotation-query.body_y_rotation)")
+check("短名同样交叉", tr("q.head_x_rotation")[0],
+      "math.min_angle(query.head_y_rotation-query.body_y_rotation)")
+# 脖子：源文件是 [-0.5*pitch, -0.5*yaw, 0]，两条规则不能互相改写
+check("脖子 X 轴取俯仰", tr("-0.5*query.head_y_rotation")[0], "-0.5*query.head_x_rotation")
+check("脖子 Y 轴取相对偏航", tr("-0.5*query.head_x_rotation")[0],
+      "-0.5*math.min_angle(query.head_y_rotation-query.body_y_rotation)")
 check("q. 规范化", tr("q.anim_time")[0], "query.anim_time")
 check("has_helmet 别名", tr("ysm.has_helmet")[0], "query.has_head_gear")
 # 更长的点串名字不能被部分改写
@@ -56,7 +66,8 @@ out, _ = tr("-1.5*ysm.second_order('a', x, 2, 0.6, 0)-3*ysm.second_order('b', y,
 check("一项里两个滤波器", out, "-1.5*(x)-3*(y)")
 
 out, _ = tr("ysm.first_order('n', (query.eye_target_y_rotation+query.head_x_rotation), 0.3)")
-check("first_order -> 输入", out, "((0+query.head_x_rotation))")
+# 那个 query 是偏航（YSM 的 x 是偏航），所以先把 eye_target 丢掉，再换成相对身体的偏航
+check("first_order -> 输入", out, "((0+math.min_angle(query.head_y_rotation-query.body_y_rotation)))")
 
 # -- 三级：被丢弃的构造 ---------------------------------------------------------------
 print("三级 - 被丢弃的构造")
@@ -103,6 +114,28 @@ check("return 被拆掉", tr("return v.speed_x")[0], "v.speed_x")
 check("空值合并取那个本来默认就为 0 的变量", tr("v.jump ?? 1")[0], "v.jump")
 check("纯数字不动", tr("1.5")[0], "1.5")
 check("纯 molang 不动", tr("1+math.sin(120*query.life_time)")[0], "1+math.sin(120*query.life_time)")
+
+# -- timeline：GeckoLib 只把它当自定义指令串，不求值 ---------------------------------------
+print("timeline")
+
+def relocate(clip: dict) -> tuple[dict, Report]:
+    report = Report()
+    _relocate_timeline_constants(clip, "test", report)
+    return clip, report
+
+clip, rep = relocate({"timeline": {"0.0": "v.sleevefix=1;"},
+                      "bones": {"molang": {"rotation": ["v.bv=1", 0, 0]}}})
+check("常量赋值搬进 molang 通道", clip["bones"]["molang"]["rotation"][0],
+      "v.sleevefix=1;v.bv=1")
+check("timeline 键被删掉", "timeline" in clip, False)
+check("搬动记为二级", [n.kind for n in rep.notes], ["timeline constant"])
+
+clip, _ = relocate({"timeline": {"0.0": "v.sleevefix=0;"}, "bones": {}})
+check("没有 molang 通道时补一个", clip["bones"]["molang"]["rotation"][0], "v.sleevefix=0;0")
+
+clip, _ = relocate({"timeline": {"0.0": "v.jumpsteb=1-v.jumpsteb;"}, "bones": {}})
+check("非幂等赋值留在 timeline 里", clip.get("timeline"), {"0.0": "v.jumpsteb=1-v.jumpsteb;"})
+check("非幂等赋值不动骨骼", clip["bones"], {})
 
 # -- 输出必须满足 GeckoLib 自己的解析规则 ---------------------------------------------
 print("GeckoLib 文法一致性")

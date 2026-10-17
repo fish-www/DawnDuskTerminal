@@ -49,16 +49,47 @@ import software.bernie.geckolib.util.GeckoLibUtil;
  *
  * <h2>分层</h2>
  * YSM 同时播放一个主动画加最多八个 {@code pre_parallel} 与八个 {@code parallel} 片段，
- * 全部循环，并且按加法混合旋转角（YSM 的并行动画）GeckoLib 会把多个控制器写入同一根骨骼的旋转相加，
- * 所以一个 YSM 层对应一个 GeckoLib 控制器，分层与加法混合都自动复现
+ * 全部循环，并且按<strong>加法</strong>混合旋转角（YSM 的并行动画）
  *
- * <p>这里接上的四层是转换后还带动画的那几个 其余 {@code parallelN} / {@code pre_parallelN} 片段
- * 在 YSM 的滤波器被去掉之后逐字节恒定，为它们跑控制器只是在花时间写一个主动画本来就不碰的固定姿势
- * {@link #LYR_PHYSICS} 与 {@link #LYR_LOCAL} 是损失最大的两个（93 根骨骼里 87 根、
- * 32 根里 21 根变成常量）它们仍然按原始层名注册，好让损失在代码里看得见，而不是悄悄消失
- * 恢复这部分次级运动需要离线烘焙器，把 YSM 的滤波器采样成关键帧，见 {@code tools/ysm/README.md}
+ * <p>GeckoLib <strong>不是加法</strong>：它的官方注释写着「多个控制器同时播放的动画会互相覆盖同一根骨骼」，
+ * 实现上也是逐个控制器 {@code bone.setRotX(动画值 + 初始姿势)}（{@code AnimationProcessor.tickAnimation}），
+ * 控制器按注册顺序遍历，后面注册的覆盖前面注册的
+ * （{@code ControllerRegistrar.build()} 返回 {@code Object2ObjectArrayMap}，迭代顺序就是插入顺序）
+ *
+ * <p>所以并行层与主动画在同一个通道上不能共存，而 GeckoLib 的注册顺序就是我们唯一的旋钮。
+ * 但它又<strong>不能把并行层删掉</strong>：对没有任何控制器写的骨骼，GeckoLib 只做一次很慢的回位插值
+ * （{@code getBoneResetTime}，默认 5 秒），于是 {@code TowerGhastBonePose} 那种叠加写入会一帧一帧
+ * 积下去（实测症状是布条的每个关节都在疯狂旋转）。所以并行层必须留着当那个「每帧重置」的人
+ *
+ * <p>据此的注册顺序（见 {@link #registerControllers}）：物理层在前，主动画在中间，换形开关在后
+ *
+ * <ul>
+ *   <li>{@code parallel0} / {@code pre_parallel0} / {@code pre_parallel1} 先注册：它们每帧把布条、
+ *       袖口、胸口的骨骼摆回「初始姿势 + 自己的值」，给下一层的叠加写入一个干净的底
+ *   <li>主动画随后注册：它在布条与袖口上的关键帧因此能赢过上面那些常量 0 ——
+ *       待机时袖口的 {@code 19.96+3*math.sin(120*life_time-120)} 不再被 {@code 0.5*clamp(-0.02*yaw_speed,…)}
+ *       换成 0
+ *   <li>{@code pre_parallel2} 最后注册：它是换形开关（{@code v.roaming.type} 把没选中的形态缩到 0）
+ *       与脖子。YSM 那边缩放是<strong>相乘</strong>语义，所以开关必须压过主动画 ——
+ *       {@code death} 会把 {@code Experiment115} 从 0 放大到 1，相乘后人类形态下仍然是隐藏的
+ * </ul>
+ *
+ * <p>被主动画盖掉的那部分并行旋转（滤波器、{@code ysm.bone_rot} 的递次滞后、伯林噪声）由
+ * {@code client/TowerGhastBonePose} 在动画写完之后<strong>叠加</strong>写回，两者合起来才是 YSM 的加法混合。
+ * 剩下的差距是并行层里那些「速度驱动」的旋转项在主动画同通道上被盖掉的部分（袖口衬里在
+ * {@code run} 里那几度），因为 GeckoLib 没有加法混合可以用
+ *
+ * <p>其余 {@code parallelN} / {@code pre_parallelN} 片段在 YSM 的滤波器被去掉之后逐字节恒定，
+ * 为它们跑控制器只是在花时间写一个主动画本来就不碰的固定姿势
  */
 public class TowerGhastEntity extends PathfinderMob implements GeoEntity {
+    /**
+     * 模型在屏幕上用的缩放，取自源 {@code ysm.json} 里声明的 {@code height_scale} / {@code width_scale}
+     *
+     * <p>只给渲染器用：碰撞箱与玩家同尺寸（见 {@code ModEntities}），不跟这个模型外廓对齐
+     */
+    public static final float MODEL_SCALE = 0.7F;
+
     /** 站着不动时的主动画 */
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     /** 行走时的主动画 */
@@ -118,15 +149,19 @@ public class TowerGhastEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        // 主层：一次一个片段，由实体状态决定 5 tick 过渡，与 YSM 主动画之间的淡入淡出一致
-        controllers.add(new AnimationController<>(this, LYR_MAIN, 5,
-            state -> state.setAndContinue(mainAnimation(this, state.isMoving()))));
-
-        // YSM 的平行层与主动画一同无条件循环 这些片段转换后基本是常量，所以按文件里的层名注册，
-        // 让它们保持原始固定姿势，而不是悄悄丢掉
+        // 顺序就是优先级（GeckoLib 后注册的覆盖先注册的），见类注释的「分层」
+        // 物理层先注册：它们负责每帧把骨骼摆回「初始姿势 + 自己的值」，
+        // 否则 TowerGhastBonePose 的叠加写入会一帧一帧积起来
         controllers.add(loopLayer(LYR_PHYSICS, "parallel0"));
         controllers.add(loopLayer(LYR_LOCAL, "pre_parallel0"));
         controllers.add(loopLayer(LYR_OFFSET, "pre_parallel1"));
+
+        // 主层：一次一个片段，由实体状态决定 5 tick 过渡，与 YSM 主动画之间的淡入淡出一致
+        // 它在布条与袖口上的关键帧要赢过物理层那些常量 0
+        controllers.add(new AnimationController<>(this, LYR_MAIN, 5,
+            state -> state.setAndContinue(mainAnimation(this, state.isMoving()))));
+
+        // 换形开关（形态缩放）与脖子最后注册：缩放要压过 death 之类主动画的关键帧
         controllers.add(loopLayer(LYR_CONFIG, "pre_parallel2"));
     }
 

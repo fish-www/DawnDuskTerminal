@@ -3,6 +3,7 @@ package com.dawnduskterminal.client;
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.entity.TowerGhastEntity;
 import com.dawnduskterminal.entity.TowerGhastPhysics;
+import net.minecraft.util.Mth;
 import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.GeoModel;
@@ -37,6 +38,17 @@ import java.util.stream.Collectors;
  * <p>{@code setCustomAnimations} 是 {@code handleAnimations} 的最后一步，正好夹在
  * 「动画写完」与「矩阵读走」之间，官方注释也写着「Override to set custom animations (such as head
  * rotation, etc)」
+ *
+ * <h2>两类写入</h2>
+ *
+ * <ul>
+ *   <li><b>替换式</b>（{@link #setRotation}）：主动画已经把滤波器的输入写在同一个通道上的那些，
+ *       例如发丝与胸口的滤波器
+ *   <li><b>叠加式</b>（{@link #addRotation}）：YSM 的并行动画是加法混合，而布条那几个通道在文件里是 0，
+ *       主动画在 `run` `jump` `ladder_*` 里另有自己的关键帧，所以只能叠上去
+ * </ul>
+ *
+ * <p>链条（{@link #LAGS}）逐 tick 在 {@link #advanceChains} 里积分，逐帧在 {@link #apply} 里插值写回
  *
  * <h2>单位与符号</h2>
  *
@@ -108,17 +120,110 @@ public final class TowerGhastBonePose {
     private static final Map<String, Strand> STRAND_BY_BONE = STRANDS.stream()
         .collect(Collectors.toUnmodifiableMap(Strand::bone, strand -> strand));
 
+    /**
+     * 链条：源动画用 {@code ysm.bone_rot('父骨骼')} 做「父带子」递次滞后的一根骨骼的一个轴
+     *
+     * <p>值是 {@code sign * F(name, 父骨骼 parentAxis 轴上的度数) + parentGain * 父骨骼 subtractAxis 轴上的度数}
+     * （{@code F} 是二阶滤波，稳定增益 1）。源式子只有三种形状，都落在这一条通式里：
+     * {@code F(x)-x}（sign=1，parentGain=-1）、{@code -F(x)+0.8x}（sign=-1，parentGain=0.8）、{@code F(x)}（parentGain=0）
+     *
+     * <p>表里唯一一处 {@code parentAxis != subtractAxis} 的是 {@code FragFlag16.rotation[0]}：
+     * 源动画写的是 {@code F(bone_rot('FragFlag15').z) - 0.6*bone_rot('FragFlag15').x}，
+     * 看着像作者的笔误，但照抄
+     *
+     * <p><strong>顺序必须是父在前</strong>：逐 tick 那一步读的是骨骼上一帧的旋转，父先算完子才能接着
+     */
+    private record Lag(String bone, int axis, String name, double frequency, double coefficient,
+                       String parent, int parentAxis, int subtractAxis, double sign, double parentGain) {}
+
+    /** 源动画 parallel0 与 pre_parallel0 里全部 64 条 {@code ysm.bone_rot} 通道 */
+    private static final List<Lag> LAGS = List.of(
+        new Lag("FragFlag2", 0, "前2x", 2.0, 0.4, "FrontFragFlag", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag2", 2, "前2", 2.0, 0.4, "FrontFragFlag", 2, 2, 1.0, -1.0),
+        new Lag("FragFlag3", 0, "前3x", 2.0, 0.4, "FragFlag2", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag3", 2, "前3", 2.0, 0.4, "FragFlag2", 2, 2, 1.0, 0.0),
+        new Lag("FragFlag4", 0, "前4x", 2.0, 0.5, "FragFlag3", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag4", 2, "前4", 2.0, 0.5, "FragFlag3", 2, 2, 1.0, 0.0),
+        new Lag("FragFlag14", 0, "后2x", 2.0, 0.4, "BackFragFlag", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag14", 2, "后2", 2.0, 0.4, "BackFragFlag", 2, 2, 1.0, -1.0),
+        new Lag("FragFlag15", 0, "后3x", 2.0, 0.5, "FragFlag14", 0, 0, -1.0, 0.8),
+        new Lag("FragFlag15", 2, "后3", 2.0, 0.5, "FragFlag14", 2, 2, -1.0, 0.8),
+        new Lag("FragFlag16", 0, "后4x", 2.0, 0.4, "FragFlag15", 2, 0, 1.0, -0.6),
+        new Lag("FragFlag16", 2, "后4", 2.0, 0.4, "FragFlag15", 2, 2, 1.0, -0.6),
+        new Lag("FragFlag17", 0, "后5x", 2.0, 0.5, "FragFlag16", 0, 0, -1.0, 0.4),
+        new Lag("FragFlag17", 2, "后5", 2.0, 0.5, "FragFlag16", 2, 2, -1.0, 0.4),
+        new Lag("LeftFragFlag2", 2, "左2", 2.0, 0.4, "LeftFragFlag", 1, 1, 1.0, -1.0),
+        new Lag("LeftFragFlag3", 0, "左3x", 2.0, 0.4, "LeftFragFlag2", 0, 0, 1.0, 0.0),
+        new Lag("LeftFragFlag3", 2, "左3", 2.0, 0.4, "LeftFragFlag2", 2, 2, 1.0, 0.0),
+        new Lag("LeftFragFlag4", 0, "左4x", 2.0, 0.5, "LeftFragFlag3", 0, 0, 1.0, 0.0),
+        new Lag("LeftFragFlag4", 2, "左4", 2.0, 0.5, "LeftFragFlag3", 2, 2, 1.0, 0.0),
+        new Lag("FragFlag6", 0, "左前2x", 2.0, 0.4, "AnteriorFragFlag", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag6", 2, "左前2", 2.0, 0.4, "AnteriorFragFlag", 2, 2, 1.0, -1.0),
+        new Lag("FragFlag7", 0, "左前3x", 2.0, 0.5, "FragFlag6", 0, 0, -1.0, 0.6),
+        new Lag("FragFlag7", 2, "左前3", 2.0, 0.5, "FragFlag6", 2, 2, -1.0, 0.6),
+        new Lag("FragFlag8", 0, "左前4x", 2.0, 0.4, "FragFlag7", 0, 0, 1.0, -0.3),
+        new Lag("FragFlag8", 2, "左前4", 2.0, 0.4, "FragFlag7", 2, 2, 1.0, -0.3),
+        new Lag("FragFlag5", 0, "左前5x", 2.0, 0.4, "FragFlag8", 0, 0, 1.0, 0.0),
+        new Lag("FragFlag5", 2, "左前5", 2.0, 0.4, "FragFlag8", 2, 2, 1.0, 0.0),
+        new Lag("FragFlag9", 0, "左后2x", 2.0, 0.4, "RearAnteriorFragFlag", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag9", 2, "左后2", 2.0, 0.4, "RearAnteriorFragFlag", 2, 2, 1.0, -1.0),
+        new Lag("FragFlag11", 0, "左后x", 2.0, 0.5, "FragFlag9", 0, 0, -1.0, 0.8),
+        new Lag("FragFlag11", 2, "左后3", 2.0, 0.5, "FragFlag9", 2, 2, -1.0, 0.8),
+        new Lag("FragFlag12", 0, "左后4x", 2.0, 0.4, "FragFlag11", 0, 0, 1.0, -0.6),
+        new Lag("FragFlag12", 2, "左后4", 2.0, 0.4, "FragFlag11", 2, 2, 1.0, -0.6),
+        new Lag("FragFlag13", 0, "左后5x", 2.0, 0.5, "FragFlag12", 0, 0, -1.0, 0.4),
+        new Lag("FragFlag13", 2, "左后5", 2.0, 0.5, "FragFlag12", 2, 2, -1.0, 0.4),
+        new Lag("FragFlag22", 0, "右后2x", 2.0, 0.4, "RearAnteriorFragFlag2", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag22", 2, "右后2", 2.0, 0.4, "RearAnteriorFragFlag2", 2, 2, 1.0, -1.0),
+        new Lag("FragFlag24", 0, "右后3x", 2.0, 0.5, "FragFlag22", 0, 0, -1.0, 0.8),
+        new Lag("FragFlag24", 2, "右后3", 2.0, 0.5, "FragFlag22", 2, 2, -1.0, 0.8),
+        new Lag("FragFlag25", 0, "右后4x", 2.0, 0.4, "FragFlag24", 0, 0, 1.0, -0.6),
+        new Lag("FragFlag25", 2, "右后4", 2.0, 0.4, "FragFlag24", 2, 2, 1.0, -0.6),
+        new Lag("FragFlag26", 0, "右后5x", 2.0, 0.5, "FragFlag25", 0, 0, -1.0, 0.4),
+        new Lag("FragFlag26", 2, "右后5", 2.0, 0.5, "FragFlag25", 2, 2, -1.0, 0.4),
+        new Lag("FragFlag18", 0, "右前2x", 2.0, 0.4, "AnteriorFragFlag2", 0, 0, 1.0, -1.0),
+        new Lag("FragFlag18", 2, "右前2", 2.0, 0.4, "AnteriorFragFlag2", 2, 2, 1.0, -1.0),
+        new Lag("FragFlag19", 0, "右前3x", 2.0, 0.5, "FragFlag18", 0, 0, -1.0, 0.6),
+        new Lag("FragFlag19", 2, "右前3", 2.0, 0.5, "FragFlag18", 2, 2, -1.0, 0.6),
+        new Lag("FragFlag20", 0, "右前4x", 2.0, 0.4, "FragFlag19", 0, 0, 1.0, -0.3),
+        new Lag("FragFlag20", 2, "右前4", 2.0, 0.4, "FragFlag19", 2, 2, 1.0, -0.3),
+        new Lag("FragFlag21", 0, "右前5x", 2.0, 0.4, "FragFlag20", 0, 0, 1.0, 0.0),
+        new Lag("FragFlag21", 2, "右前5", 2.0, 0.4, "FragFlag20", 2, 2, 1.0, 0.0),
+        new Lag("RightFragFlag2", 2, "右2", 2.0, 0.4, "RightFragFlag", 1, 1, 1.0, -1.0),
+        new Lag("RightFragFlag3", 0, "右3x", 2.0, 0.4, "RightFragFlag2", 0, 0, 1.0, 0.0),
+        new Lag("RightFragFlag3", 2, "右3", 2.0, 0.4, "RightFragFlag2", 2, 2, 1.0, 0.0),
+        new Lag("RightFragFlag4", 0, "右4x", 2.0, 0.5, "RightFragFlag3", 0, 0, 1.0, 0.0),
+        new Lag("RightFragFlag4", 2, "右4", 2.0, 0.5, "RightFragFlag3", 2, 2, 1.0, 0.0),
+        new Lag("LeftHeadFrag2", 0, "头2x", 2.0, 0.4, "LeftHeadFrag", 0, 0, 1.0, -1.0),
+        new Lag("LeftHeadFrag2", 2, "头2", 2.0, 0.4, "LeftHeadFrag", 2, 2, 1.0, -1.0),
+        new Lag("LeftHeadFrag3", 0, "头3x", 2.0, 0.4, "LeftHeadFrag2", 0, 0, 1.0, 0.0),
+        new Lag("LeftHeadFrag3", 2, "头3", 2.0, 0.4, "LeftHeadFrag2", 2, 2, 1.0, 0.0),
+        new Lag("RightHeadFrag2", 0, "头22x", 2.0, 0.4, "RightHeadFrag", 0, 0, 1.0, -1.0),
+        new Lag("RightHeadFrag2", 2, "头22", 2.0, 0.4, "RightHeadFrag", 2, 2, 1.0, -1.0),
+        new Lag("RightHeadFrag3", 0, "头23x", 2.0, 0.4, "RightHeadFrag2", 0, 0, 1.0, 0.0),
+        new Lag("RightHeadFrag3", 2, "头23", 2.0, 0.4, "RightHeadFrag2", 2, 2, 1.0, 0.0));
+
     private static final List<String> BONES;
     static {
         List<String> all = new ArrayList<>(NAMED_BONES);
         STRANDS.forEach(strand -> all.add(strand.bone()));
-        BONES = List.copyOf(all);
+        LAGS.forEach(lag -> all.add(lag.bone()));
+        BONES = all.stream().distinct().toList();
     }
 
     /** 源动画里发丝用的 perlin seed，38 根全是它 */
     private static final int PERLIN_SEED = 1492;
     /** 源式子是 {@code 10*ysm.perlin_noise(...)}，10 度是振幅 */
     private static final double PERLIN_AMPLITUDE = 10.0;
+
+    /**
+     * 头部跟踪写在哪根骨骼上
+     *
+     * <p>选 {@code AllHead} 而不是 {@code Head} 或 {@code MHead}：脖子（{@code Neck}）是它的子骨骼，
+     * 而 {@code pre_parallel2} 给脖子写的是 {@code -0.5*相对头部偏航} + {@code -0.5*俯仰} ——
+     * 那是「脖子只跟着转一半」的写法，只有把跟踪加在脖子的父级以上才成立
+     */
+    private static final String HEAD_BONE = "AllHead";
 
     /** 每个实体一份滤波器状态。弱键，实体卸载后自己消失 */
     private final Map<TowerGhastEntity, TowerGhastBoneFilters> states = new WeakHashMap<>();
@@ -133,9 +238,13 @@ public final class TowerGhastBonePose {
      */
     public void apply(TowerGhastEntity entity, GeoModel<TowerGhastEntity> model, float partialTick) {
         TowerGhastBoneFilters filters = this.states.computeIfAbsent(entity, unused -> new TowerGhastBoneFilters());
-        // query.life_time 是秒，与 GeckoLib 的 MolangQueries 一致
-        double perlin = TowerGhastPhysics.perlinNoise(PERLIN_SEED, entity.tickCount / 20.0);
-        filters.advanceIfNewTick(entity, perlin);
+        // 发丝的 perlin 要按<strong>帧</strong>取：噪声乘 10 度加在发丝上，而 GeckoLib 每帧都求值动画，
+        // 按 20 Hz 的 tickCount 取值在 60 fps 下就是一跳一跳的（YSM 那边 query.life_time 也是连续的）
+        double perlin = TowerGhastPhysics.perlinNoise(PERLIN_SEED, (entity.tickCount + partialTick) / 20.0);
+        if (filters.advanceIfNewTick(entity, perlin)) {
+            advanceChains(model, filters);
+        }
+        applyHeadTracking(entity, model, partialTick);
 
         List<String> missing = null;
         for (String name : BONES) {
@@ -151,12 +260,91 @@ public final class TowerGhastBonePose {
             }
             applyBone(bone, entity, partialTick, filters, perlin);
         }
+        // 链条的骨骼不在 NAMED_BONES 里，单独写回
+        for (Lag lag : LAGS) {
+            GeoBone bone = model.getBone(lag.bone()).orElse(null);
+            if (bone == null) {
+                continue;
+            }
+            addRotation(bone, lag.axis(), filters.interpolateChain(lag.name(), partialTick));
+        }
         if (missing != null) {
             this.reportedMissing.addAll(missing);
             DawnDuskTerminal.LOGGER.warn(
                 "DawnDuskTerminal 高塔恶魂的次级运动有 {} 根骨骼不在模型里，对应通道不会生效：{}",
                 missing.size(), missing);
         }
+    }
+
+    /**
+     * 逐 tick 走一遍链条：每根子骨骼的二阶滤波输入取父骨骼的<strong>上一帧</strong>旋转
+     *
+     * <p>写回不在这一步，而是在 {@link #apply} 里按 partialTick 插值写
+     *
+     * <p>读回自己上一帧写出去的值是故意的，也是源动画的做法（{@code ysm.bone_rot} 就是上一帧的骨骼旋转）：
+     * 链条是一棵严格的父→子树，没有自引用，{@code F(x)-x} 这种形状反而会自己把自己拉回 0
+     */
+    private void advanceChains(GeoModel<TowerGhastEntity> model, TowerGhastBoneFilters filters) {
+        for (Lag lag : LAGS) {
+            GeoBone parent = model.getBone(lag.parent()).orElse(null);
+            if (parent == null) {
+                continue;
+            }
+            double input = composedDegrees(parent, lag.parentAxis());
+            // 源式子的第二项读的是父骨骼另一个轴上的值（64 条里只有 FragFlag16.rotation[0] 与第一项不同轴）
+            double subtracted = lag.parentAxis() == lag.subtractAxis()
+                ? input
+                : composedDegrees(parent, lag.subtractAxis());
+            filters.stepChain(lag.name(), input, subtracted, lag.frequency(), lag.coefficient(),
+                lag.sign(), lag.parentGain());
+        }
+    }
+
+    /**
+     * 骨骼在某个轴上的<strong>合成</strong>角度：它自己的偏移加上所有祖先的偏移
+     *
+     * <p>{@code ysm.bone_rot('x')} 给的是骨骼在模型里的旋转，不是它相对父骨骼的那一小段
+     * 链条每一级都读合成角度时滞后才会逐级累加：上一级被带走的量势必要传给下一级，
+     * 看上去就是鞭子（布条、发帘都是这个味道）
+     *
+     * <p>只读局部角度会把整条链拉直 —— 纯滞后的那几级（{@code F(x)} 形状）稳态下会收敛到
+     * 与父骨相同的角度，于是从第二段开始全是一个姿势
+     *
+     * <p>欧拉角逐级相加不是严格的矩阵合成，但本模型每根布条基本只在单轴上弯，误差远小于
+     * 真去算四元数再回拆的开销
+     */
+    private static double composedDegrees(GeoBone bone, int axis) {
+        double total = 0.0;
+        for (GeoBone current = bone; current != null; current = current.getParent()) {
+            total += offsetDegrees(current, axis);
+        }
+        return total;
+    }
+
+    /**
+     * 把实体的头部俯仰与偏航写到 {@link #HEAD_BONE} 上
+     *
+     * <p>GeckoLib 自己那份头部跟踪在 {@code DefaultedEntityGeoModel.setCustomAnimations} 里，
+     * 而本模组覆写了那个方法（要写回滤波器与链条），于是头根本不会转 ——
+     * 脖子的 {@code -0.5*相对偏航} 就失去了参照，看上去就是「脖子反着转」
+     *
+     * <p>公式照抄 GeckoLib：{@code GeoEntityRenderer} 把 {@code -netHeadYaw} 与 {@code -headPitch}
+     * 装进 {@code EntityModelData}，跟踪再乘弧度，本层的 {@link #setRotation} 就是那套符号约定
+     *
+     * <p>代价是 {@code death} 与 {@code attacked} 里 {@code AllHead} 自己的关键帧被跟踪覆盖
+     * （YSM 的跟踪也在同一个位置，覆盖面相同）
+     */
+    private void applyHeadTracking(TowerGhastEntity entity, GeoModel<TowerGhastEntity> model, float partialTick) {
+        GeoBone head = model.getBone(HEAD_BONE).orElse(null);
+        if (head == null) {
+            return;
+        }
+        // 与 query.head_x_rotation（getViewXRot）以及相对身体偏航同源，见类注释的「单位与符号」
+        double pitch = Mth.lerp(partialTick, entity.xRotO, entity.getXRot());
+        double yaw = Mth.rotLerp(partialTick, entity.yHeadRotO, entity.yHeadRot)
+            - Mth.rotLerp(partialTick, entity.yBodyRotO, entity.yBodyRot);
+        setRotation(head, 0, pitch);
+        setRotation(head, 1, yaw);
     }
 
     private void applyBone(GeoBone bone, TowerGhastEntity entity, float partialTick,
@@ -202,19 +390,19 @@ public final class TowerGhastBonePose {
                 setRotation(bone, 2, 3.0 * chestYawSpeed);
             }
             case "LeftGuard" -> {
-                setRotation(bone, 0, 3.0 * chestHorizontal - 3.0 * chestYawSpeed);
-                setRotation(bone, 2, 3.0 * chestVertical);
+                addRotation(bone, 0, 3.0 * chestHorizontal - 3.0 * chestYawSpeed);
+                addRotation(bone, 2, 3.0 * chestVertical);
             }
             case "Bung" -> {
                 setRotation(bone, 0, chestVertical);
                 setRotation(bone, 1, chestYawSpeed);
             }
             case "FrontFragFlag", "AnteriorFragFlag", "AnteriorFragFlag2" ->
-                setRotation(bone, 2, 0.5 * turnLag);
+                addRotation(bone, 2, 0.5 * turnLag);
             case "BackFragFlag", "RearAnteriorFragFlag", "RearAnteriorFragFlag2" ->
-                setRotation(bone, 2, -0.5 * turnLag);
+                addRotation(bone, 2, -0.5 * turnLag);
             case "LeftFragFlag", "RightFragFlag" ->
-                setRotation(bone, 1, -0.3 * turnLag);
+                addRotation(bone, 1, -0.3 * turnLag);
             case "FLongHair" -> setRotation(bone, 0, hairPitchClamped);
             case "MLongHair" -> {
                 setRotation(bone, 0, hairVertical + hairHorizontal);
@@ -246,6 +434,35 @@ public final class TowerGhastBonePose {
             case 1 -> bone.setRotY(initial.getRotY() - radians);
             default -> bone.setRotZ(initial.getRotZ() + radians);
         }
+    }
+
+    /**
+     * 叠加式写入，符号与 {@link #setRotation} 一致
+     *
+     * <p>YSM 的并行动画是<strong>加法混合</strong>，所以次级运动必须叠在主动画之上：
+     * 布条那几根骨骼在 {@code run} {@code jump} {@code ladder_*} 里都有自己的关键帧，
+     * 替换写法会把它们整段抹掉（表现是跑动时布条僵在原地）
+     *
+     * <p>只有主动画写 0 或根本不碰那些通道的骨骼用得到它（{@link #setRotation} 仍用于主动画已经
+     * 把同一个值写进去的那些，例如发丝与胸口的滤波器输入）
+     */
+    private static void addRotation(GeoBone bone, int axis, double degrees) {
+        float radians = (float) Math.toRadians(degrees);
+        switch (axis) {
+            case 0 -> bone.setRotX(bone.getRotX() - radians);
+            case 1 -> bone.setRotY(bone.getRotY() - radians);
+            default -> bone.setRotZ(bone.getRotZ() + radians);
+        }
+    }
+
+    /** 骨骼当前角度相对初始姿势的偏移，换成动画文件里的度数（与 {@link #addRotation} 互逆） */
+    private static double offsetDegrees(GeoBone bone, int axis) {
+        BoneSnapshot initial = bone.getInitialSnapshot();
+        return switch (axis) {
+            case 0 -> -Math.toDegrees(bone.getRotX() - initial.getRotX());
+            case 1 -> -Math.toDegrees(bone.getRotY() - initial.getRotY());
+            default -> Math.toDegrees(bone.getRotZ() - initial.getRotZ());
+        };
     }
 
     private static void setScale(GeoBone bone, int axis, double value) {
