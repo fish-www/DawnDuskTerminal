@@ -27,6 +27,7 @@ public final class ModCreativeTabs {
                 accept(output, ModItems.HYDRA_TROPHY.get());
                 accept(output, ModItems.UR_GHAST_TROPHY.get());
                 accept(output, ModItems.SNOW_QUEEN_TROPHY.get());
+                accept(output, ModItems.PAINTING_GHAST_1.get());
                 accept(output, ModItems.ENCASED_DUST.get());
                 accept(output, ModItems.CANOCAN.get());
                 accept(output, ModItems.PORTAL_BUCKET.get());

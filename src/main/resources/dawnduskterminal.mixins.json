@@ -15,6 +15,7 @@
     "MineshaftChestLootMixin",
     "MineshaftHeightMixin",
     "NoiseChunkTemperatureMixin",
+    "PaintingVariantGuardMixin",
     "GameTestChunkWaitMixin"
   ],
   "client": [

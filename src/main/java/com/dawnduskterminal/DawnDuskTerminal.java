@@ -22,6 +22,7 @@ import com.dawnduskterminal.registry.ModParticles;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.registry.ModSounds;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
+import com.dawnduskterminal.registry.ModTrunkPlacers;
 import com.dawnduskterminal.server.DdtServerEvents;
 import com.dawnduskterminal.world.FluidReactions;
 import net.minecraft.resources.ResourceLocation;
@@ -60,6 +61,7 @@ public final class DawnDuskTerminal {
         ModCriteria.register(modBus);
         ModBiomeSources.register(modBus);
         ModFeatures.register(modBus);
+        ModTrunkPlacers.register(modBus);
         ModCreativeTabs.register(modBus);
 
         modBus.addListener(ModNetwork::registerPayloads);

@@ -4,6 +4,7 @@ import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.item.CanocanItem;
 import com.dawnduskterminal.item.CarminiteGhastMeatItem;
 import com.dawnduskterminal.item.CarminiteStaffItem;
+import com.dawnduskterminal.item.GhastPaintingItem;
 import com.dawnduskterminal.item.ScarletMolybdArmorItem;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ArmorItem;
@@ -30,6 +31,11 @@ public final class ModItems {
     public static final DeferredItem<Item> SNOW_QUEEN_TROPHY = ITEMS.registerSimpleItem(
         "snow_queen_trophy",
         new Item.Properties().rarity(Rarity.RARE).fireResistant().stacksTo(1));
+
+    /** 恶魂画 #1 的物品形态。没有配方，也不会跟原版画物品互通，见 {@link GhastPaintingItem} */
+    public static final DeferredItem<GhastPaintingItem> PAINTING_GHAST_1 = ITEMS.register(
+        "painting_ghast_1",
+        () -> new GhastPaintingItem(new Item.Properties()));
 
     public static final DeferredItem<CanocanItem> CANOCAN = ITEMS.register(
         "canocan",

@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+import net.minecraft.client.renderer.entity.PaintingRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -115,6 +116,10 @@ public final class DdtClient {
     private static void onRegisterEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.CARMINITE_BALL.get(), ThrownItemRenderer::new);
         event.registerEntityRenderer(ModEntities.CARMINITE_FIELD.get(), NoopRenderer::new);
+        // 原版画的渲染器认的是 Painting 而不是具体实体类型，3x2 的贴图切分、按面光源着色、背板
+        // 全是它算的，直接复用；它从 PaintingTextureManager（atlas minecraft:paintings）取
+        // asset_id 对应的 sprite，所以贴图必须放 textures/painting/ 下
+        event.registerEntityRenderer(ModEntities.GHAST_PAINTING_1.get(), PaintingRenderer::new);
     }
 
     /** 三种粒子共用一支实现，只差参数，见 {@link CarminiteParticle} */

@@ -171,6 +171,31 @@ ID 仍是 `birch_forest`，因为占位不改注册名，看 ID 就知道它顶�
 
 树叶按 `ChronoFoliageColors` 固定染成 `0xE94E14`，草方块走暮色森林的 `dark_forest_center` 调色器
 
+### 天门松
+
+`configured_feature/tree/skygate_pine.json` 是文竹式分层的树：20~30 格直筒树干，4~8 根枝撒在树干 28% 到 90% 的高度上，每根枝顶一团压扁的樱花叶团。
+
+树干用模组自己的 `dawnduskterminal:skygate_branching`（`world/SkygateBranchTrunkPlacer`）：原版 `cherry_trunk_placer` 最多三根枝且贴顶，暮色森林的 `branching_trunk_placer` 分枝是逐格往上叠的连排，都铺不满树干中下部，所以高度是代码里算的。枝的方向按方位角逐根随机，落点取在圆周上再走单格轴向的斜线，所以斜枝（45 度、30 度这类）也会长。可调项：
+
+| 字段 | 作用 |
+|---|---|
+| `branch_count` | 分枝根数，`IntProvider` |
+| `branch_length` | 每根枝在圆周上的伸出半径，`IntProvider` |
+| `branch_band` | `{min, max}`，分枝高度带占树干高度的比例 |
+| `branch_rise_chance` | 每走一格同时抬高一格的概率 |
+| `radius_offsets.branch` | 每根枝的树冠水平尺寸偏移，`IntProvider`，逐枝抖动 |
+| `radius_offsets.crown` | 树干顶上那团的水平尺寸偏移，固定值，比枝顶大一档用来封顶 |
+
+叶团是 `minecraft:cherry_foliage_placer`：`height` 取到该 placer 允许的下限 4（原版樱花是 5），垂直尺寸就定死在这儿；`radius` 随树浮动，再叠上 `radius_offsets`，所以横向比原版樱花大一圈而且每团不一样大。注意 placer 内部的 `i = radius + radiusOffset - 1`，最宽的一层在下数第二层、半径就是 `i`：`radius` 取 3、`branch` 取 -1 时 `i` 只剩 1，叶团会缩成 3x3 的薄片，别再往下调。
+
+挂藤用原版的 `minecraft:leave_vine`：它在树叶侧面的空位挂藤，再往下垂一到四格，正好是「藤长在树叶边上」。它只有一个 `probability`，是**每片树叶每个侧面各掷一次**，所以密度随树冠大小线性涨：`0.25`（原版丛林树的取值）在这棵树上是几百个藤方块，`0.01` 实测 16 个藤方块、7 条藤（叶约 450 片）。调密度按线性换算。
+
+别用 `minecraft:trunk_vine`：它挂的是树干，每根原木每面 2/3，二十多格的树干会挂成藤柱。本模组曾经自己写过 `sparse_leaf_vine`，按「条数」随机挑树叶再往旁边挂，结果绝大多数随机数落在叶团内部（旁边不是空气），实际挂出来的条数远少于配置值，已删除。
+
+`minimum_size` 是 `limit 1` / `lower_size 0` / `upper_size 2`，跟原版樱花一致；旧配置的 `limit 20` + `upper_size 5` 等于要求树干高处 11x11 全是空地，树几乎长不出来。
+
+形状由 `SkygatePineTests` 断言：树高 20~30、分枝至少覆盖四个不同高度且同时落在树干下半与上三分之一。
+
 ## 群系温度与晨昏线偏移
 
 `NoiseChunkTemperatureMixin` 把维度的温度密度函数包进 `ChronoTemperature`

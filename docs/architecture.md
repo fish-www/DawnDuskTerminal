@@ -96,6 +96,20 @@
 
 装备贴图目前是原版铁、钻石贴图加色阶的占位图，真美术进来后换掉 `textures/item/` 与 `textures/models/armor/` 里对应前缀的文件即可
 
+## 装饰画
+
+变体是数据包注册表，条目在 `data/dawnduskterminal/painting_variant/painting_ghast_1.json`，3 格宽 2 格高；`registry/ModPaintingVariants` 只放指向它的 `ResourceKey`，尺寸不在 Java 侧重复
+
+贴图放 `assets/dawnduskterminal/textures/painting/painting_ghast_1.png`。原版 `atlases/paintings.json` 只声明了「扫 `textures/painting` 目录」，那个目录源跨命名空间收图，所以放进这个位置就会被 `minecraft:paintings` 图集收进去，渲染走原版 `PaintingRenderer`，不用自己写
+
+物品图标的贴图必须另放一份到 `textures/item/`：1.21.1 的物品模型贴图是从 `minecraft:paintings` 之外的 `blocks` 图集取的，而那个图集只声明了 `block/` 与 `item/` 两个目录源，`textures/entity/` 下的图不会被收，模型就会渲染成紫黑格子（`Missing textures in model ...`）
+
+`entity/GhastPaintingEntity` 是独立的实体类型，不共用 `minecraft:painting`：原版画物品只从 `#minecraft:painting_variant/placeable` 挑变体，我们的变体不进那个标签，于是原版物品放不出它；这个实体又把 `setVariant` 固定成自己的变体，敲碎掉的是 `painting_ghast_1` 物品，中键也是它
+
+`mixin/PaintingVariantGuardMixin` 堵的是手改那条侧门：原版画实体上的 `setVariant` 遇到这个变体直接吞掉，`/summon` 指定变体与旧存档里的 NBT 都改不出我们的画
+
+`item/GhastPaintingItem` 的摆放流程照抄 `HangingEntityItem`，只能放这一幅，没有配方
+
 ## 维度与晨昏线
 
 `registry/ModDimensions.CHRONO` 是维度的 `ResourceKey`

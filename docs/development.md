@@ -172,6 +172,18 @@ OpenYSM 在 1.21.1 NeoForge 上没有官方构建：官方 Modrinth 项目只发
 
 `portalFluidCullsTheFaceBetweenTwoOfItself` 传送门流体之间剔除面
 
+### PaintingTests
+
+`variantIsThreeByTwo` 变体是 3x2，贴图指向 `dawnduskterminal:painting_ghast_1`
+
+`vanillaPaintingItemCannotPlaceIt` 变体不在 `#minecraft:painting_variant/placeable` 里，原版画物品挑不到它
+
+`entityIsLockedToItsVariant` 本模组的画实体强制用自己的变体，`setVariant` 塞别的进去也换不掉，中键给的是自己的物品
+
+`vanillaPaintingRefusesTheVariant` 原版画实体拒绝这个变体（`PaintingVariantGuardMixin`）
+
+`itemPlacesThePainting` 贴着 3x2 的墙放下后实体类型 朝向 变体 包围盒都对，物品减一
+
 ## 指令
 
 `/ddt` 需要权限等级 2
@@ -236,6 +248,8 @@ feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则�
 新增矿石放 `registry/ModChronoOres`
 
 新增物品放 `registry/ModItems`
+
+新增画放 `data/dawnduskterminal/painting_variant/` 与 `assets/dawnduskterminal/textures/painting/`，实体与物品见 `entity/GhastPaintingEntity` `item/GhastPaintingItem`
 
 新增流体放 `registry/ModFluids` 或 `registry/ModScorchingTwilight`
 

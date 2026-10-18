@@ -3,6 +3,7 @@ package com.dawnduskterminal.registry;
 import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.entity.CarminiteBallEntity;
 import com.dawnduskterminal.entity.CarminiteFieldEntity;
+import com.dawnduskterminal.entity.GhastPaintingEntity;
 import com.dawnduskterminal.entity.TowerGhastEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityDimensions;
@@ -47,6 +48,19 @@ public final class ModEntities {
             .clientTrackingRange(4)
             .updateInterval(1)
             .build("carminite_field"));
+
+    /**
+     * 恶魂画 #1。尺寸与 updateInterval 照抄原版画：画不会移动，{@code sized} 只是占位，
+     * 真正的包围盒由 {@link GhastPaintingEntity} 按变体的 3x2 算出来；
+     * updateInterval 拉到 {@link Integer#MAX_VALUE} 是原版的做法，非初始同步不发位置包
+     */
+    public static final DeferredHolder<EntityType<?>, EntityType<GhastPaintingEntity>> GHAST_PAINTING_1 =
+        ENTITIES.register("painting_ghast_1", () -> EntityType.Builder
+            .<GhastPaintingEntity>of(GhastPaintingEntity::new, MobCategory.MISC)
+            .sized(0.5F, 0.5F)
+            .clientTrackingRange(10)
+            .updateInterval(Integer.MAX_VALUE)
+            .build("painting_ghast_1"));
 
     private ModEntities() {}
 

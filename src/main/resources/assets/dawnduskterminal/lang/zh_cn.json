@@ -22,6 +22,7 @@
   "item.dawnduskterminal.hydra_trophy": "祸害之物",
   "item.dawnduskterminal.ur_ghast_trophy": "号令之物",
   "item.dawnduskterminal.snow_queen_trophy": "澄澈之物",
+  "item.dawnduskterminal.painting_ghast_1": "恶魂壁画·其一",
   "item.dawnduskterminal.portal_bucket": "罐装的不稳定液体",
   "item.dawnduskterminal.enthu_fluid_bucket": "罐装的热情暮光",
   "item.dawnduskterminal.encased_dust": "封装灰尘",
@@ -170,5 +171,6 @@
   "subtitles.dawnduskterminal.tower_ghast_ambient": "高塔恶魂低语",
   "subtitles.dawnduskterminal.tower_ghast_hurt": "高塔恶魂受击",
   "death.attack.dawnduskterminal.carminite_field": "%1$s 被砷铅铁反应场溶解",
-  "entity.dawnduskterminal.tower_ghast": "高塔恶魂"
+  "entity.dawnduskterminal.tower_ghast": "高塔恶魂",
+  "entity.dawnduskterminal.painting_ghast_1": "恶魂壁画"
 }
