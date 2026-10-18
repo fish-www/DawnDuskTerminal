@@ -200,6 +200,8 @@ ID 仍是 `birch_forest`，因为占位不改注册名，看 ID 就知道它顶�
 
 `NoiseChunkTemperatureMixin` 把维度的温度密度函数包进 `ChronoTemperature`
 
+包装点在 `NoiseChunk.cachedClimateSampler`，所以只有区块落盘的群系带偏移；结构判定与 `/locate biome` 读的 `RandomState.sampler()` 不带，两边会判出不同群系，补救见「两个采样器」
+
 温度噪声是 `shifted_noise`，噪声 `dawnduskterminal:temperature`，`amplitudes` 为 `[1.5, 0, 1, 0, 0, 0]`，`firstOctave` 为 -10
 
 它的声明值域是 `NormalNoise.maxValue`：`PerlinNoise.edgeValue(2.0)` 在这个振幅表上得到 1.7778，乘 2 再乘 `valueFactor` 1.25 得 `±4.4444`
@@ -244,6 +246,8 @@ ID 仍是 `birch_forest`，因为占位不改注册名，看 ID 就知道它顶�
 
 `data/minecraft/tags/block/` 把模组方块加进原版石类 土类 沙类 树叶等标签
 
+`data/twilightforest/tags/worldgen/biome/` 把副本挂进暮色森林结构的群系标签，目前只有 `valid_hollow_tree_biomes`
+
 ## 世界生成补丁
 
 数据包够不到的原版硬编码由 mixin 接管，逐条见 `architecture.md`
@@ -269,6 +273,22 @@ ID 仍是 `birch_forest`，因为占位不改注册名，看 ID 就知道它顶�
 `StructureExclusionMixin` 排除不在白名单里的结构
 
 同一文件里的 `UNMAPPED` 与 `LANDMARKS` 记录未放行的暮色森林结构与地标，只服务日志，不影响行为
+
+### 高大暮色橡树
+
+高大暮色橡树（Robust Twilight Oak，`twilightforest:hollow_tree` 结构，`hollow_oak_sapling` 长出的那棵）不是 placed_feature，不走群系特征表，所以白名单放行还不够：它的群系选择器是 `#twilightforest:valid_hollow_tree_biomes`，那份标签原本只列暮色森林自己的群系
+
+`data/twilightforest/tags/worldgen/biome/valid_hollow_tree_biomes.json` 用 `replace: false` 把 forest birch_forest old_growth_birch_forest flower_forest dark_forest mushroom_fields savanna 七份副本追加进去。结构在 `findValidGenerationPoint` 里问的正是这个 holder set，标签丢了巨树就静默消失，所以 `WorldgenTests.hollowTreesAcceptTheChronoBiomes` 钉住这件事
+
+结构集 `twilightforest:hollow_tree` 的 spacing 7 separation 5，池子里一半权重是 `twilightforest:swamp_hollow_tree`，那个结构把群系写死为 `twilightforest:swamp`，在晨昏线里不存在，所以实际密度大约再减半
+
+### 群系标签不够：两个采样器
+
+曾经的问题：温度偏移包在 `NoiseChunk.cachedClimateSampler` 里，区块落盘的群系走这条带偏移的路，而树洞判定读的 `context.randomState().sampler()` 没有偏移。两边会给出不同群系——结构看到草原，地表实际是红沙漠或雪原，巨树于是长在沙漠中间。实测一个存档：24 棵里有 14 棵的地表群系是 `dawnduskterminal:red_desert`
+
+`HollowTreeSurfaceBiomeMixin` 在 `findValidGenerationPoint` 返回处用同样包过温度的采样器复算一次，不在标签里就取消。注入必须写 `cancellable = true`，否则 `setReturnValue` 会在世界生成线程里抛 `CancellationException`。注入点只能选 `RETURN`：`Structure.findValidGenerationPoint` 上已有 `StructureExclusionMixin` 的 `HEAD` 注入
+
+试过把偏移整体搬到 `RandomState`（`router` 与 `sampler` 一起包装）来根治，能跑通但性能崩了：`NoiseChunk` 会为包装器再建一层噪声插值，`locate structure` 从 0.1 秒变成单刻超过 60 秒、直接触发看门狗，于是退回结构级复核
 
 ## 高度
 

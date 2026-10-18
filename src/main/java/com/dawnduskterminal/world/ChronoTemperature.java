@@ -6,6 +6,10 @@ import net.minecraft.world.level.levelgen.DensityFunction;
 /**
  * 给晨昏线维度的温度噪声加上晨昏线偏移，让群系选择看到更暖的昼侧与更冷的夜侧
  *
+ * <p>包装点在 {@code NoiseChunk.cachedClimateSampler}（{@code NoiseChunkTemperatureMixin}），因此只有区块
+ * 落盘的群系带偏移；结构判定用的 {@code RandomState.sampler()} 不带，需要 {@code HollowTreeSurfaceBiomeMixin}
+ * 那条复核
+ *
  * <p>偏移量就是 {@link ChronoLineState#serverLine()} 的 {@link ChronoLine#param(double, double)}：把方块
  * 坐标投影到线的法向上，除以 {@code maxDistance} 后钳到 {@code [-1, 1]}，再乘 {@link #AMPLITUDE}。于是
  * 原点处为 0，沿法向约 {@code maxDistance} 格处为 &plusmn;{@value #AMPLITUDE}，垂直于法向的方向完全
@@ -23,9 +27,9 @@ public final class ChronoTemperature {
     /**
      * 包住一个温度 {@link DensityFunction}，让所有 {@link #compute} 结果都加上晨昏线偏移
      *
-     * <p>{@code mapAll} 必须递归进 delegate：{@code NoiseChunk} 里的调用方用
-     * {@code .mapAll(this::wrap)} 把本包装器串起来，好把温度的噪声 holder 解析成真正的
-     * {@code NormalNoise}；包装器不递归的话噪声解析不了，每次群系查询都会得到错误结果
+     * <p>{@code mapAll} 必须递归进 delegate：{@code NoiseChunk} 用 {@code .mapAll(this::wrap)} 把
+     * router 上的函数重新映射成区块内的噪声，好把温度的噪声 holder 解析成真正的 {@code NormalNoise}；
+     * 包装器不递归的话噪声解析不了，每次群系查询都会得到错误结果
      */
     public static DensityFunction wrap(DensityFunction temperature) {
         return new Wrapped(temperature);

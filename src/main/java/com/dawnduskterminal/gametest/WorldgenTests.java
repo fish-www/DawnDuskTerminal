@@ -5,21 +5,25 @@ import com.dawnduskterminal.registry.ModTerrainBlocks;
 import com.dawnduskterminal.world.ChronoVeinPalette;
 import com.dawnduskterminal.world.PaletteBiomeSource;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSourceParameterList;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.DensityFunction;
@@ -48,6 +52,8 @@ import java.util.Set;
 public final class WorldgenTests {
     private static final String MOD_ID = "dawnduskterminal";
     private static final ResourceLocation CHRONO = ResourceLocation.fromNamespaceAndPath(MOD_ID, "chrono");
+    private static final TagKey<Biome> HOLLOW_TREE_BIOMES =
+        TagKey.create(Registries.BIOME, ResourceLocation.parse("twilightforest:valid_hollow_tree_biomes"));
 
     /** 移植后的主世界噪声路由需要的所有密度函数 */
     private static final String[] PORTED_DENSITY_FUNCTIONS = {
@@ -216,6 +222,70 @@ public final class WorldgenTests {
         helper.assertTrue(!featureIds.isEmpty(), "the biome copy must keep its feature list");
         helper.assertTrue(featureIds.stream().anyMatch(id -> MOD_ID.equals(id.getNamespace())),
             "the biome copy must place our own features, found " + featureIds);
+        helper.succeed();
+    }
+
+    /**
+     * 高大暮色橡树（Robust Twilight Oak）是暮色森林的结构 {@code twilightforest:hollow_tree}，不是 placed_feature，
+     * 它的群系选择器是 {@code #twilightforest:valid_hollow_tree_biomes}。那份标签原本只列暮色森林自己的群系，
+     * 本模组的数据包把副本追加进去。标签一旦丢失，巨树只是不再出现，不会有任何报错
+     */
+    @GameTest(template = "ddt_empty")
+    public static void hollowTreesAcceptTheChronoBiomes(GameTestHelper helper) {
+        Registry<Biome> biomes = helper.getLevel().getServer().registryAccess().registryOrThrow(Registries.BIOME);
+        HolderSet.Named<Biome> valid = biomes.getTag(HOLLOW_TREE_BIOMES).orElse(null);
+        helper.assertTrue(valid != null, HOLLOW_TREE_BIOMES.location() + " must resolve");
+        for (String name : new String[] {
+                "forest", "birch_forest", "old_growth_birch_forest", "flower_forest", "dark_forest",
+                "mushroom_fields", "savanna"}) {
+            ResourceKey<Biome> key = ResourceKey.create(Registries.BIOME,
+                ResourceLocation.fromNamespaceAndPath(MOD_ID, name));
+            Holder<Biome> biome = biomes.getHolder(key).orElse(null);
+            helper.assertTrue(biome != null, "chrono biome copy missing: " + name);
+            helper.assertTrue(valid.contains(biome),
+                MOD_ID + ":" + name + " must be in " + HOLLOW_TREE_BIOMES.location());
+        }
+        helper.succeed();
+    }
+
+    /**
+     * 大型暮色橡树的地面门槛是 placed_feature 里的 {@code would_survive}，判定的是暮色橡树树苗；
+     * 那个树苗注册成原版 {@code SaplingBlock}，{@code canSurvive} 只认 {@code #minecraft:dirt}。霞土霞草
+     * 一旦掉出这个标签，树会静默消失，所以这里直接问方块本身
+     */
+    @GameTest(template = "ddt_empty")
+    public static void twilightOakSaplingSurvivesOnRosyGround(GameTestHelper helper) {
+        for (Block ground : new Block[] {ModTerrainBlocks.ROSY_GRASS.get(), ModTerrainBlocks.ROSY_DIRT.get()}) {
+            helper.assertTrue(ground.defaultBlockState().is(BlockTags.DIRT),
+                ground.getName().getString() + " must stay in the #minecraft:dirt tag the sapling checks");
+        }
+        Block sapling = BuiltInRegistries.BLOCK.get(ResourceLocation.parse("twilightforest:twilight_oak_sapling"));
+        helper.assertTrue(sapling != Blocks.AIR,
+            "twilightforest:twilight_oak_sapling must be registered, Twilight Forest is a required dependency");
+        BlockPos groundPos = new BlockPos(1, 1, 1);
+        helper.setBlock(groundPos, ModTerrainBlocks.ROSY_GRASS.get());
+        helper.assertTrue(sapling.defaultBlockState().canSurvive(helper.getLevel(), helper.absolutePos(groundPos).above()),
+            "the sapling must accept rosy grass as ground, otherwise no twilight oak can be placed on the chrono surface");
+        helper.succeed();
+    }
+
+    /** 群系副本是照原版手抄的特征表，抄漏一条不会有任何报错，只是那种树不再出现 */
+    @GameTest(template = "ddt_empty")
+    public static void paletteBiomeCopiesRequestTwilightOaks(GameTestHelper helper) {
+        Registry<Biome> biomes = helper.getLevel().getServer().registryAccess().registryOrThrow(Registries.BIOME);
+        ResourceLocation largeOak = ResourceLocation.parse("twilightforest:tree/large_twilight_oak_tree");
+        for (String name : new String[] {"forest", "birch_forest", "old_growth_birch_forest", "savanna"}) {
+            Biome biome = biomes.get(ResourceLocation.fromNamespaceAndPath(MOD_ID, name));
+            helper.assertTrue(biome != null, "chrono biome copy missing: " + name);
+            Set<ResourceLocation> featureIds = new LinkedHashSet<>();
+            for (HolderSet<PlacedFeature> step : biome.getGenerationSettings().features()) {
+                for (Holder<PlacedFeature> holder : step) {
+                    holder.unwrapKey().ifPresent(key -> featureIds.add(key.location()));
+                }
+            }
+            helper.assertTrue(featureIds.contains(largeOak),
+                MOD_ID + ":" + name + " must keep requesting " + largeOak);
+        }
         helper.succeed();
     }
 
