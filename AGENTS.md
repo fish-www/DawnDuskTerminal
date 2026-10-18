@@ -134,6 +134,14 @@ feature 引用与 `neoforge:remove_features` 的 ID 必须真实存在，否则�
 
 正文只在携带 subject 装不下的信息时添加
 
+## 分支与协作
+
+推送前先 `git fetch origin`，把当前分支 rebase 到最新的 `origin/main`
+
+冲突自己解决完再推送，不许推送带冲突标记的提交
+
+不要用 merge 提交同步主干，保持线性历史
+
 ## 文档
 
 `docs/README.md` 文档索引
