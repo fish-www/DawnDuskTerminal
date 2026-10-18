@@ -11,6 +11,7 @@
     "PillarsFluidBlockMixin",
     "FeatureSorterMixin",
     "LightEngineSkyLightMixin",
+    "HollowTreeSurfaceBiomeMixin",
     "StructureExclusionMixin",
     "MineshaftChestLootMixin",
     "MineshaftHeightMixin",
