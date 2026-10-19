@@ -53,6 +53,7 @@ public final class ModCreativeTabs {
                 accept(output, ModTerrainBlocks.MOUNTED_TOWERWOOD_ITEM.get());
                 accept(output, ModTerrainBlocks.ENCASED_TOWERBEAM_ITEM.get());
                 accept(output, ModTerrainBlocks.SKYGATE_PINE_LOG_ITEM.get());
+                accept(output, ModTerrainBlocks.STRIPPED_SKYGATE_PINE_LOG_ITEM.get());
                 accept(output, ModTerrainBlocks.SKYGATE_PINE_LEAVES_ITEM.get());
                 accept(output, ModTerrainBlocks.SKYGATE_PINE_SAPLING_ITEM.get());
                 accept(output, ModTerrainBlocks.SCARLET_MOLYBDENUM_ORE_ITEM.get());

@@ -175,6 +175,14 @@ public final class ModTerrainBlocks {
     public static final DeferredBlock<RotatedPillarBlock> SKYGATE_PINE_LOG =
         BLOCKS.registerBlock("skygate_pine_log", RotatedPillarBlock::new, log(MapColor.COLOR_GREEN));
 
+    // 去皮原木。方块本身只换了贴图，原木到去皮原木的映射不写在代码里：NeoForge 用数据包
+    // data/neoforge/data_maps/block/strippables.json 顶掉了原版 AxeItem 的静态表
+    // （NeoForgeDataMaps.STRIPPABLES），所以这里既不用 mixin 也不用反射去改 AxeItem。
+    // 注意路径的命名空间必须是 neoforge 而不是 dawnduskterminal：加载器按「命名空间:文件名」找数据图类型，
+    // 写成 dawnduskterminal 会去找一个叫 dawnduskterminal:strippables 的不存在类型然后静默跳过
+    public static final DeferredBlock<RotatedPillarBlock> STRIPPED_SKYGATE_PINE_LOG =
+        BLOCKS.registerBlock("stripped_skygate_pine_log", RotatedPillarBlock::new, log(MapColor.COLOR_GREEN));
+
     public static final DeferredBlock<LeavesBlock> SKYGATE_PINE_LEAVES =
         BLOCKS.registerBlock("skygate_pine_leaves", LeavesBlock::new, leaves());
 
@@ -190,6 +198,8 @@ public final class ModTerrainBlocks {
 
     public static final DeferredItem<BlockItem> SKYGATE_PINE_LOG_ITEM =
         ITEMS.registerSimpleBlockItem(SKYGATE_PINE_LOG);
+    public static final DeferredItem<BlockItem> STRIPPED_SKYGATE_PINE_LOG_ITEM =
+        ITEMS.registerSimpleBlockItem(STRIPPED_SKYGATE_PINE_LOG);
     public static final DeferredItem<BlockItem> SKYGATE_PINE_LEAVES_ITEM =
         ITEMS.registerSimpleBlockItem(SKYGATE_PINE_LEAVES);
     public static final DeferredItem<BlockItem> SKYGATE_PINE_SAPLING_ITEM =

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "dawnduskterminal:block/stripped_skygate_pine_log_top",
+    "side": "dawnduskterminal:block/stripped_skygate_pine_log"
+  }
+}

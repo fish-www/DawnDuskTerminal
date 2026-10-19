@@ -1,16 +1,20 @@
 package com.dawnduskterminal.gametest;
 
+import com.dawnduskterminal.registry.ModTerrainBlocks;
 import com.dawnduskterminal.world.SkygateBranchTrunkPlacer;
 import java.util.HashSet;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
@@ -95,6 +99,29 @@ public final class SkygatePineTests {
             "branches must reach the lower half of the trunk, got " + branchHeights);
         helper.assertTrue(branchHeights.stream().anyMatch(dy -> dy >= trunkHeight * 2 / 3),
             "branches must reach the upper third of the trunk, got " + branchHeights);
+        helper.succeed();
+    }
+
+    /**
+     * 去皮走 NeoForge 的数据图：映射写在
+     * {@code data/neoforge/data_maps/block/strippables.json} 里（命名空间必须是 neoforge），
+     * 代码侧只是注册一个 RotatedPillarBlock。数据图路径或 key 写错时加载器只会静默跳过这条映射，
+     * 右键斧子什么都不发生，所以这里直接问 {@link AxeItem#getAxeStrippingState} 要结果，
+     * 顺带确认轴属性跟着复制过去
+     */
+    @GameTest(template = "ddt_empty")
+    public static void axeStripsTheLogKeepingTheAxis(GameTestHelper helper) {
+        BlockState log = ModTerrainBlocks.SKYGATE_PINE_LOG.get().defaultBlockState()
+            .setValue(RotatedPillarBlock.AXIS, Direction.Axis.X);
+
+        BlockState stripped = AxeItem.getAxeStrippingState(log);
+
+        helper.assertTrue(stripped != null,
+            "the strippables data map must map skygate_pine_log to a stripped block, AxeItem returned null");
+        helper.assertTrue(stripped.is(ModTerrainBlocks.STRIPPED_SKYGATE_PINE_LOG.get()),
+            "skygate_pine_log must strip into stripped_skygate_pine_log, got " + stripped);
+        helper.assertTrue(stripped.getValue(RotatedPillarBlock.AXIS) == Direction.Axis.X,
+            "stripping must keep the log axis, got " + stripped);
         helper.succeed();
     }
 }
