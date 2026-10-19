@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
  * <p>天穹色同时决定雾色（{@code FogRenderer.setupColor} 拿 {@code getSkyColor} 的结果去
  * {@code getBrightnessDependentFogColor}），所以压暗之后整片过曝的雾也一起降下来
  *
- * <p>乘的是常数，不是只挑白地群系：{@code red_desert} 那种浅橙色天空同样吃不住加色的太阳
+ * <p>乘的是常数，不是只挑白地群系：{@code white_land} 以外的亮色天空同样吃不住加色的太阳
  */
 @Mixin(ClientLevel.class)
 public abstract class ClientLevelSkyColorMixin {

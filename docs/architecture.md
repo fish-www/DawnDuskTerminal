@@ -144,7 +144,11 @@
 
 副本名与命名空间对应关系按路径匹配，例如 `minecraft:plains` 换成 `dawnduskterminal:plains`
 
+三格在替换表里再改指：`minecraft:desert` 换白地（昼区），`minecraft:snowy_beach` 与 `minecraft:frozen_river` 换蓝沙沙漠（夜区海岸与河床）。这只是决定某一格装哪个副本，选格仍然是气候表算的
+
 `floatrees` 群系走另一条路，采样深度低于阈值时直接返回
+
+群系源里没有任何按 `param` 判群系的特例，极带暂时与相邻带同群系
 
 替换表延迟构建，因为 biome source 在数据包解析期创建，那时标签里的 holder 还没有 key
 

@@ -2,6 +2,7 @@ package com.dawnduskterminal.gametest;
 
 import com.dawnduskterminal.registry.ModDimensions;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
+import com.dawnduskterminal.world.ChronoTemperature;
 import com.dawnduskterminal.world.ChronoVeinPalette;
 import com.dawnduskterminal.world.PaletteBiomeSource;
 import com.mojang.serialization.MapCodec;
@@ -88,8 +89,11 @@ public final class WorldgenTests {
     };
 
     /** 维度必须有副本的主世界群系抽样 */
+    /** 自建群系，没有同名原版副本，只查模组侧注册 */
+    private static final String[] OWN_BIOMES = {"floatrees", "white_land", "blue_desert"};
+
     private static final String[] COPIED_BIOMES = {
-        "plains", "sunflower_plains", "desert", "ocean", "deep_ocean", "frozen_ocean", "forest",
+        "plains", "sunflower_plains", "ocean", "deep_ocean", "frozen_ocean", "forest",
         "taiga", "jungle", "swamp", "mushroom_fields", "stony_peaks", "deep_dark", "lush_caves",
         "dripstone_caves",
     };
@@ -200,6 +204,10 @@ public final class WorldgenTests {
                 "chrono biome copy missing: " + name);
             helper.assertTrue(biomes.containsKey(ResourceLocation.withDefaultNamespace(name)),
                 "the vanilla biome must stay untouched next to its copy: " + name);
+        }
+        for (String name : OWN_BIOMES) {
+            helper.assertTrue(biomes.containsKey(ResourceLocation.fromNamespaceAndPath(MOD_ID, name)),
+                "self-made chrono biome missing: " + name);
         }
         helper.succeed();
     }
@@ -373,7 +381,7 @@ public final class WorldgenTests {
         PaletteBiomeSource source = new PaletteBiomeSource(delegate, palette);
         Set<ResourceLocation> leaked = new LinkedHashSet<>();
         int sampled = 0;
-        for (double temperature : new double[] {-1.0D, -0.5D, 0.0D, 0.5D, 1.0D}) {
+        for (double temperature : new double[] {-1.5D, -1.0D, -0.5D, 0.0D, 0.5D, 1.0D, 1.5D}) {
             for (double humidity : new double[] {-1.0D, 0.0D, 1.0D}) {
                 for (double continentalness : new double[] {-1.0D, -0.5D, 0.0D, 0.5D, 1.0D}) {
                     for (double erosion : new double[] {-1.0D, 0.0D, 1.0D}) {
@@ -400,12 +408,11 @@ public final class WorldgenTests {
         helper.assertTrue(leaked.isEmpty(),
             "these biomes were not substituted out of " + sampled + " samples: " + leaked);
 
-        // 原版气候表报沙漠的那几格，本群系源必须换成红色沙漠：蓝沙沙漠已经挪去极夜侧，
-        // 这格要是还指回它，冷热两端就共用一个群系
+        // 昼区：温度被钉在热档，气候表报出的原版沙漠换成白地
         ResourceKey<Biome> vanillaDesert = ResourceKey.create(Registries.BIOME,
             ResourceLocation.withDefaultNamespace("desert"));
-        ResourceKey<Biome> redDesert = ResourceKey.create(Registries.BIOME,
-            ResourceLocation.fromNamespaceAndPath(MOD_ID, "red_desert"));
+        ResourceKey<Biome> whiteLand = ResourceKey.create(Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath(MOD_ID, "white_land"));
         int desertSamples = 0;
         for (double temperature : new double[] {0.55D, 1.0D}) {
             for (double humidity : new double[] {-1.0D, -0.5D}) {
@@ -425,8 +432,8 @@ public final class WorldgenTests {
                             }
                             desertSamples++;
                             Holder<Biome> got = source.getNoiseBiome(0, 16, 0, sampler);
-                            helper.assertTrue(got.is(redDesert),
-                                "vanilla desert must become the red desert copy, got "
+                            helper.assertTrue(got.is(whiteLand),
+                                "vanilla desert must become the white land copy, got "
                                     + got.unwrapKey().map(ResourceKey::location).orElse(null));
                         }
                     }
@@ -435,17 +442,108 @@ public final class WorldgenTests {
         }
         helper.assertTrue(desertSamples > 0, "no sampler produced a vanilla desert to swap");
 
-        // 极昼侧的两段：0.6 到 0.8 是白地，0.8 往外是红色沙漠，中间偏内仍是温和带
-        helper.assertTrue(PaletteBiomeSource.dayBand(0.59D) == null,
-            "the day side must stay on the climate table inside 0.6");
-        helper.assertTrue(PaletteBiomeSource.dayBand(0.6D) == PaletteBiomeSource.DayBand.WHITE_LAND,
-            "0.6 must start the white land");
-        helper.assertTrue(PaletteBiomeSource.dayBand(0.79D) == PaletteBiomeSource.DayBand.WHITE_LAND,
-            "the white land must run up to 0.8");
-        helper.assertTrue(PaletteBiomeSource.dayBand(0.8D) == PaletteBiomeSource.DayBand.RED_DESERT,
-            "0.8 must start the red desert");
-        helper.assertTrue(PaletteBiomeSource.dayBand(1.0D) == PaletteBiomeSource.DayBand.RED_DESERT,
-            "the red desert must reach the edge of the line");
+        // 夜区：蓝沙沙漠的地表是自建的 road_sand，原版气候表换不出来，所以借冻结档的海岸与河床生成。
+        // 这里验的是那两格到底有没有被改指过去，选格本身仍然是气候表按六参数算的
+        ResourceKey<Biome> blueSand = ResourceKey.create(Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath(MOD_ID, "blue_desert"));
+        for (String path : new String[] {"snowy_beach", "frozen_river"}) {
+            ResourceKey<Biome> vanilla = ResourceKey.create(Registries.BIOME,
+                ResourceLocation.withDefaultNamespace(path));
+            int hits = 0;
+            for (double temperature : new double[] {-1.0D, -0.8D, -0.6D, -0.45D}) {
+                for (double humidity : new double[] {-1.0D, 0.0D, 1.0D}) {
+                    for (double continentalness : new double[] {-0.19D, -0.15D, -0.11D, 0.0D, 0.3D}) {
+                        for (double erosion : new double[] {-1.0D, -0.4D, 0.0D, 0.4D, 1.0D}) {
+                            for (double weirdness : new double[] {-1.0D, -0.5D, 0.0D, 0.5D, 1.0D}) {
+                                Climate.Sampler sampler = new Climate.Sampler(
+                                    DensityFunctions.constant(temperature),
+                                    DensityFunctions.constant(humidity),
+                                    DensityFunctions.constant(continentalness),
+                                    DensityFunctions.constant(erosion),
+                                    DensityFunctions.constant(0.0D),
+                                    DensityFunctions.constant(weirdness),
+                                    List.of());
+                                if (!delegate.getNoiseBiome(0, 16, 0, sampler).is(vanilla)) {
+                                    continue;
+                                }
+                                hits++;
+                                Holder<Biome> got = source.getNoiseBiome(0, 16, 0, sampler);
+                                helper.assertTrue(got.is(blueSand),
+                                    "vanilla " + path + " must become the blue sand desert copy, got "
+                                        + got.unwrapKey().map(ResourceKey::location).orElse(null));
+                            }
+                        }
+                    }
+                }
+            }
+            helper.assertTrue(hits > 0, "no sampler produced a vanilla " + path + " to swap");
+        }
+
+        // 分带映射：六个断点把 param 切七段，每段端点必须落在原版温度档的边界上，
+        // 否则某一带会跨档，带里就冒出别的带的群系（比如热带刷出针叶林）
+        helper.assertTrue(ChronoTemperature.bandTemperature(ChronoTemperature.POLAR_NIGHT) == -1.0D,
+            "-0.8 must map to the frozen band floor");
+        helper.assertTrue(ChronoTemperature.bandTemperature(ChronoTemperature.NIGHT_ZONE) == -0.45D,
+            "-0.6 must map to the frozen band ceiling, which is where the night zone starts");
+        helper.assertTrue(ChronoTemperature.bandTemperature(ChronoTemperature.COLD_ZONE) == -0.15D,
+            "-0.3 must map to the cold band ceiling, which is where the temperate band starts");
+        helper.assertTrue(ChronoTemperature.bandTemperature(ChronoTemperature.TROPIC_ZONE) == 0.20D,
+            "0.3 must map to the temperate band ceiling, which is where the tropic band starts");
+        helper.assertTrue(ChronoTemperature.bandTemperature(ChronoTemperature.DAY_ZONE) == 0.55D,
+            "0.6 must map to the tropic band ceiling, which is where the day zone starts");
+        helper.assertTrue(ChronoTemperature.bandTemperature(ChronoTemperature.POLAR_DAY) == 1.0D,
+            "0.8 must map to the hot band ceiling");
+        // 带内单调：沿着线走，温度不能反向
+        for (double param = -0.79D; param < 0.79D; param += 0.01D) {
+            helper.assertTrue(ChronoTemperature.bandTemperature(param)
+                    <= ChronoTemperature.bandTemperature(param + 0.01D),
+                "the band mapping must be monotonic at param " + param);
+        }
+        // 温带带内即使算上噪声也到不了沙漠与雪原的门槛（0.55 / -0.45）
+        double temperateCeiling = ChronoTemperature.bandTemperature(ChronoTemperature.TROPIC_ZONE);
+        double temperateFloor = ChronoTemperature.bandTemperature(ChronoTemperature.COLD_ZONE);
+        helper.assertTrue(temperateCeiling + ChronoTemperature.SPREAD < 0.55D,
+            "the temperate band must not reach the desert threshold even with noise, got "
+                + (temperateCeiling + ChronoTemperature.SPREAD));
+        helper.assertTrue(temperateFloor - ChronoTemperature.SPREAD > -0.45D,
+            "the temperate band must not reach the snowy threshold even with noise, got "
+                + (temperateFloor - ChronoTemperature.SPREAD));
+        helper.succeed();
+    }
+
+    /**
+     * 极带不再由群系源强制：{@code param} 越过 ±0.8 时温度被钉在 ±1，气候表就在最外侧那一行选群系。
+     * 这条用常数采样器比较线中与两端：同一个气候向量下三者必须选出同一个群系，否则说明又有人在
+     * {@code getNoiseBiome} 里按坐标判了群系
+     */
+    @GameTest(template = "ddt_empty")
+    public static void paletteBiomeSourceLeavesThePolarBandsToTheClimateTable(GameTestHelper helper) {
+        var access = helper.getLevel().getServer().registryAccess();
+        Registry<Biome> biomes = access.registryOrThrow(Registries.BIOME);
+        Registry<MultiNoiseBiomeSourceParameterList> presets =
+            access.registryOrThrow(Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST);
+        Holder<MultiNoiseBiomeSourceParameterList> overworld = presets.getHolderOrThrow(ResourceKey.create(
+            Registries.MULTI_NOISE_BIOME_SOURCE_PARAMETER_LIST, ResourceLocation.withDefaultNamespace("overworld")));
+        HolderSet<Biome> palette = biomes.getTag(TagKey.create(Registries.BIOME,
+            ResourceLocation.fromNamespaceAndPath(MOD_ID, "palette_biomes"))).orElseThrow();
+        PaletteBiomeSource source = new PaletteBiomeSource(
+            MultiNoiseBiomeSource.createFromPreset(overworld), palette);
+
+        // 全是常数，delegate 于是不看坐标：三处采样只有坐标不同，群系必须一样
+        Climate.Sampler sampler = new Climate.Sampler(
+            DensityFunctions.constant(0.0D),
+            DensityFunctions.constant(0.0D),
+            DensityFunctions.constant(0.0D),
+            DensityFunctions.constant(0.0D),
+            DensityFunctions.constant(0.0D),
+            DensityFunctions.constant(0.0D),
+            List.of());
+        ResourceKey<Biome> middle = source.getNoiseBiome(0, 16, 0, sampler).unwrapKey().orElseThrow();
+        // 25000 quart = 100000 格，param（blockX / maxDistance 5000）在这里被钳到 ±1
+        helper.assertTrue(source.getNoiseBiome(25000, 16, 0, sampler).is(middle),
+            "param 1.0 must come from the climate table, not be forced");
+        helper.assertTrue(source.getNoiseBiome(-25000, 16, 0, sampler).is(middle),
+            "param -1.0 must come from the climate table, not be forced");
         helper.succeed();
     }
 

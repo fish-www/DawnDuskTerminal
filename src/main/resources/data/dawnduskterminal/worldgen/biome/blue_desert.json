@@ -8,7 +8,7 @@
   },
   "downfall": 0.0,
   "effects": {
-    "fog_color": 16767408,
+    "fog_color": 12638463,
     "mood_sound": {
       "block_search_extent": 8,
       "offset": 2.0,
@@ -21,7 +21,7 @@
       "replace_current_music": false,
       "sound": "minecraft:music.overworld.desert"
     },
-    "sky_color": 16760970,
+    "sky_color": 7254527,
     "water_color": 4159204,
     "water_fog_color": 329011
   },
@@ -40,9 +40,7 @@
       "dawnduskterminal:monster_room",
       "dawnduskterminal:monster_room_deep"
     ],
-    [
-      "dawnduskterminal:desert_well"
-    ],
+    [],
     [],
     [
       "dawnduskterminal:ore_dirt",
@@ -79,18 +77,16 @@
       "dawnduskterminal:glow_lichen",
       "dawnduskterminal:flower_default",
       "dawnduskterminal:patch_grass_badlands",
-      "dawnduskterminal:patch_dead_bush_2",
       "dawnduskterminal:brown_mushroom_normal",
       "dawnduskterminal:red_mushroom_normal",
       "dawnduskterminal:patch_sugar_cane_desert",
-      "dawnduskterminal:patch_pumpkin",
-      "dawnduskterminal:patch_cactus_desert"
+      "dawnduskterminal:patch_pumpkin"
     ],
     [
       "dawnduskterminal:freeze_top_layer"
     ]
   ],
-  "has_precipitation": false,
+  "has_precipitation": true,
   "spawn_costs": {},
   "spawners": {
     "ambient": [
@@ -178,5 +174,5 @@
     "water_ambient": [],
     "water_creature": []
   },
-  "temperature": 2.0
+  "temperature": -0.45
 }
