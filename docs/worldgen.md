@@ -83,17 +83,17 @@
 
 `world/PaletteBiomeSource`，注册为 `dawnduskterminal:palette`
 
-维度 JSON 里的 `biome_source` 有 `delegate` 与 `palette` 两个字段
+维度 JSON 里的 `biome_source` 有三个字段：`preset`（原版主世界参数表 `minecraft:overworld`）、`palette`（`#dawnduskterminal:palette_biomes`）与 `extra`（追加的气候点，可省）
 
-`delegate` 是原版 `multi_noise` 的主世界预设
+选格用的是原版那套算法：把 `preset` 的参数表拿来，末尾接上 `extra` 的几条，一起交给 `Climate.ParameterList.findValue`。原版算法一个字没改
 
-`palette` 指向 `#dawnduskterminal:palette_biomes`
+`extra` 的条目形状比着内联 `multi_noise` 写：`temperature` `humidity` `continentalness` `erosion` `weirdness` 五段跨度加一个 `biome`，深度由代码按点值 0 与 1 各插一份（跟 `OverworldBiomeBuilder.addSurfaceBiome` 一致，写成跨度会让群系随 y 跳）
 
-`getNoiseBiome` 先问 delegate 要群系，再把 `minecraft:` 命名空间的结果换成同名副本
+`getNoiseBiome` 拿到群系后，再把 `minecraft:` 命名空间的结果换成同名副本
 
 换名按路径匹配，例如 `minecraft:plains` 变成 `dawnduskterminal:plains`
 
-有三处例外改指了格子：热档的 `minecraft:desert` 换成 `dawnduskterminal:white_land`（白地），冻结档的 `minecraft:snowy_beach` 与 `minecraft:frozen_river` 换成 `dawnduskterminal:blue_desert`（蓝沙沙漠）。见下文「蓝沙沙漠在夜侧」与「白地接管昼区」
+只有一处例外改指了格子：热档的 `minecraft:desert` 换成 `dawnduskterminal:white_land`（白地），见下文「白地接管昼区」。蓝沙沙漠在 `extra` 里，见「蓝沙沙漠在极夜」
 
 群系落在哪一带由温度决定，群系源里没有任何按坐标判群系的特例，见「温带分带与温度映射」
 
@@ -107,27 +107,19 @@
 
 副本里的内容不等于同名的原版群系：暮色森林的群系直接写进对应的原版位置，ID 不改，显示名靠 lang。每个位置现在装的是什么，账本在 `docs/biomes.md`
 
-`floatrees` 不走替换表，采样深度低于 -1.6 时直接返回，早于 delegate
+`floatrees` 不走替换表，采样深度低于 -1.6 时直接返回，早于选格
 
 替换表在第一次使用时构建，因为 biome source 在数据包解析期创建，那一刻标签 holder 还没有 key
 
-### 蓝沙沙漠在夜侧
+### 蓝沙沙漠在极夜
 
-`dawnduskterminal:blue_desert` 是自建群系（ID 不在原版气候表里），地表是蓝色的 `road_sand`，所以借冻结档（`-1.00 ~ -0.45`）的两个格子生成，落在夜区（`-0.8 ~ -0.6`）的海岸与河床上
+`dawnduskterminal:blue_desert` 是自建群系，地表是蓝色的 `road_sand`，气温按雪地设（`temperature` `-0.45`、`has_precipitation` `true`），特征表里没有仙人掌、枯灌木与沙漠水井（原版沙漠那份带），只剩绿洲那点甘蔗与南瓜
 
-`replacements()` 里两条改指：`minecraft:snowy_beach → dawnduskterminal:blue_desert`、`minecraft:frozen_river → dawnduskterminal:blue_desert`
+它的格子是自己的一条 `extra`：温度 `[-2, -1]`（极夜）、湿度 `[-1, -0.35]`（干的那半）。极夜带的另一半湿度留给极夜平原 `polar_dusk`，于是极夜里「干的地方是蓝沙沙漠，湿的地方是平原」，两者都是自建群系、都有自己的格子
 
-新 ID 不等于新格子：气候表只认原版群系 ID，自建群系没有别的挂法，要么像这样改指某一格，要么在 `getNoiseBiome` 里判定。想让它凭空多出一类格子，得往气候表里插点，表是代码构建的，见「想加群系只能在气候表里挑格子」
+`floatrees` 仍在选格之前（按 `depth`），所以极夜的空岛还是空岛
 
-体征按雪地那一侧改：`temperature` `-0.45`、`has_precipitation` `true`，特征表里没有仙人掌、枯灌木与沙漠水井（原版沙漠那份带），只剩绿洲那点甘蔗与南瓜
-
-改指和其余格子的换副本是同一套机制：选格仍然是气候表按六要素（温度 湿度 大陆性 侵蚀 深度 怪异度）算出来的，这里只决定那两格装哪个副本
-
-于是夜区是「蓝沙沙漠 雪原 冰刺 雪峰 冰川」交替，蓝沙出现在雪地的海岸与河谷里
-
-`floatrees` 仍在替换表之前（按 `depth`），所以夜侧的空岛还是空岛
-
-副本本身的 `temperature` 是 `-0.45`、`has_precipitation` 是 `true`，所以夜侧的蓝沙上照样积雪结霜
+夜区（`-0.8 ~ -0.6`）不含蓝沙，那一带全是雪地族：雪原 冰刺 雪峰 冰川
 
 门槛不在 `-0.45` 这个数上，在 `0.15`：`Biome#warmEnoughToRain` 是 `getTemperature(pos) >= 0.15`，`coldEnoughToSnow` 就是它的取反，`shouldSnow` 与 `shouldFreeze` 也走同一个判断。`ChronoFreezeFeature` 靠它们铺 `canopy_frost` 与 `frozen_canopy`，所以任何小于 `0.15` 的温度都行，原版沙漠那份 `2.0` 与 `false` 才会让蓝沙一片霜都没有
 
@@ -206,13 +198,13 @@ ID 仍是 `birch_forest`，因为占位不改注册名，看 ID 就知道它顶�
 
 | 带 | `param` | 温度映射 | 实宽（`maxDistance 5000`） |
 |---|---|---|---|
-| 极夜 | `<= -0.8` | `-1.0`（冻结档，与夜区同群系） | 1000+ |
-| 夜区 | `-0.8 ~ -0.6` | `-1.00 ~ -0.45`（冻结档：蓝沙 雪原 冰刺 雪峰 冰川） | 1000 |
+| 极夜 | `<= -0.8` | `-1.00 ~ -2.00`（冻结档再往外，`extra` 的极夜平原与蓝沙沙漠） | 1000+ |
+| 夜区 | `-0.8 ~ -0.6` | `-1.00 ~ -0.45`（冻结档：雪原 冰刺 雪峰 冰川） | 1000 |
 | 寒带 | `-0.6 ~ -0.3` | `-0.45 ~ -0.15`（针叶林 平原 云杉） | 1500 |
 | 温带 | `-0.3 ~ 0.3` | `-0.15 ~ 0.20`（平原 森林 桦树 黑森林） | 3000 |
 | 热带 | `0.3 ~ 0.6` | `0.20 ~ 0.55`（热带草原 丛林） | 1500 |
 | 昼区 | `0.6 ~ 0.8` | `0.55 ~ 1.00`（热档：白地 恶地） | 1000 |
-| 极昼 | `>= 0.8` | `1.0`（热档，与昼区同群系） | 1000+ |
+| 极昼 | `>= 0.8` | `1.00 ~ 2.00`（热档再往外，`extra` 的极昼群系） | 1000+ |
 
 断点用温度档自己给出的数：`-1.0 -0.45 -0.15 0.20 0.55 1.0`。首尾相接，所以整条映射在 `param` 上连续，不需要 clamp
 
@@ -232,27 +224,25 @@ ID 仍是 `birch_forest`，因为占位不改注册名，看 ID 就知道它顶�
 
 温度噪声原本是 `shifted_noise`，噪声 `dawnduskterminal:temperature`，`amplitudes` 为 `[1.5, 0, 1, 0, 0, 0]`，`firstOctave` 为 -10，声明值域 `±4.4444`
 
-映射之后输出落在 `[-1.08, 1.08]`（带端点 ± `SPREAD`），所以 `minValue` / `maxValue` 写的是 `±(1.0 + SPREAD)`，不再看 delegate 的值域
+中间五带输出落在 `[-1.08, 1.08]`（带端点 ± `SPREAD`）；两个极带继续往外推，`param` 被钳到 `±1` 时温度到 `ChronoTemperature.POLAR_TEMPERATURE`（`2.0`），所以 `minValue` / `maxValue` 是 `±2.0`
 
-`|param| >= 0.8` 的两个极带直接返回 `±1.0`，不采样噪声：温度推到极值就是气候表最外侧那一行，群系与相邻带相同。极昼极夜专用的群系还没做，做的时候要记住超界推不出新群系，见下节
+`|param| >= 0.8` 的两个极带不叠噪声：噪声一压就可能掉回原版那一行，而 `extra` 那两条的跨度是从 `±1` 起算的，边界会变成一条毛边
 
-### 想加群系只能在气候表里挑格子
+### 想加群系有两条路
 
-`PaletteBiomeSource` 的 `delegate` 是原版 `multi_noise` 预设，参数表由 `OverworldBiomeBuilder` 在代码里构建，改不了：`multi_noise_biome_source_parameter_list/overworld.json` 那份副本只有 `{"preset": "minecraft:overworld"}`，那个注册表的 codec 也只认 `preset`
+**一条是 `extra`**：原版参数表只覆盖 `[-1, 1]` 的温度，出界的地盘是空的，所以在 `extra` 里写一条温度跨度越界的条目，它就一定赢过原版最外侧那一行。极昼极夜就是这么做的——`ChronoTemperature` 把 `param` 推到 `±1` 时温度到 `±2`，正好落进 `[1, 2]` 与 `[-2, -1]` 两条
 
-但 `minecraft:multi_noise` 这个群系源本身两种写法都收：`MultiNoiseBiomeSource.CODEC` 是 `Codec.mapEither(DIRECT_CODEC, PRESET_CODEC)`，`DIRECT_CODEC` 就是内联的 `biomes` 列表（`Climate.ParameterList.codec`），条目里可以写任何群系 ID。也就是说纯数据包能排一张自己的气候表，只是得把整张表摊进 `dimension/chrono.json`，原版那份几千个点（每条 `addSurfaceBiome` 生成 `depth` 0 与 1 两份），所以本模组没有走这条路
+**另一条是替换表**：温度带内部没有空地，想在那儿加群系只能顶掉某一格，白地走的这条，见 `docs/biomes.md` 的替换链
 
-于是自建群系现在只有两条路：在替换表里改指某一格（蓝沙 白地走的这条），或者写成 `getNoiseBiome` 里的判定（`floatrees` 这一条，按 `depth`，不是按 `param`）
+湿度 大陆性 侵蚀 怪异度原版都铺满 `-1 ~ 1`（大陆性到 `-1.2 ~ 1.0`），往这些方向加点永远输，所以 `extra` 实际只能按温度出界来用
 
-群系源现在只留了 `floatrees` 一个特例，其余全部交给气候表
+想彻底不按六参数排（像暮色森林那样自己算布局），得重写整个 `getNoiseBiome`，本模组不用
 
 ### 超界温度照样选得出群系
 
-以后极昼极夜的温度会超过 `±1`。`Climate.ParameterList.findValue` 按六个参数的平方距离之和取最小（`Climate.ParameterPoint.fitness`），单项距离是 `Climate.Parameter.distance(long)`：值落在 `[min, max]` 内是 0，落在外面就是离最近端点的差
+`Climate.ParameterList.findValue` 按六个参数的平方距离之和取最小（`Climate.ParameterPoint.fitness`），单项距离是 `Climate.Parameter.distance(long)`：值落在 `[min, max]` 内是 0，落在外面就是离最近端点的差
 
-于是 `1.5` 或 `-1.4` 不会出错也不会退回默认值，会正常选出最近那一行。原版温度档在 `OverworldBiomeBuilder` 里是五段首尾相接覆盖满 `[-1, 1]` 的，超界后总是最近的极值行胜出
-
-代价是超界只能选到已有的行：想让极昼极夜有专属群系，得让它们在气候表里有自己的点（表是代码构建的，要么 mixin，要么回到群系源里判）
+所以 `1.5` 或 `-1.4` 不会出错也不会退回默认值：表里没有对应跨度时就选最近那一行，有 `extra` 的条目就选中它。极昼极夜靠这一条落地
 
 ## 标签
 

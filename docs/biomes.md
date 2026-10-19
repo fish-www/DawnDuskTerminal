@@ -12,15 +12,13 @@
 
 1. 原版气候表选出 `minecraft:X`
 2. 同名副本 `dawnduskterminal:X` 顶上，前提是它在 `palette_biomes` 标签里
-3. 有三格再改写，`PaletteBiomeSource#replacements()`
+3. 只有一格再改写，`PaletteBiomeSource#replacements()`
 
 | 原版格子 | 实际群系 | 为什么改 |
 |---|---|---|
 | `minecraft:desert` | `dawnduskterminal:white_land` 白地 | 昼区的温度被钉在热档，气候表在那档里五档湿度全是沙漠，不改指整片都是沙 |
-| `minecraft:snowy_beach` | `dawnduskterminal:blue_desert` 蓝沙沙漠 | 地表是自建的 `road_sand`，气候表换不出来，借冻结档的海岸生成 |
-| `minecraft:frozen_river` | `dawnduskterminal:blue_desert` 蓝沙沙漠 | 同上，借冻结档的河床生成 |
 
-改指只决定某一格装哪个副本，选格仍然是气候表按六要素算的，所以极带（`|param| >= 0.8`）与相邻带同群系，极昼极夜专用的群系留到以后。
+改指只决定某一格装哪个副本，选格仍然是气候表按六要素算的。极带（`|param| >= 0.8`）不用改指：那里的温度越过了原版参数表的覆盖范围，自建群系直接在 `extra` 里占了空地。
 
 ## 分带
 
@@ -28,13 +26,13 @@
 
 | 带 | `param` | 群系族 |
 |---|---|---|
-| 极夜 | `<= -0.8` | 与夜区同（冻结档最外侧那一行） |
-| 夜区 | `-0.8 ~ -0.6` | 蓝沙沙漠 + 雪原 `snowy_plains` `snowy_taiga` `ice_spikes` 雪峰 冰川 |
+| 极夜 | `<= -0.8` | 极夜平原 `polar_dusk` 与蓝色沙漠 `blue_desert`（`extra` 里温度 `-2 ~ -1` 的两条，按湿度分开） |
+| 夜区 | `-0.8 ~ -0.6` | 雪原 `snowy_plains` `snowy_taiga` `ice_spikes` 雪峰 冰川 |
 | 寒带 | `-0.6 ~ -0.3` | `taiga` `plains` `old_growth_spruce_taiga` `grove` |
 | 温带 | `-0.3 ~ 0.3` | `plains` `forest` `birch_forest` `dark_forest` `meadow` |
 | 热带 | `0.3 ~ 0.6` | `savanna` `jungle` `sparse_jungle` `bamboo_jungle` |
 | 昼区 | `0.6 ~ 0.8` | 白地 + 恶地族 |
-| 极昼 | `>= 0.8` | 与昼区同（热档最外侧那一行） |
+| 极昼 | `>= 0.8` | 极昼平原 `polar_dawn`（`extra` 里温度 `1 ~ 2` 那条） |
 
 ## 装了暮色森林内容的副本
 
@@ -69,21 +67,23 @@
 |---|---|---|---|
 | `floatrees` | 天门 | 全维度 | 不走替换表，采样深度低于 -1.6 时直接返回，早于 delegate |
 | `white_land` | 白地 | 昼区 `0.6 <= param < 0.8` | 裸地，地表 `siltstone`，恶魂支线 T2；靠替换表接管原版沙漠那格 |
-| `blue_desert` | 蓝色沙漠 | 夜区 `-0.8 < param <= -0.6` | 蓝沙地，地表 `road_sand`，带雪；靠替换表接管冻结档的 `snowy_beach` 与 `frozen_river` 两格 |
+| `blue_desert` | 蓝色沙漠 | 极夜 `param <= -0.8` 的干湿度一半 | 蓝沙地，地表 `road_sand`，带雪；`extra` 里温度 `-2 ~ -1`、湿度 `-1 ~ -0.35` 那条 |
+| `polar_dawn` | 极昼平原 | 极昼 `param >= 0.8` | 占位，内容照白地；温度 `2.0`、不降水，近白天穹。靠 `extra` 里 `[1, 2]` 那条选中 |
+| `polar_dusk` | 极夜平原 | 极夜 `param <= -0.8` | 占位，内容照白地；温度 `-0.45`、降水 `true`，所以会积雪结霜，天穹压暗。靠 `extra` 里 `[-2, -1]` 那条选中 |
 
-这三份和 `forest` 一样是手工接的，`tools/port_overworld_worldgen.py` 不生成它们。重跑那个脚本会再吐一份 `desert.json` 副本并把 `dawnduskterminal:desert` 写进调色板标签，那格已经改指白地，所以重新生成之后要把多出来的 `desert.json` 与标签里那条删掉
+这几份和 `forest` 一样是手工接的，`tools/port_overworld_worldgen.py` 不生成它们。重跑那个脚本会再吐一份 `desert.json` 副本并把 `dawnduskterminal:desert` 写进调色板标签，那格已经改指白地，所以重新生成之后要把多出来的 `desert.json` 与标签里那条删掉
 
 ## 换皮
 
 其余 43 份副本同名同内容，只换了地表方块与矿石特征：
 
 - 恶地族 `badlands` `eroded_badlands` `wooded_badlands`
-- 雪地族 `snowy_beach` `snowy_slopes` `snowy_taiga` `ice_spikes` `frozen_peaks` `jagged_peaks` `grove`（`snowy_beach` 与 `frozen_river` 两格已被蓝沙沙漠顶掉，副本留着没人用）
+- 雪地族 `snowy_beach` `snowy_slopes` `snowy_taiga` `ice_spikes` `frozen_peaks` `jagged_peaks` `grove`
 - 海洋族 `ocean` `deep_ocean` `cold_ocean` `deep_cold_ocean` `lukewarm_ocean` `deep_lukewarm_ocean` `frozen_ocean` `deep_frozen_ocean` `warm_ocean`
 - 河流与岸 `river` `frozen_river` `beach` `stony_shore`
 - 其余 `sunflower_plains` `meadow` `cherry_grove` `mushroom_fields` `stony_peaks` `windswept_forest` `windswept_gravelly_hills` `windswept_savanna` `bamboo_jungle` `sparse_jungle` `mangrove_swamp` `taiga` `old_growth_pine_taiga` `old_growth_spruce_taiga` `savanna_plateau` `deep_dark` `dripstone_caves` `lush_caves`
 
-例外一个：`blue_desert` 是蓝沙沙漠，地表是 `road_sand`，靠替换表借冻结档的 `snowy_beach` 与 `frozen_river` 两格生成，出现在夜区（`param -0.8 ~ -0.6`）的海岸与河床。它原来是 `desert` 那份同名副本，改成自建 ID 之后就不带原版沙漠的仙人掌 枯灌木 沙漠水井了
+例外一个：`desert` 那份同名副本改成了自建 ID `blue_desert`，于是不再带原版沙漠的仙人掌 枯灌木 沙漠水井，也不再走替换表（它的格子在 `extra` 里）
 
 ## 还没落地的名字
 

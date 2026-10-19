@@ -108,7 +108,8 @@ OpenYSM 在 1.21.1 NeoForge 上没有官方构建：官方 Modrinth 项目只发
 
 `paletteBiomeSourceIsRegistered` 调色板群系源已注册
 
-`chronoUsesThePaletteBiomeSource` 维度用的是调色板群系源
+`chronoDimensionDeclaresThePaletteSource` 维度 JSON 解出来的就是调色板群系源，`extra` 与极带群系齐全
+`polarBandsUseTheExtraBiomes` 极带选的是 `extra` 里的极昼极夜群系
 
 `configuredFeaturesAreRegistered` 配置特征已注册
 

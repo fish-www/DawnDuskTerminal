@@ -1463,7 +1463,9 @@
                               "if_true": {
                                 "type": "minecraft:biome",
                                 "biome_is": [
-                                  "dawnduskterminal:white_land"
+                                  "dawnduskterminal:white_land",
+                                  "dawnduskterminal:polar_dawn",
+                                  "dawnduskterminal:polar_dusk"
                                 ]
                               },
                               "then_run": {
@@ -2254,7 +2256,9 @@
                               "if_true": {
                                 "type": "minecraft:biome",
                                 "biome_is": [
-                                  "dawnduskterminal:white_land"
+                                  "dawnduskterminal:white_land",
+                                  "dawnduskterminal:polar_dawn",
+                                  "dawnduskterminal:polar_dusk"
                                 ]
                               },
                               "then_run": {
@@ -2493,7 +2497,9 @@
                     "if_true": {
                       "type": "minecraft:biome",
                       "biome_is": [
-                        "dawnduskterminal:white_land"
+                        "dawnduskterminal:white_land",
+                        "dawnduskterminal:polar_dawn",
+                        "dawnduskterminal:polar_dusk"
                       ]
                     },
                     "then_run": {

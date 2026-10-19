@@ -138,13 +138,15 @@
 
 它要求一个 `delegate` 与一个 `palette` 群系标签
 
-`delegate` 是原版 `multi_noise` 主世界预设
+`preset` 是原版主世界参数表，`extra` 是追加在表尾的自建气候点（极昼极夜），选格用原版那套 `ParameterList.findValue`
 
 `getNoiseBiome` 先跑 delegate，再把 `minecraft:*` 群系换成同名副本
 
 副本名与命名空间对应关系按路径匹配，例如 `minecraft:plains` 换成 `dawnduskterminal:plains`
 
-三格在替换表里再改指：`minecraft:desert` 换白地（昼区），`minecraft:snowy_beach` 与 `minecraft:frozen_river` 换蓝沙沙漠（夜区海岸与河床）。这只是决定某一格装哪个副本，选格仍然是气候表算的
+`extra` 的条目按温度出界来写：原版参数表只覆盖 `[-1, 1]`，出界的跨度一写就赢。温度由 `ChronoTemperature` 在极带推到 `±2`
+
+一格在替换表里再改指：`minecraft:desert` 换白地（昼区）。这只是决定那一格装哪个副本，选格仍然是气候表算的
 
 `floatrees` 群系走另一条路，采样深度低于阈值时直接返回
 
