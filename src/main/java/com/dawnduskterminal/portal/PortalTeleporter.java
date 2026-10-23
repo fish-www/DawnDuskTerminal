@@ -1,6 +1,7 @@
 package com.dawnduskterminal.portal;
 
 import com.dawnduskterminal.DawnDuskTerminal;
+import com.dawnduskterminal.registry.ModAttachments;
 import com.dawnduskterminal.registry.ModBlocks;
 import com.dawnduskterminal.registry.ModDimensions;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
@@ -11,6 +12,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -45,9 +47,18 @@ public final class PortalTeleporter {
         }
         Vec3 landing = findSafeLanding(target, entity.getX(), entity.getZ(), (int) entity.getY());
         if (entering) {
+            if (entity instanceof Player player) {
+                // 记下从哪来，回程按这个坐标找落点，而不是按晨昏线里当前站的位置重新搜表面
+                PortalBuilder.rememberOrigin(player);
+            }
             Vec3 arrived = buildArrivalPortal(target, landing);
             if (arrived != null) {
                 landing = arrived;
+            }
+        } else if (entity instanceof Player player) {
+            PortalState state = player.getData(ModAttachments.PORTAL_STATE);
+            if (state.hasReturn() && state.returnDim().equals(target.dimension().location().toString())) {
+                landing = findSafeLanding(target, state.x(), state.z(), Mth.floor(state.y()));
             }
         }
         entity.teleportTo(target, landing.x, landing.y, landing.z, Set.of(), entity.getYRot(), entity.getXRot());
