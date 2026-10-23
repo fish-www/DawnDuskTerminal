@@ -166,6 +166,21 @@ public final class Experiment051Tests {
     }
 
     @GameTest(template = "ddt_empty")
+    public static void comparatorReadsTheContainerFill(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
+        Experiment051BlockEntity machine = placeMachine(level, pos);
+        BlockState state = level.getBlockState(pos);
+
+        helper.assertTrue(state.getAnalogOutputSignal(level, pos) == 0,
+            "an empty " + SUBJECT + " must read 0 on a comparator, got " + state.getAnalogOutputSignal(level, pos));
+        machine.setItem(Experiment051BlockEntity.INPUT_SLOT, new ItemStack(Items.CRAFTING_TABLE, 64));
+        helper.assertTrue(state.getAnalogOutputSignal(level, pos) > 0,
+            "a full input slot must drive the comparator, got " + state.getAnalogOutputSignal(level, pos));
+        helper.succeed();
+    }
+
+    @GameTest(template = "ddt_empty")
     public static void hopperFacesSplitInputFuelAndOutput(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
