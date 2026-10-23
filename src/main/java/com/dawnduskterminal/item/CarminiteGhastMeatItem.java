@@ -38,7 +38,10 @@ public class CarminiteGhastMeatItem extends Item {
             MobEffectInstance hunger = player.getEffect(MobEffects.HUNGER);
             if (player.getRandom().nextFloat() < HUNGER_CHANCE) {
                 player.addEffect(new MobEffectInstance(MobEffects.HUNGER, HUNGER_TICKS, 0));
-            } else if (hunger != null && player.getRandom().nextFloat() < ESCALATE_CHANCE) {
+            }
+            // 加重与第一次发饥饿是两次独立的掷骰。写进 else if 会让这次只在第一次没中时才发生，
+            // 概率从 40% 掉到 8%，与腐肉那套行为对不上
+            if (hunger != null && player.getRandom().nextFloat() < ESCALATE_CHANCE) {
                 player.addEffect(new MobEffectInstance(
                     MobEffects.HUNGER,
                     hunger.getDuration() + HUNGER_TICKS / 2,
