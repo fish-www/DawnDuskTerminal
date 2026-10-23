@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "dawnduskterminal:item/experiment_037"
+  }
+}

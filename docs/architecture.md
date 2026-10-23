@@ -96,6 +96,30 @@
 
 装备贴图目前是原版铁、钻石贴图加色阶的占位图，真美术进来后换掉 `textures/item/` 与 `textures/models/armor/` 里对应前缀的文件即可
 
+## 试验物品
+
+序号表在 `registry/ModExperimentItems`：`TAKEN` 里列掉已经占号的（001 是能当合成台用的方块，在 `ModBlocks`；033/034 是两支突刺长矛，行为在 `item/ThrustSpearItem`；037~042 是钻石五件套与一件普通物品；046 是砷铅铁钼反应权杖；051 是拆解台那台机器，方块在 `ModBlocks`、物品在 `ModItems`；104 是食物，在 `ModItems`；114 是能吃能摆的那一块，方块在 `ModBlocks`、物品在 `ModItems`；115 是暮色森林自带的，本模组不注册），剩下的空号按 `experiment_%03d` 补成占位简单物品，贴图统一借 `experiment_temp.png`。创造栏按序号升序排，115 从暮色森林的注册表里取，没装暮色森林就跳过；试验物品栏用 `withTabsBefore(dawnduskterminal:main)` 钉在主栏目后面——NeoForge 的 `CreativeModeTabRegistry` 对没声明 before/after 的 mod 栏目按注册名字母序排，注册先后不进排序，别的模组的栏目会插进本模组两个栏目中间
+
+试验物品 033/034 是同一份 `item/ThrustSpearItem` 的两个注册。`getUseAnimation` 返回 `UseAnim.BOW`：第一人称的拉满过程与第三人称的双臂拉弓都由原版摆，物品模型必须配同一套变换——两张贴图是按弓的朝向画的，所以 `models/item/experiment_033.json`、`experiment_034.json` 照原版 `item/bow` 给了一份 `display`（thirdperson 的 [-80,260,-40] / [-80,-280,40] 与 -1,-2,2.5 的位移，firstperson 沿用 generated 那一套），挂 `item/generated` 不给变换会变成一张平片，挂 `item/handheld` 则会把矛按工具那样拿反。视野不缩：原版压 FOV 的条件在 `AbstractClientPlayer#getFieldOfViewModifier` 里，是 `getUseItem().is(Items.BOW)`，认物品本体，与非弓物品无关。`getUseDuration` 是 72000，按住右键不会自己结束；`onUseTick` 每 10 tick 取一次目标：`entity_interaction_range` 属性范围内、视线两侧各 30 度锥体里、有视线连通、离视线垂距最小的活生物，`hurt` 掉 1 点并放 `entity.player.hurt_sweet_berry_bush`。伤害类型直接用原版的 `minecraft:sweet_berry_bush`：普通伤害（护甲照减），它本来就在 `minecraft:no_knockback` 标签里，所以只有伤害没有击退；死亡信息与原版一致，本模组不另外写条目，物品也不带描述行。无敌帧不做任何手脚，两次伤害之间隔 10 tick，原版那套逻辑自己会算
+
+试验物品 104 是 `ModItems` 里的一件普通 `Item`，只挂了 `Item.Properties().stacksTo(1).food(...)`：一个能吃两口，第一口的 `usingConvertsTo` 把剩下那半换成 `experiment_104_half`（走原版蜂蜜瓶换玻璃瓶那条路，`Player#eat` 里换栈），第二口把半块吃掉。每口 10 营养、0.6 饱和度系数（饱食度 10 × 0.6 × 2 = 12.0，等于两块烤马铃薯），两口合计 20 与 24.0。半块也是 `stacksTo(1)` 的食物，没有 `usingConvertsTo`；它不进试验物品栏（那栏只排 001~115 的序号），只能靠吃出来。半块的注册必须写在 104 前面——104 的 `usingConvertsTo` 在注册回调里就要取半块的物品栈，`DeferredRegister` 按插入顺序注册
+
+试验物品 114 的方块就是暮色森林的试验物品 115 方块（`twilightforest:experiment_115`）的照抄：同一套状态 `omnomnom` 0~7 与 `regenerate`（名字都不改），同样的碰撞形状、比较器与红石输出公式，模型与侧、底、切口三张贴图直接用 115 的（`twilightforest:block/experiment115/*` 与 `twilightforest:block/blank`），顶面换成本模组自己的 `dawnduskterminal:block/experiment114_top`。不同之处：摆下来就是满的 8 片（115 的默认态是 `omnomnom=7`，只剩 1 片）、拿 114 点缺口一次补满（115 一次只补一片）、潜行收走只对全满的方块生效（115 吃到一半也能收）、吃掉一片额外随机放一声恶魂受伤、撒过红石粉那版不补片而改成收到一次红石信号随机放恶魂受伤
+
+`item/Experiment114Item` 是 `BlockItem`，一份食物 32 营养、0.3 饱和度系数，就是 8 份 115（一份 4 与 0.3）。`useOn` 照 115：点在自己那一块上把交互让给方块，不是潜行就摆，摆不下才转成吃；吃完那一下在服务端随机音高音量放 `entity.ghast.hurt`
+
+红石去重不靠额外的 `powered` 状态，而是一次方块刻：一次信号会引来多轮邻居更新，`neighborChanged` 里发现这一格已经排了方块刻就不再响，这样状态集与 115 完全一致。同理方块没有 `randomTicks()`——115 的随机刻只用于给 `regenerate` 那版补片，我们那版改成响声，随机刻无事可做
+
+资源是 `blockstates/experiment_114.json` 的 16 个变体（`omnomnom` × `regenerate`）加 16 个 `models/block/experiment_114_<剩几片>_8[_regenerating].json`，模型内容从 115 的模型原样复制，只改两处：`_regenerating` 那八个的 `parent` 指到本命名空间，八个基础模型的 `top` 指到 `dawnduskterminal:block/experiment114_top`（`_regenerating` 只覆盖 `top_2`，顶面从父模型继承）
+
+试验物品 051 是拆解台那台机器，方块属性照抄暮色森林 `twilightforest:uncrafting_table` 的注册参数（`ignitedByLava`、`mapColor(FIRE)`、`sound(WOOD)`、`strength(2.5)`，也一起进 `#minecraft:mineable/axe`），状态只有一个 `active`：有燃料在烧时换成 `_active` 那套贴图，`Properties.lightLevel` 按它给 13 级光（数字同原版熔炉的 `litBlockEmission(13)`；原版那个辅助方法写死了 `BlockStateProperties.LIT`，只能自己写一行），`animateTick` 照 `FurnaceBlock` 的音效段以 10% 概率放 `block.furnace.fire_crackle`——烟与火粒子没抄，因为原版是从 `FACING` 那一面喷的，本方块四面对称、没有朝向状态。与拆解台的功能差别（面板只有拆解、不收经验、不换配方、烧燃料、直接出货）写在 `block/entity/Experiment051BlockEntity` 的类注释里，机器刻骨架照原版熔炉的 `AbstractFurnaceBlockEntity#serverTick`，只是把「有没有活干」从一格结果换成 3x3 出料格（`canStore`），任何一格放不下就停工、进度清零
+
+产物与拆解台同源靠三样东西：`crafting/UncraftingResolver` 按 `UncraftingMenu#getRecipesFor(ItemStack, Level)` 的顺序取第 0 条（先反查合成配方，再拆解配方，最后才是本方块自己加的熔炼回退），布局照拆解台按宽高铺到 3x3，`compat/TwilightUncrafting` 用注册表加反射读暮色森林的配方类型、`isItemStackAnIngredient`、`getCount` 与那一组白黑名单配置——源码里一个 `twilightforest.*` 的 import 都没有，缺 jar 也能编译。配方扫描比熔炉的 `CachedCheck` 贵，所以只在原料换了、数量变多了、不够当前配方吃了、`RecipeManager` 实例换了（数据包重载）时才重扫
+
+界面是 `inventory/Experiment051Menu` 加 `client/Experiment051Screen`，面板 186x166（`textures/gui/experiment_051.png`，比原版熔炉宽一圈才放得下 3x3），火焰与箭头不自己画，直接 `blitSprite` 原版熔炉的 `container/furnace/lit_progress` 与 `container/furnace/burn_progress`，所以面板贴图里那两个空框的位置必须与菜单的 `FLAME_`/`ARROW_` 常量对齐。坐标走 `IMenuProviderExtension#writeClientSideData`（原版的开包不带坐标），菜单类型用 `IMenuTypeExtension.create`。漏斗顶面进原料、侧面进燃料、底面抽产物，合法性统一走方块实体的 `canPlaceItem`，界面与漏斗不会走岔
+
+资源是 `blockstates/experiment_051.json` 两个变体加 `models/block/experiment_051[_active].json`（`cube_bottom_top`，顶/侧/底三张贴图各有 `_active` 版）、`loot_table/blocks/experiment_051.json`，物品模型指向方块模型。规格在 `gametest/Experiment051Tests`，机器刻是直接调 `serverTick` 跑完的，不靠 GameTest 等方块实体自然刻
+
 ## 装饰画
 
 变体是数据包注册表，条目在 `data/dawnduskterminal/painting_variant/painting_ghast_1.json`，3 格宽 2 格高；`registry/ModPaintingVariants` 只放指向它的 `ResourceKey`，尺寸不在 Java 侧重复

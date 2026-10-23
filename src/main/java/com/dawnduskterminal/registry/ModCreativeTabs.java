@@ -6,14 +6,16 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public final class ModCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> TABS =
@@ -80,18 +82,65 @@ public final class ModCreativeTabs {
                 accept(output, ModItems.CARMINITE_GHAST_MEAT.get());
                 accept(output, ModItems.COOKED_CARMIN_GHAST_MEAT.get());
                 accept(output, ModItems.CARMINITE_BALL.get());
-                accept(output, ModItems.CARMINITE_MOLYBDENUM_REACTOR_STAFF.get());
                 ModEquipment.sets().values().forEach(set -> set.items().forEach(item -> accept(output, item.get())));
-                acceptForeign(output, "twilightforest:aurora_block");
             })
             .build());
 
-    private static void acceptForeign(CreativeModeTab.Output output, String id) {
-        Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(id));
-        if (block == Blocks.AIR) {
-            return;
+    /**
+     * 试验物品栏：本模组 001~051 里所有有号的试验物品，再加 114 与暮色森林的试验物品 115
+     *
+     * <p>全部按序号升序排，靠一张 {@link TreeMap} 排出来，不走手写顺序：001 是方块，033/034 是两支长矛，
+     * 037~042 是高塔工具与简单物品，046 是权杖，051 是拆解台那台机器，104 是那个食物，114 是能吃能摆的那一块，
+     * 其余空号是 {@link ModExperimentItems#placeholders()} 补的占位物品
+     *
+     * <p>图标用暮色森林的试验物品 115，没装暮色森林时退化成试验物品 046
+     *
+     * <p>栏目位置靠 {@code withTabsBefore} 钉在主栏目的后面：NeoForge 给创造栏排序时，没写
+     * {@code tabsBefore}/{@code tabsAfter} 的栏目统一按注册名做字母序（见 {@code CreativeModeTabRegistry}），
+     * 于是别的模组的栏目会插到本模组两个栏目中间，注册先后在这里不算数
+     */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXPERIMENT_ITEMS = TABS.register("experiment_items",
+        () -> CreativeModeTab.builder()
+            .title(Component.translatable("itemGroup.dawnduskterminal.experiment_items"))
+            .withTabsBefore(DawnDuskTerminal.id("main"))
+            .icon(() -> fallback(foreignItem("twilightforest:experiment_115"),
+                ModItems.CARMINITE_MOLYBDENUM_REACTOR_STAFF.get()))
+            .displayItems((params, output) -> {
+                SortedMap<Integer, ItemLike> sequence = new TreeMap<>();
+                sequence.put(1, ModItems.EXPERIMENT_001.get());
+                ModExperimentItems.placeholders().forEach((number, item) -> sequence.put(number, item.get()));
+                sequence.put(33, ModExperimentItems.EXPERIMENT_033.get());
+                sequence.put(34, ModExperimentItems.EXPERIMENT_034.get());
+                sequence.put(37, ModExperimentItems.EXPERIMENT_037.get());
+                sequence.put(38, ModExperimentItems.EXPERIMENT_038.get());
+                sequence.put(39, ModExperimentItems.EXPERIMENT_039.get());
+                sequence.put(40, ModExperimentItems.EXPERIMENT_040.get());
+                sequence.put(41, ModExperimentItems.EXPERIMENT_041.get());
+                sequence.put(42, ModExperimentItems.EXPERIMENT_042.get());
+                sequence.put(46, ModItems.CARMINITE_MOLYBDENUM_REACTOR_STAFF.get());
+                sequence.put(51, ModItems.EXPERIMENT_051.get());
+                sequence.put(104, ModItems.EXPERIMENT_104.get());
+                sequence.put(114, ModItems.EXPERIMENT_114.get());
+                sequence.forEach((number, item) -> accept(output, item));
+                acceptForeignItem(output, "twilightforest:experiment_115");
+            })
+            .build());
+
+    /** 取别的模组的物品，取不到时给空栈：代码里只用字符串 ID 引用暮色森林，缺 jar 也要能起 */
+    private static ItemStack foreignItem(String id) {
+        Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(id));
+        return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+    }
+
+    private static void acceptForeignItem(CreativeModeTab.Output output, String id) {
+        ItemStack stack = foreignItem(id);
+        if (!stack.isEmpty()) {
+            output.accept(stack);
         }
-        output.accept(block);
+    }
+
+    private static ItemStack fallback(ItemStack stack, ItemLike backup) {
+        return stack.isEmpty() ? new ItemStack(backup) : stack;
     }
 
     private static void accept(CreativeModeTab.Output output, ItemLike item) {

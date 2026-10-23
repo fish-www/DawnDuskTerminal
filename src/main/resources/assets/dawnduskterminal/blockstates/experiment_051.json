@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "active=false": {
+      "model": "dawnduskterminal:block/experiment_051"
+    },
+    "active=true": {
+      "model": "dawnduskterminal:block/experiment_051_active"
+    }
+  }
+}

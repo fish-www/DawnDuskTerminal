@@ -1,0 +1,6 @@
+{
+  "parent": "dawnduskterminal:block/experiment_114_4_8",
+  "textures": {
+    "top_2": "twilightforest:block/experiment115/experiment115_sprinkle"
+  }
+}

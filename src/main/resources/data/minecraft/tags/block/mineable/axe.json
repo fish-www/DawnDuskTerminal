@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "dawnduskterminal:mounted_towerwood",
-    "dawnduskterminal:encased_towerbeam"
+    "dawnduskterminal:encased_towerbeam",
+    "dawnduskterminal:experiment_001",
+    "dawnduskterminal:experiment_051"
   ]
 }

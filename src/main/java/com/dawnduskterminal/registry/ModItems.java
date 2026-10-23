@@ -4,6 +4,7 @@ import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.item.CanocanItem;
 import com.dawnduskterminal.item.CarminiteGhastMeatItem;
 import com.dawnduskterminal.item.CarminiteStaffItem;
+import com.dawnduskterminal.item.Experiment114Item;
 import com.dawnduskterminal.item.GhastPaintingItem;
 import com.dawnduskterminal.item.ScarletMolybdArmorItem;
 import net.minecraft.world.food.FoodProperties;
@@ -141,6 +142,61 @@ public final class ModItems {
         "scarlet_molybd_boots", ArmorItem.Type.BOOTS);
 
     public static final DeferredItem<BlockItem> CHRONO_CRUST = ITEMS.registerSimpleBlockItem(ModBlocks.CHRONO_CRUST);
+
+    public static final DeferredItem<BlockItem> EXPERIMENT_001 = ITEMS.registerSimpleBlockItem(ModBlocks.EXPERIMENT_001);
+
+    /** 试验物品 051：拆解台那台机器的物品形态，放下来就是 {@link ModBlocks#EXPERIMENT_051} */
+    public static final DeferredItem<BlockItem> EXPERIMENT_051 = ITEMS.registerSimpleBlockItem(ModBlocks.EXPERIMENT_051);
+
+    /**
+     * 试验物品 104 一口的数值：10 与 0.6，也就是 10 点饥饿、饱食度 12.0，等于两块烤马铃薯
+     * （一块烤马铃薯是 5 与 0.6，即 5 点饥饿、饱食度 6.0）
+     *
+     * <p>一个 104 能吃两口，两口合起来 20 点饥饿、饱食度 24.0，等于四块烤马铃薯
+     */
+    private static final FoodProperties EXPERIMENT_104_BITE = new FoodProperties.Builder()
+        .nutrition(10)
+        .saturationModifier(0.6F)
+        .build();
+
+    /**
+     * 试验物品 104 的半块：第二口，嚼完东西就没了
+     *
+     * <p>必须写在 {@link #EXPERIMENT_104} 前面：104 的食物属性在注册回调里现取半块的物品栈
+     * （{@code usingConvertsTo}），那时半块得已经在注册表里，而 {@code DeferredRegister} 是照插入顺序注册的
+     */
+    public static final DeferredItem<Item> EXPERIMENT_104_HALF = ITEMS.register(
+        "experiment_104_half",
+        () -> new Item(new Item.Properties().stacksTo(1).food(EXPERIMENT_104_BITE)));
+
+    /**
+     * 试验物品 104：一个能吃两口，不可堆叠
+     *
+     * <p>第一口把剩下那半换成 {@link #EXPERIMENT_104_HALF}：{@code usingConvertsTo} 与原版蜂蜜瓶换玻璃瓶
+     * 走同一条路（{@code Player#eat} 里换栈），第二口连半块一起嚼掉
+     */
+    public static final DeferredItem<Item> EXPERIMENT_104 = ITEMS.register(
+        "experiment_104",
+        () -> new Item(new Item.Properties().stacksTo(1).food(new FoodProperties.Builder()
+            .nutrition(10)
+            .saturationModifier(0.6F)
+            .usingConvertsTo(EXPERIMENT_104_HALF)
+            .build())));
+
+    /**
+     * 试验物品 114：能吃能摆
+     *
+     * <p>食物数值 32 与 0.3 就是 8 份暮色森林试验物品 115（一份 4 与 0.3），摆下来的那一块每片也是 4 与 0.3，
+     * 所以吃一个 114、吃光一块摆着的 114、吃 8 个 115 是同一件事
+     */
+    public static final DeferredItem<Experiment114Item> EXPERIMENT_114 = ITEMS.register(
+        "experiment_114",
+        () -> new Experiment114Item(
+            ModBlocks.EXPERIMENT_114.get(),
+            new Item.Properties().food(new FoodProperties.Builder()
+                .nutrition(Experiment114Item.NUTRITION)
+                .saturationModifier(Experiment114Item.SATURATION_MODIFIER)
+                .build())));
 
     private static DeferredItem<ScarletMolybdArmorItem> armor(String name, ArmorItem.Type type) {
         return ITEMS.register(name, () -> new ScarletMolybdArmorItem(

@@ -4,6 +4,7 @@ import com.dawnduskterminal.DawnDuskTerminal;
 import com.dawnduskterminal.client.model.MountedTowerWoodModel;
 import com.dawnduskterminal.registry.ModEntities;
 import com.dawnduskterminal.registry.ModFluids;
+import com.dawnduskterminal.registry.ModMenus;
 import com.dawnduskterminal.registry.ModParticles;
 import com.dawnduskterminal.registry.ModScorchingTwilight;
 import com.dawnduskterminal.registry.ModTerrainBlocks;
@@ -21,6 +22,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 
@@ -36,6 +38,17 @@ public final class DdtClient {
         modBus.addListener(TowerGhastRenderer::onRegisterRenderers);
         modBus.addListener(DdtClient::onRegisterEntityRenderers);
         modBus.addListener(DdtClient::onRegisterParticleProviders);
+        modBus.addListener(DdtClient::registerMenuScreens);
+    }
+
+    /**
+     * 试验物品 051 的界面：菜单类型在 {@code ModMenus}，屏幕在这里挂上去
+     *
+     * <p>只有客户端才认这个事件，所以挂在 {@link #init} 里——那一层已经由主类按 {@code FMLEnvironment.dist}
+     * 挡住，服务端不会走到这里
+     */
+    private static void registerMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenus.EXPERIMENT_051.get(), Experiment051Screen::new);
     }
 
     private static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {

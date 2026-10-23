@@ -17,6 +17,7 @@
     "MineshaftHeightMixin",
     "NoiseChunkTemperatureMixin",
     "PaintingVariantGuardMixin",
+    "CraftingMenuMixin",
     "GameTestChunkWaitMixin"
   ],
   "client": [
