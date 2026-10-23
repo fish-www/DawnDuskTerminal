@@ -19,7 +19,7 @@
     "there": {
       "trigger": "dawnduskterminal:line_param",
       "conditions": {
-        "max": -0.6
+        "max": -0.8
       }
     }
   }
