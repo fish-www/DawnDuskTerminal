@@ -11,6 +11,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -127,5 +128,14 @@ public class Experiment051Block extends BaseEntityBlock {
     @Override
     protected boolean hasAnalogOutputSignal(BlockState state) {
         return true;
+    }
+
+    /**
+     * 比较器读容器填充度。{@code BlockBehaviour} 的默认实现固定返回 0，光声明
+     * {@link #hasAnalogOutputSignal} 只能让比较器认为这个方块有输出，读数仍然是空的
+     */
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        return AbstractContainerMenu.getRedstoneSignalFromBlockEntity(level.getBlockEntity(pos));
     }
 }
