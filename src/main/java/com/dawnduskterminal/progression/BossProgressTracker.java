@@ -22,11 +22,10 @@ public final class BossProgressTracker {
             return;
         }
         BossProgress current = killer.getData(ModAttachments.BOSS_PROGRESS);
-        if (current.anyDefeated()) {
-            return;
-        }
+        boolean first = !current.anyDefeated();
+        // 三个 boss 各记一格。只在第一次击败时提示，三个标记本身都要留下
         killer.setData(ModAttachments.BOSS_PROGRESS, current.with(kind));
-        if (killer instanceof ServerPlayer serverPlayer) {
+        if (first && killer instanceof ServerPlayer serverPlayer) {
             serverPlayer.displayClientMessage(Component.translatable("message.dawnduskterminal.gate_unlocked"), false);
         }
     }
